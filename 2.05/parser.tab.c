@@ -1829,17 +1829,17 @@ yyreduce:
 
   case 53:
 #line 243 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment1\n"); if(TREE_BUILDING) (yyval.node) = create_Declaration_AssignementNode ((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment1\n");  if(TREE_BUILDING) (yyval.node) = create_Declaration_AssignementNode ((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");;}
     break;
 
   case 54:
 #line 244 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment2\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment2\n");  if(TREE_BUILDING) (yyval.node) = create_Declaration_AssignementNode ((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));;}
     break;
 
   case 55:
 #line 245 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment3\n"); if(TREE_BUILDING) (yyval.node) = create_Declaration_AssignementNode ((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment3\n");  if(TREE_BUILDING) (yyval.node) = create_Declaration_AssignementNode ((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");;}
     break;
 
   case 56:
@@ -2421,7 +2421,7 @@ struct TreeNode * create_WhileNode(enum nodeType type, struct TreeNode * conditi
 ////////////////////  declaration_and_assignment PRODUCTION  ///////////////////
 
 struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declaration, struct TreeNode * expr){
-
+  printf("%u\n", declaration -> nodeType);
   if (declaration -> nodeType == DclN){
 
     // Declaration and Assignement node
@@ -2583,6 +2583,9 @@ struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declarati
     return newTreeNode;
 
 
+  }
+  else if (declaration -> nodeType == DclAsgn){
+    printf("Qui\n");
   }
   else{
     printf("%s create_Declaration_AssignementNode - incorrect call. Declaration TreeNode type expected. Type found: %u.\n", ErrorMsg(), declaration -> nodeType);

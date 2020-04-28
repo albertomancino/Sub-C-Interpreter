@@ -1,9 +1,8 @@
 int main(){
 
-  char x[] = "Hello World";
-  char y[] = {'a','A'};
-  char z[] = {"ciao"};
-  //--ST
+  //int x[] = y[] = z[] = {1,2,3};
+  int x = y = z = 2;
+  //printf("%d %d %d\n", sizeof(x), sizeof(y),sizeof(z));
 
-  printf("%s\n", z);
+  return 0;
 }

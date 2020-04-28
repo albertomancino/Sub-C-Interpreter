@@ -240,9 +240,9 @@ multi_dec
 ;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------
 declaration_and_assignment
-: declaration EQUAL expr                                                        {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment1\n"); if(TREE_BUILDING) $$ = create_Declaration_AssignementNode ($1, $3); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
-| declaration_and_assignment EQUAL expr                                         {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment2\n");}//{if(TREE_BUILDING) $$ = create_Declaration_AssignementNode ($1, $3);}
-| declaration EQUAL array_inizializer                                           {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment3\n"); if(TREE_BUILDING) $$ = create_Declaration_AssignementNode ($1, $3); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
+: declaration EQUAL expr                                                        {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment1\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignementNode ($1, $3); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
+| declaration_and_assignment EQUAL expr                                         {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment2\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignementNode ($1, $3);}
+| declaration EQUAL array_inizializer                                           {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment3\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignementNode ($1, $3); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
 ;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -480,7 +480,7 @@ struct TreeNode * create_WhileNode(enum nodeType type, struct TreeNode * conditi
 ////////////////////  declaration_and_assignment PRODUCTION  ///////////////////
 
 struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declaration, struct TreeNode * expr){
-
+  printf("%u\n", declaration -> nodeType);
   if (declaration -> nodeType == DclN){
 
     // Declaration and Assignement node
@@ -642,6 +642,9 @@ struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declarati
     return newTreeNode;
 
 
+  }
+  else if (declaration -> nodeType == DclAsgn){
+    printf("Qui\n");
   }
   else{
     printf("%s create_Declaration_AssignementNode - incorrect call. Declaration TreeNode type expected. Type found: %u.\n", ErrorMsg(), declaration -> nodeType);
