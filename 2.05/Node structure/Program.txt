@@ -1,0 +1,17 @@
+NODO PROGRAM
+
+Ha una lista di puntatori a nodi funzione.
+  Lista composta da un puntatore al primo elemento ed un contatore degli elementi
+
+Ha una symbol table per le variabili globali
+
+Ho un integer che mi indica in quale indice delle lista si trova la funzione main
+
+Possibilmente ho una stringa che memorizza il nome del file
+
+ProgramNode* ProgramNode_Set (){
+  ProgramNode* prog;
+  prog = (ProgramNode*) malloc (sizeof(ProgramNode));
+  prog -> list = FunNodeList_Set();
+  return prog;
+}
