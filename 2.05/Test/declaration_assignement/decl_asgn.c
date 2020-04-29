@@ -19,8 +19,10 @@ int main(){
   int  q[]   = {a,'\n',10 + 10 - (10 * 10 / 10 % 10),++c,f--,1&&0,1||0};
   char r[]   = "Hello World";
   char s[11] = "Hello World";
-
-  //printf("%s\n", r);
+  int  t;
+  char u;
+  int v = t = u = ++d;
+  
   --ST
 
   return 0;

@@ -182,6 +182,8 @@ void PrintDepth ();
 void PrintTreeNodeList (struct TreeNodeList*);
 char * VarTypeString(enum Type);
 void PrintActualST(ProgramNode *);
+char * NodeTypeString(struct TreeNode *);
+char * ExprTypeString(struct TreeNode *);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////// ERROR MESSAGES //////////////////////////////////////////////

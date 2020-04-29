@@ -323,7 +323,7 @@ int isAssignable(struct TreeNode * node){
       }
     }
     else{
-      printf("%s expression is not assignable.\n", ErrorMsg());
+      printf("%s %s expression is not assignable.\n", ErrorMsg(), ExprTypeString(node));
       exit(EXIT_FAILURE);
       return 0;
     }
@@ -1484,7 +1484,7 @@ void PrintTreeNodeList (struct TreeNodeList* list){
     support = support->next;
   }
 }
-char* VarTypeString(enum Type type){
+char * VarTypeString(enum Type type){
 
   if (type == 0){
     return "INT";
@@ -1507,4 +1507,86 @@ void PrintActualST(ProgramNode * prog){
   struct SymbolTable * ST = actualScope -> node.ST;
   // print ST
   SymbolTable_Print(ST);
+}
+char * NodeTypeString(struct TreeNode * node){
+
+  switch (node -> nodeType){
+    case Ukn:     return "uknown";
+            break;
+    case DclN:    return "declaration";
+            break;
+    case ArgD:    return "arguments declaration";
+            break;
+    case DclAsgn: return "declaration and assignment";
+            break;
+    case Expr:    return ExprTypeString(node);
+            break;
+    case Asgn:    return "assignment";
+            break;
+    case Return:  return "return";
+            break;
+    case ExprLst: return "expression list";
+            break;
+    case FunCall: return "function call";
+            break;
+    case ArgLst:  return "arguments list";
+            break;
+    case Scope:   return "scope";
+            break;
+    case If:      return "if";
+            break;
+    case Else:    return "else";
+            break;
+    case While:   return "while";
+            break;
+    default:      return "unexpected";
+            break;
+  }
+}
+char * ExprTypeString(struct TreeNode * node){
+
+  if (node -> nodeType == Expr){
+
+    switch (node -> node.Expr -> exprType){
+      case NUM:     return "integer";
+              break;
+      case ID:    return "identifier";
+              break;
+      case VEC:    return "array element";
+              break;
+      case STR: return "string";
+              break;
+      case C:    return "character";
+              break;
+      case FC:    return "function call";
+              break;
+      case SUM:  return "sum";
+              break;
+      case DIF: return "difference";
+              break;
+      case TIM: return "multiplication";
+              break;
+      case DIV:  return "division";
+              break;
+      case MOD:  return "modulus";
+              break;
+      case RND:   return "parathesis";
+              break;
+      case CMP:      return "comparison";
+              break;
+      case PI:    return "pre increment";
+              break;
+      case PD:   return "pre decrement";
+              break;
+      case IP:   return "post increment";
+              break;
+      case DP:   return "post decrement";
+              break;
+    }
+
+  }
+  else{
+    printf("%s ExprTypeString - incorrect call. Expr TrenNode type expected. Type found: %u.\n", ErrorMsg(), node -> nodeType);
+    exit(EXIT_FAILURE);
+  }
 }

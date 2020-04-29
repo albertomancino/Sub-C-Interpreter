@@ -240,9 +240,9 @@ multi_dec
 ;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------
 declaration_and_assignment
-: declaration EQUAL expr                                                        {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment1\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignementNode ($1, $3); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
-| declaration_and_assignment EQUAL expr                                         {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment2\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignementNode ($1, $3);}
-| declaration EQUAL array_inizializer                                           {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment3\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignementNode ($1, $3); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
+: declaration EQUAL expr                                                        {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment1\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
+| declaration EQUAL array_inizializer                                           {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment3\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
+| declaration_and_assignment EQUAL expr                                         {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment2\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3);}
 ;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -251,8 +251,8 @@ declaration
 ;
 
 assignment
-: expr EQUAL expr                                                               {if(P_DEBUGGING==1) printf("BISON: assignment1 found\n"); if(TREE_BUILDING) $$ = create_AssignementNode(MainNode, $1, $3); if(TREE_DEBUGGING) printf("TREE: Assignment node created\n")}
-| assignment EQUAL expr                                                         {if(P_DEBUGGING==1) printf("BISON: assignment2 found\n"); if(TREE_BUILDING) $$ = create_AssignementNode(MainNode, $1, $3); if(TREE_DEBUGGING) printf("TREE: Multiple assignment node created\n")}
+: expr EQUAL expr                                                               {if(P_DEBUGGING==1) printf("BISON: assignment1 found\n"); if(TREE_BUILDING) $$ = create_AssignmentNode(MainNode, $1, $3); if(TREE_DEBUGGING) printf("TREE: Assignment node created\n")}
+| assignment EQUAL expr                                                         {if(P_DEBUGGING==1) printf("BISON: assignment2 found\n"); if(TREE_BUILDING) $$ = create_AssignmentNode(MainNode, $1, $3); if(TREE_DEBUGGING) printf("TREE: Multiple assignment node created\n")}
 | expr EQUAL array_inizializer                                                  {if(P_DEBUGGING==1) printf("BISON: assignment3 found\n");} // todo ma serve??
 ;
 
@@ -331,6 +331,7 @@ variable
 
   int yyerror (const char *error) {
     printf ("%s unexpected expression.\n", ErrorMsg());
+    exit(EXIT_FAILURE);
     return 0;
   }
 
@@ -479,11 +480,11 @@ struct TreeNode * create_WhileNode(enum nodeType type, struct TreeNode * conditi
 
 ////////////////////  declaration_and_assignment PRODUCTION  ///////////////////
 
-struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declaration, struct TreeNode * expr){
-  printf("%u\n", declaration -> nodeType);
+struct TreeNode * create_Declaration_AssignmentNode(struct TreeNode * declaration, struct TreeNode * expr){
+
   if (declaration -> nodeType == DclN){
 
-    // Declaration and Assignement node
+    // Declaration and Assignment node
     struct TreeNode * newTreeNode;
 
     // one expression to assign
@@ -501,8 +502,8 @@ struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declarati
 
         // declaration must be always executed, in order to add variables to the symbol table
         exec_DclN(MainNode, declaration);
-        // creating the assignement node
-        struct TreeNode * assignmentNode = create_AssignementNode(MainNode, identifierNode, expr);
+        // creating the assignment node
+        struct TreeNode * assignmentNode = create_AssignmentNode(MainNode, identifierNode, expr);
 
         // Declaration and Assignment node memory allocation
         newTreeNode = TreeNodeInitialization (); // generic Tree Node memory space allocation
@@ -510,7 +511,7 @@ struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declarati
         newTreeNode -> nodeType = DclAsgn;
         // linking declaration node
         TreeNodeList_Add(newTreeNode -> child_list, declaration);
-        // linking assignement node
+        // linking assignment node
         TreeNodeList_Add(newTreeNode -> child_list, assignmentNode);
       }
       else if (decl_type == INT_V_ || decl_type == CHAR_V_){
@@ -531,7 +532,7 @@ struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declarati
             // adding end string character
             character = create_ExprNode(C, 0, &end_string, NULL, NULL, 0);
             expr_list = create_Expr_ListNode(expr_list, character);
-            newTreeNode = create_Declaration_AssignementNode(declaration, expr_list);
+            newTreeNode = create_Declaration_AssignmentNode(declaration, expr_list);
           }
           // error: int string
           else if(decl_type == INT_V_){
@@ -558,7 +559,7 @@ struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declarati
 
       // an expr list with a single string is managed as a simple string
       if (init_dimension == 1 && expr -> child_list -> first -> node.Expr -> exprType == STR){
-        newTreeNode = create_Declaration_AssignementNode(declaration, expr -> child_list -> first);
+        newTreeNode = create_Declaration_AssignmentNode(declaration, expr -> child_list -> first);
       }
       else{
 
@@ -585,7 +586,7 @@ struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declarati
         if (var_dimension == 1){
           // considers only the first expression in the expression list
           printf("Variabile: %s con valore %d\n", TreeNode_Identifier(declaration), Expr_toInt(MainNode, expr -> child_list -> first));
-          newTreeNode = create_Declaration_AssignementNode(declaration, expr -> child_list -> first);
+          newTreeNode = create_Declaration_AssignmentNode(declaration, expr -> child_list -> first);
         }
         // array
         else if (var_dimension > 1){
@@ -610,7 +611,7 @@ struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declarati
           if (var_dimension < init_dimension) assignments = var_dimension;
           else assignments = init_dimension;
 
-          // loop for craating the assignement statemets
+          // loop for craating the assignment statemets
           for (int i = 0; i < assignments; i++){
 
             // skipping to the next expression in the expression list
@@ -621,21 +622,21 @@ struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declarati
             // array element expr node
             struct TreeNode * variable = create_ExprNode(VEC, 0, identifier, index, NULL, 0);
 
-            // creating the assignement node
-            struct TreeNode * assignmentNode = create_AssignementNode(MainNode, variable, value);
-            // linking assignement node
+            // creating the assignment node
+            struct TreeNode * assignmentNode = create_AssignmentNode(MainNode, variable, value);
+            // linking assignment node
             TreeNodeList_Add(newTreeNode -> child_list, assignmentNode);
           }
 
         }
         else{
-          printf("%s create_Declaration_AssignementNode - unexpected dimension: %d\n", ErrorMsg(), var_dimension);
+          printf("%s create_Declaration_AssignmentNode - unexpected dimension: %d\n", ErrorMsg(), var_dimension);
           exit(EXIT_FAILURE);
         }
       }
     }
     else{
-          printf("%s create_Declaration_AssignementNode - incorrect call. Expr TreeNode type expected. Type found: %u.\n", ErrorMsg(), expr -> nodeType);
+          printf("%s create_Declaration_AssignmentNode - incorrect call. Expr TreeNode type expected. Type found: %u.\n", ErrorMsg(), expr -> nodeType);
           exit(EXIT_FAILURE);
         }
 
@@ -643,20 +644,28 @@ struct TreeNode * create_Declaration_AssignementNode(struct TreeNode * declarati
 
 
   }
+  // subsequent assignment
   else if (declaration -> nodeType == DclAsgn){
-    printf("Qui\n");
+
+    // previous assignment
+    struct TreeNode * prev_assignment = declaration -> child_list -> first -> next;
+
+    prev_assignment = create_AssignmentNode(MainNode, prev_assignment, expr);
+
+    return declaration;
   }
   else{
-    printf("%s create_Declaration_AssignementNode - incorrect call. Declaration TreeNode type expected. Type found: %u.\n", ErrorMsg(), declaration -> nodeType);
+    printf("%s create_Declaration_AssignmentNode - incorrect call. Declaration TreeNode type expected. Type found: %u.\n", ErrorMsg(), declaration -> nodeType);
     exit(EXIT_FAILURE);
   }
 }
 
 ////////////////////  assignment PRODUCTION  ///////////////////////////////////
 
-struct TreeNode * create_AssignementNode(struct ProgramNode * prog, struct TreeNode * leftOp, struct TreeNode * rightOp){
+struct TreeNode * create_AssignmentNode(struct ProgramNode * prog, struct TreeNode * leftOp, struct TreeNode * rightOp){
 
   if (leftOp -> nodeType == Expr && rightOp -> nodeType == Expr){
+
     // generic Tree Node memory space allocation
     struct TreeNode * newTreeNode = TreeNodeInitialization ();
     // linking specific node to generic Tree Node
@@ -685,7 +694,7 @@ struct TreeNode * create_AssignementNode(struct ProgramNode * prog, struct TreeN
   }
   // incorrect call
   else{
-    printf("line:%d %serror%s - create_AssignementNode: incorrect call\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
+    printf("line:%d %serror%s - create_AssignmentNode: incorrect call\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
     exit(EXIT_FAILURE);
   }
 
@@ -694,7 +703,7 @@ struct TreeNode * create_AssignementNode(struct ProgramNode * prog, struct TreeN
 
 ////////////////////  declaration PRODUCTION  //////////////////////////////////
 /*
-*   flag parameter: 1 for declaration, 0 for declaration and assignement
+*   flag parameter: 1 for declaration, 0 for declaration and assignment
 */
 struct TreeNode * create_DeclarationNode(enum Type type, struct TreeNode * var){
 
@@ -1487,14 +1496,14 @@ void Check_ComparisonConcistency (ProgramNode * prog, struct TreeNode * comparis
 
 void Check_AsgnConcistency(ProgramNode * prog, struct TreeNode * leftOp, struct TreeNode * rightOp){
 
-
   enum exprType leftOp_type = leftOp -> node.Expr -> exprType;
   enum exprType rightOp_type = rightOp -> node.Expr -> exprType;
 
-  char * leftOp_identifier = TreeNode_Identifier(leftOp);
-
   // Only valid variables and vectors elements are assignable
   if (isAssignable(leftOp)){
+
+    char * leftOp_identifier = TreeNode_Identifier(leftOp);
+
     // todo se la chiamata di isAssignable funziona bene è da togliere dato che fanno la stessa cosa
     /*
 
@@ -1561,8 +1570,6 @@ void Check_AsgnConcistency(ProgramNode * prog, struct TreeNode * leftOp, struct 
     }
   }
 
-    // todo rimuovere se non ritenuto corretto
-
     // Char assignment concistency
     if (IsCostant(rightOp)){
 
@@ -1576,20 +1583,19 @@ void Check_AsgnConcistency(ProgramNode * prog, struct TreeNode * leftOp, struct 
 
     // todo: gestire il caso in cui il valore deriva dal contenuto di una espressione per esempio con parentesi
     // dovrebbe essere già gestito perchè con le stringhe non si possono fare operazioni, ma è da verificare
+
+    if(Multiple_Modifications(rightOp, leftOp_identifier)){
+      printf("%s multiple unsequenced modifications to '%s'\n", WarnMsg(), leftOp_identifier);
+    }
   }
   else{
 
     printf("%s: expression is not assignable\n",ErrorMsg());
     exit(EXIT_FAILURE);
   }
-
-  if(Multiple_Modifications(rightOp, leftOp_identifier)){
-    printf("%s multiple unsequenced modifications to '%s'\n", WarnMsg(), leftOp_identifier);
-
-  }
 }
 /*
-*   flag parameter: 1 for declaration, 0 for declaration and assignement
+*   flag parameter: 1 for declaration, 0 for declaration and assignment
 */
 void Check_DeclConcistency(struct TreeNode * variable){
 

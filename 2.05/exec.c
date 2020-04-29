@@ -547,12 +547,11 @@ void exec_DclN (ProgramNode * prog, struct TreeNode * node){
   }
 }
 
-///////////////////////////  ASSIGNEMENT   /////////////////////////////////////
+///////////////////////////  ASSIGNMENT   /////////////////////////////////////
 /*
 *   Given an assignment node change the value stored in the SymbolTable_Node for the variables involved
 */
 void exec_Asgn (ProgramNode * prog, struct TreeNode * node){
-
   // check if the node is an assignmentNode
   if (node -> nodeType == Asgn){
 
@@ -575,14 +574,14 @@ void exec_Asgn (ProgramNode * prog, struct TreeNode * node){
   }
 }
 
-///////////////////////////  DECLARATION AND ASSIGNEMENT  //////////////////////
+///////////////////////////  DECLARATION AND ASSIGNMENT  //////////////////////
 /*
-*   Given a declaration node performs the assignement
+*   Given a declaration node performs the assignment
 */
 void exec_DclN_Asgn (struct TreeNode * node){
 
   if (node -> nodeType == DclAsgn){
-    // the first assignement node is the second node in the child list
+    // the first assignment node is the second node in the child list
     struct TreeNode * assignemnt = node -> child_list -> first -> next;
 
     // node -> child_list -> elements - 1 cause the first node in the list is the declaration node
