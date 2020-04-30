@@ -597,7 +597,27 @@ void exec_DclN_Asgn (struct TreeNode * node){
 
 }
 
+///////////////////////////  DECLARATION   /////////////////////////////////////
 
+void exec_Multi_DclN (struct TreeNode * node){
+
+  if (node -> nodeType == MultiDc){
+
+    for (int i = 0; i < node -> child_list -> elements; i++){
+      struct TreeNode * childNode;
+      if ( i == 0) childNode = node -> child_list -> first;
+      else childNode = childNode -> next;
+
+      if (childNode -> nodeType == DclAsgn){
+        exec_DclN_Asgn(childNode);
+      }
+    }
+  }
+  else{
+    printf("%s exec_Multi_DclN - incorrect call. Multi declaraton Tree Node type expected. Type found %s.\n", ErrorMsg(), NodeTypeString(node));
+    exit(EXIT_FAILURE);
+  }
+}
 
 // todo rimuovere perchè dovrebbe essere ben sostituito da Retrieve Array index
 /*

@@ -1712,7 +1712,7 @@ yyreduce:
 
   case 34:
 #line 182 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                    if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                          if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(EXEC && Check_Main()) exec_Multi_DclN((yyvsp[(1) - (2)].node));;}
     break;
 
   case 35:
