@@ -506,7 +506,6 @@ void exec_Expression (struct TreeNode * node){
 void exec_DclN (ProgramNode * prog, struct TreeNode * node){
   // CHECK: TreeNode must be a Declaration Node
   if (node -> nodeType == DclN){
-
     char * variable_identifier = TreeNode_Identifier(node);
     // retrieve the actual scope
     struct TreeNode * actualScope = Get_ActualScope(prog);

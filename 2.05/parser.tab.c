@@ -1712,7 +1712,7 @@ yyreduce:
 
   case 34:
 #line 182 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi multi declaration statement found\n");                    if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                    if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node));;}
     break;
 
   case 35:
@@ -1794,27 +1794,27 @@ yyreduce:
 
   case 47:
 #line 236 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi declaration1 found\n"); if(TREE_BUILDING) (yyval.node) = create_multiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration1 found\n");  (yyval.node) = create_multiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 1);;}
     break;
 
   case 48:
 #line 237 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi declaration3 found\n"); if(TREE_BUILDING) (yyval.node) = create_multiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration2 found\n");  (yyval.node) = create_multiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 1);;}
     break;
 
   case 49:
 #line 238 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi declaration3 found\n"); if(TREE_BUILDING) (yyval.node) = create_multiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration3 found\n");  (yyval.node) = create_multiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 0);;}
     break;
 
   case 50:
 #line 239 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi declaration3 found\n"); if(TREE_BUILDING) (yyval.node) = create_multiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration4 found\n");  (yyval.node) = create_multiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 0);;}
     break;
 
   case 51:
 #line 240 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi declaration5 found\n"); if(TREE_BUILDING) (yyval.node) = create_multiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration5 found\n");  (yyval.node) = create_multiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 1);;}
     break;
 
   case 52:
@@ -2301,7 +2301,7 @@ struct TreeNode * create_ScopeNode(){
 
 ////////////////////  expr_list PRODUCTION  ////////////////////////////////////
 
-struct TreeNode * create_Expr_ListNode(struct TreeNode *expr_list, struct TreeNode *expr){
+struct TreeNode * create_Expr_ListNode(struct TreeNode * expr_list, struct TreeNode * expr){
 
   if (expr_list == NULL){ // first element of the list
 
@@ -2312,7 +2312,7 @@ struct TreeNode * create_Expr_ListNode(struct TreeNode *expr_list, struct TreeNo
     return newTreeNode;
   }
   else{
-    TreeNodeList_Add(expr_list->child_list, expr);
+    TreeNodeList_Add(expr_list -> child_list, expr);
     return expr_list;
   }
 
@@ -2406,14 +2406,14 @@ struct TreeNode * create_WhileNode(enum nodeType type, struct TreeNode * conditi
 
 ////////////////////  multi declaration PRODUCTION  ////////////////////////////
 
-struct TreeNode * create_multiDeclaration(struct TreeNode * declaration, struct TreeNode * expr){
+struct TreeNode * create_multiDeclaration(struct TreeNode * declaration, struct TreeNode * expr, char flag){
 
   if (declaration -> nodeType == DclN){
-    printf("SI INIZIA CON UNA SEMPLICE DECLARATION\n" );
+
     // Multi declaration node
     struct TreeNode * newTreeNode = TreeNodeInitialization();
     // setting node type
-    newTreeNode -> nodeType = Multi;
+    newTreeNode -> nodeType = MultiDc;
     /*
     * linking the declaration node to the multi declaration node as first node
     * of the child list.
@@ -2439,11 +2439,11 @@ struct TreeNode * create_multiDeclaration(struct TreeNode * declaration, struct 
     return newTreeNode;
   }
   else if(declaration -> nodeType == DclAsgn){
-    printf("SI INIZIA CON UNA MANOVRATA DECLARATION E ASSIGNEMENT\n" );
+
     // Multi declaration node
     struct TreeNode * newTreeNode = TreeNodeInitialization();
     // setting node type
-    newTreeNode -> nodeType = Multi;
+    newTreeNode -> nodeType = MultiDc;
     /*
     * linking the declaration node to the multi declaration node as first node
     * of the child list.
@@ -2465,9 +2465,58 @@ struct TreeNode * create_multiDeclaration(struct TreeNode * declaration, struct 
 
     return newTreeNode;
   }
-  else if(declaration -> nodeType == Multi){
-    printf("SIAMO IN MULTI!\n");
+  else if(declaration -> nodeType == MultiDc){
+    /*
+    *   flag value its used to recognize a new declaration (flag = 1)
+    */
+    if (flag == 1){
+      // a new declaration node
+
+      // if the previous element was a simple declaration I have to execute it
+      if (declaration -> child_list  -> last -> nodeType == DclN){
+        exec_DclN(MainNode, declaration -> child_list  -> last);
+      }
+
+      // declaration type derives from the first declaration
+      enum Type declarationType;
+      struct TreeNode * firstDeclaration = declaration -> child_list -> first;
+      if (firstDeclaration -> nodeType == DclN){
+        declarationType = firstDeclaration -> node.DclN -> type;
+      }
+      else if (firstDeclaration -> nodeType == DclAsgn){
+        declarationType = firstDeclaration -> child_list -> first -> node.DclN -> type;
+      }
+
+      if (declarationType == INT_V_) declarationType = INT_;
+      else if (declarationType == CHAR_V_) declarationType = CHAR_;
+
+      if (expr -> node.Expr -> exprType == ID || expr -> node.Expr -> exprType == VEC){
+        struct TreeNode * newDeclaration = create_DeclarationNode(declarationType, expr);
+        TreeNodeList_Add(declaration -> child_list, newDeclaration);
+      }
+      else{
+        printf("%s create_multiDeclaration - unexpected variable. Type found %u.\n", ErrorMsg(), expr -> node.Expr -> exprType);
+        exit(EXIT_FAILURE);
+      }
+    }
+    /*
+    *   a new assignemnt linked to the previous declaration
+    */
+    else{
+      if(expr -> nodeType == Expr){
+        if (expr -> node.Expr -> exprType == ID){
+        }
+      }
+      struct TreeNode * lastDeclaration = declaration -> child_list -> last;
+      struct TreeNode * newDeclarationAssignment = create_Declaration_AssignmentNode(lastDeclaration, expr);
+      TreeNodeList_Rem(declaration -> child_list);
+      TreeNodeList_Add(declaration -> child_list, newDeclarationAssignment);
+    }
     return declaration;
+  }
+  else{
+    printf("%s create_multiDeclaration - incorrect call. Unexpected %s type node.\n", ErrorMsg(), NodeTypeString(declaration));
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -2477,7 +2526,6 @@ struct TreeNode * create_multiDeclaration(struct TreeNode * declaration, struct 
 struct TreeNode * create_Declaration_AssignmentNode(struct TreeNode * declaration, struct TreeNode * expr){
 
   if (declaration -> nodeType == DclN){
-
     // Declaration and Assignment node
     struct TreeNode * newTreeNode;
 
@@ -2577,13 +2625,12 @@ struct TreeNode * create_Declaration_AssignmentNode(struct TreeNode * declaratio
         }
 
         // single variable
-        if (var_dimension == 1){
+        if (decl_type == INT_ || decl_type == CHAR_){
           // considers only the first expression in the expression list
-          printf("Variabile: %s con valore %d\n", TreeNode_Identifier(declaration), Expr_toInt(MainNode, expr -> child_list -> first));
           newTreeNode = create_Declaration_AssignmentNode(declaration, expr -> child_list -> first);
         }
         // array
-        else if (var_dimension > 1){
+        else if (decl_type == INT_V_ || decl_type == CHAR_V_){
 
           // declaration must be always executed, in order to add variables to the symbol table
           exec_DclN(MainNode, declaration);

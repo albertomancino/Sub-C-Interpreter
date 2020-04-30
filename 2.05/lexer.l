@@ -71,6 +71,7 @@ char        {if(L_DEBUGGING==1) printf("%d FLEX: CHAR TYPE found\n",yylineno);  
 {ILcomment} {/*InLine Comment*/}
 "--ST"      {if(L_DEBUGGING==1) printf("%d FLEX: SYMBOL TABLE print request found\n",yylineno); PrintActualST(MainNode);}
 "--LINE"    {if(L_DEBUGGING==1) printf("%d FLEX: LINE print request found\n",yylineno); printf("line: %d\n", yylineno);}
+"--PT"      {if(L_DEBUGGING==1) printf("%d FLEX: TREE print request found\n",yylineno); PrintTree(MainNode);}
 %%
 
 void copyID(){

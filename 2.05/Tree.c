@@ -914,9 +914,8 @@ void TreeNodeList_Add (struct TreeNodeList * list, struct TreeNode * newElem){
 void TreeNodeList_Rem (struct TreeNodeList * list){
 
   if (list -> elements==0){
-
-  printf("TREE: ");
-  printf(" ERROR! LIST IS EMPTY.\n");
+    printf("%s TreeNodeList_Rem - Tree Node list is empty!\n", ErrorMsg());
+    exit(EXIT_FAILURE);
   }
 
   else{
@@ -1326,6 +1325,7 @@ void PrintTree (ProgramNode* prog){
 
   FunNode* support;
 
+  // print all the functions
   printf("TREE: Program with %d functions\n",prog -> function_list -> elements);
   if(prog -> function_list -> elements == 0) printf("WARNING: no function found in this C program\n");
 
@@ -1336,6 +1336,7 @@ void PrintTree (ProgramNode* prog){
       else{
         support = support -> next;
       }
+      // print the single function
       printf("TREE: Function Node - function number %d identifier %s with type %s\n",i+1,support->funName,PrintVarType(support->funType));
       PrintTreeNode (support -> function_scope -> child_list);
     }
@@ -1348,8 +1349,7 @@ void PrintTreeNode (struct TreeNodeList* main_list){
     }
 
   struct TreeNode* support;
-
-  for (int i=0; i<main_list -> elements; i++){
+  for (int i = 0; i < main_list -> elements; i++){
     if (i==0){
       treeDepth ++;
       support = main_list -> first;
@@ -1357,10 +1357,12 @@ void PrintTreeNode (struct TreeNodeList* main_list){
     else{
       support = support -> next;
     }
-
+    //printf("DO STANN L PROBLEM\n");
+    //printf("MA MANCO QUESTO? %u\n", support -> nodeType);
+    //printf("PROSSIMO NODE DI TIPO %s\n", NodeTypeString(support));
     PrintDepth ();
     printf("TREE: Tree Node - ");
-    PrintTreeNodeType(support->nodeType, support);
+    PrintTreeNodeType(support -> nodeType, support);
     printf(".\n");
 
     PrintTreeNode(support->child_list);
@@ -1380,7 +1382,7 @@ void PrintTreeNodeType (unsigned int type, struct TreeNode* Tnode){
             break;
     case ArgD: printf("arguments declaration");
             break;
-    case DclAsgn: printf("declaration and assignment of %s",Tnode->child_list->first->node.DclN->identifier);
+    case DclAsgn: printf("declaration and assignment of %s", Tnode->child_list->first->node.DclN->identifier);
             break;
     case Expr: PrintExprType (Tnode->node.Expr->exprType, Tnode);
             break;
@@ -1402,6 +1404,9 @@ void PrintTreeNodeType (unsigned int type, struct TreeNode* Tnode){
             break;
     case While:printf("While");
             break;
+    case MultiDc:printf("Multi declaration");
+            break;
+
   }
 }
 void PrintExprType (unsigned int type, struct TreeNode* Tnode){
@@ -1539,7 +1544,9 @@ char * NodeTypeString(struct TreeNode * node){
             break;
     case While:   return "while";
             break;
-    case Multi:   return "multi expressions";
+    case MultiDc:   return "multi declaration";
+            break;
+    case MultiAs:   return "multi assignment";
             break;
     default:      return "unexpected";
             break;
