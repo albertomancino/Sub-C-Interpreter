@@ -1539,6 +1539,8 @@ char * NodeTypeString(struct TreeNode * node){
             break;
     case While:   return "while";
             break;
+    case Multi:   return "multi expressions";
+            break;
     default:      return "unexpected";
             break;
   }

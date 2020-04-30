@@ -15,6 +15,7 @@ enum nodeType {
   If,             // 11 If Node
   Else,           // 12 Else
   While,          // 13 While
+  Multi           // 14 Multi Declaration / Assignment
 };
 
 enum exprType {
@@ -53,8 +54,9 @@ enum cmpType{
 struct TreeNode * create_DeclarationNode              (enum Type, struct TreeNode *);
 struct TreeNode * create_ScopeNode                    ();
 struct TreeNode * create_ExprNode                     (enum exprType, long, char *, struct TreeNode *, struct TreeNode *, enum cmpType);
-struct TreeNode * create_Declaration_AssignmentNode  (struct TreeNode *, struct TreeNode *);
-struct TreeNode * create_AssignmentNode              (struct ProgramNode *, struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_multiDeclaration             (struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_Declaration_AssignmentNode   (struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_AssignmentNode               (struct ProgramNode *, struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_ReturnNode                   (struct TreeNode *);
 struct TreeNode * create_Expr_ListNode                (struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_Arg_ListNode                 (struct TreeNode *, struct TreeNode *);

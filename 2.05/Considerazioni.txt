@@ -10,7 +10,7 @@ V Assignement di un array con parentesi graffa lo si fa? char a[3] = {'a','l','b
 - Quando ho delle virgole come dichiarazioni multiple posso semplicemente creare più nodi dello stesso tipo, senza creare nuove strutture
 - Migliorare il warining "expression result unused" (non deve essere eseguito in caso di inc e dec)
 - in operation op1.c mancano INC DEC e FUNC CALL
-
+- Nelle espressioni ricorsive quando vado a fare x = nodoBello (x, expr) è come se vado a sovrascrivere x con la sua versione modificata. Ma se sto lavorando per indirizzi, non dovrebbe già funzionare? Non è che sto duplicando i nodi in memoria?
 
 
 
