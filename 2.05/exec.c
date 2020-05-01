@@ -597,7 +597,7 @@ void exec_DclN_Asgn (struct TreeNode * node){
 
 }
 
-///////////////////////////  DECLARATION   /////////////////////////////////////
+///////////////////////////  MULTI DECLARATION   ///////////////////////////////
 
 void exec_Multi_DclN (struct TreeNode * node){
 
@@ -618,6 +618,27 @@ void exec_Multi_DclN (struct TreeNode * node){
     exit(EXIT_FAILURE);
   }
 }
+
+///////////////////////////  MULTI ASSIGNMENT   ////////////////////////////////
+
+void exec_Multi_Asgn (struct TreeNode * node){
+
+  if (node -> nodeType == MultiAs){
+    for (int i = 0; i < node -> child_list -> elements; i++){
+      struct TreeNode * childNode;
+      if(i == 0) childNode = node -> child_list -> first;
+      else childNode = childNode -> next;
+
+      exec_Asgn(MainNode, childNode);
+    }
+  }
+  else{
+    printf("%s exec_Multi_Asgn - unexpected Tree Node type. Expected MultiAs, found %s.\n", ErrorMsg(), NodeTypeString(node));
+    exit(EXIT_FAILURE);
+  }
+}
+
+
 
 // todo rimuovere perchè dovrebbe essere ben sostituito da Retrieve Array index
 /*

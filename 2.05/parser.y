@@ -70,6 +70,7 @@ struct TreeNode * NullTreeNode;
 %type <node> declaration
 %type <node> function_call
 %type <node> multi_dec
+%type <node> multi_asgn
 %type <node> declaration_and_assignment
 %type <node> assignment
 %type <node> array_inizializer
@@ -180,6 +181,7 @@ statement
 | declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");   if(Check_ArrayDimension($1)) if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC) exec_DclN(MainNode,$1);}
 | assignment END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Assignment statement found\n");                                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC && Check_Main()) exec_Asgn(MainNode,$1);}
 | multi_dec END_COMMA                                                           {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                          if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC && Check_Main()) exec_Multi_DclN($1);}
+| multi_asgn END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                           if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC && Check_Main()) exec_Multi_Asgn($1);}
 | declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC && Check_Main()) exec_DclN_Asgn($1)}
 | if_statement                                                                  {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
 | while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                            if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
@@ -231,7 +233,11 @@ while_declaration
                                                                                 }
 ;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------
+multi_asgn
+: assignment COMMA assignment                                                   {if(P_DEBUGGING==1) printf("BISON: Multi assignment found\n");  $$ = create_multiAssignment($1, $3);}
+| multi_asgn COMMA assignment                                                   {if(P_DEBUGGING==1) printf("BISON: Multi assignment found\n");  $$ = create_multiAssignment($1, $3);}
+;
+
 multi_dec
 : declaration COMMA variable                                                    {if(P_DEBUGGING==1) printf("BISON: Multi declaration1 found\n");  $$ = create_multiDeclaration($1, $3, 1);}
 | declaration_and_assignment COMMA variable                                     {if(P_DEBUGGING==1) printf("BISON: Multi declaration2 found\n");  $$ = create_multiDeclaration($1, $3, 1);}
@@ -239,7 +245,6 @@ multi_dec
 | multi_dec EQUAL array_inizializer                                             {if(P_DEBUGGING==1) printf("BISON: Multi declaration4 found\n");  $$ = create_multiDeclaration($1, $3, 0);}
 | multi_dec COMMA variable                                                      {if(P_DEBUGGING==1) printf("BISON: Multi declaration5 found\n");  $$ = create_multiDeclaration($1, $3, 1);}
 ;
-//----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 declaration_and_assignment
 : declaration EQUAL expr                                                        {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment1\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
@@ -476,6 +481,45 @@ struct TreeNode * create_WhileNode(enum nodeType type, struct TreeNode * conditi
   TreeNodeList_Add(newTreeNode -> child_list, condition);
 
   return newTreeNode;
+}
+
+
+struct TreeNode * create_multiAssignment(struct TreeNode * first, struct TreeNode * second){
+
+  struct TreeNode * multiAssignment;
+
+  if (first -> nodeType == Asgn){
+    if (second -> nodeType == Asgn){
+      // creating multi assignment node
+      multiAssignment = TreeNodeInitialization();
+      // setting node type
+      multiAssignment -> nodeType = MultiAs;
+      // linking first and second assignment to the multi assgniment node
+      TreeNodeList_Add(multiAssignment -> child_list, first);
+      TreeNodeList_Add(multiAssignment -> child_list, second);
+    }
+    else{
+      printf("%s create_multiAssignment - unexpected Tree node type. Expected Asgn, found %s.\n", ErrorMsg(), NodeTypeString(second));
+      exit(EXIT_FAILURE);
+    }
+  }
+  else if (first -> nodeType == MultiAs){
+    if (second -> nodeType == Asgn){
+      // adding the new assignement to the existing multi assignment node
+      TreeNodeList_Add(multiAssignment -> child_list, second);
+      multiAssignment = first;
+    }
+    else{
+      printf("%s create_multiAssignment - unexpected Tree node type. Expected Asgn, found %s.\n", ErrorMsg(), NodeTypeString(second));
+      exit(EXIT_FAILURE);
+    }
+  }
+  else{
+    printf("%s create_multiAssignment - unexpected Tree node type. Expected Asgn / MultiAs found %s.\n", ErrorMsg(), NodeTypeString(first));
+    exit(EXIT_FAILURE);
+  }
+
+  return multiAssignment;
 }
 
 ////////////////////  multi declaration PRODUCTION  ////////////////////////////

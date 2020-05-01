@@ -11,6 +11,7 @@ void exec_DclN                (ProgramNode *, struct TreeNode *);
 void exec_Asgn                (ProgramNode *, struct TreeNode *);
 void exec_DclN_Asgn           (struct TreeNode *);
 void exec_Multi_DclN          (struct TreeNode *);
+void exec_Multi_Asgn          (struct TreeNode *);
 int exec_CMP                  (struct TreeNode *);
 int exec_Operation            (struct TreeNode *);
 
