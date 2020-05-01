@@ -455,31 +455,31 @@ void exec_Expression (struct TreeNode * node){
     enum exprType type = node -> node.Expr -> exprType;
     // todo aggiungere eventualmente
     switch (type) {
-      case NUM:
+      case NUM: printf("%s expression result unused.\n", WarnMsg());
                 break;
-      case ID:
+      case ID:  printf("%s expression result unused.\n", WarnMsg());
                 break;
-      case VEC:
+      case VEC: printf("%s expression result unused.\n", WarnMsg());
                 break;
-      case STR:
+      case STR: printf("%s expression result unused.\n", WarnMsg());
                 break;
-      case C:
+      case C:   printf("%s expression result unused.\n", WarnMsg());
                 break;
       case FC:
                 break;
-      case SUM:
+      case SUM: printf("%s expression result unused.\n", WarnMsg());
                 break;
-      case DIF:
+      case DIF: printf("%s expression result unused.\n", WarnMsg());
                 break;
-      case TIM:
+      case TIM: printf("%s expression result unused.\n", WarnMsg());
                 break;
-      case DIV:
+      case DIV: printf("%s expression result unused.\n", WarnMsg());
                 break;
-      case MOD:
+      case MOD: printf("%s expression result unused.\n", WarnMsg());
                 break;
-      case RND:
+      case RND: printf("%s expression result unused.\n", WarnMsg());
                 break;
-      case CMP:
+      case CMP: printf("%s expression result unused.\n", WarnMsg());
                 break;
       case PI:  exec_IncDec(node);
                 break;

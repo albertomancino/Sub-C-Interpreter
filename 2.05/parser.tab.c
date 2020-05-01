@@ -1695,7 +1695,7 @@ yyreduce:
 
   case 30:
 #line 179 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(EXEC && Check_Main()){ exec_Expression((yyvsp[(1) - (2)].node)); if((yyvsp[(1) - (2)].node) -> node.Expr -> exprType != IP && (yyvsp[(1) - (2)].node) -> node.Expr -> exprType != DP) printf("%s expression result unused.\n", WarnMsg());};}
+    {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(EXEC && Check_Main()) exec_Expression((yyvsp[(1) - (2)].node));;}
     break;
 
   case 31:

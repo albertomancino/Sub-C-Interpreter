@@ -5,16 +5,11 @@ V Assignement di un array con parentesi graffa lo si fa? char a[3] = {'a','l','b
 - Ricordarsi che è valido come assignment anche l'espressione (a)=10;
 - Aggiungere il modo per passare un array ad una funzione come argomento
 - Attenzione a liberare la memoria, soprattutto quando si hanno nodi rimossi oppure quando termina uno scope
-- L'assegnazione multipla l'ho trattata con un lista di nodi "fratelli" ma se gestita come tutte le altre operazioni sarebbe risolvibile per ricorsività e più corerente con il resto
-- Inserire la multi declaration and assignment
-- Quando ho delle virgole come dichiarazioni multiple posso semplicemente creare più nodi dello stesso tipo, senza creare nuove strutture
-- Migliorare il warining "expression result unused" (non deve essere eseguito in caso di inc e dec)
-- in operation op1.c mancano INC DEC e FUNC CALL
-- Nelle espressioni ricorsive quando vado a fare x = nodoBello (x, expr) è come se vado a sovrascrivere x con la sua versione modificata. Ma se sto lavorando per indirizzi, non dovrebbe già funzionare? Non è che sto duplicando i nodi in memoria?
+V Inserire la multi declaration and assignment
+V Quando ho delle virgole come dichiarazioni multiple posso semplicemente creare più nodi dello stesso tipo, senza creare nuove strutture
+V Migliorare il warining "expression result unused" (non deve essere eseguito in caso di inc e dec)
 
 
-
-array_inizializer
 
 
 

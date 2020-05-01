@@ -176,7 +176,7 @@ statement_scope
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 statement
-: expr END_COMMA                                                                {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC && Check_Main()){ exec_Expression($1); if($1 -> node.Expr -> exprType != IP && $1 -> node.Expr -> exprType != DP) printf("%s expression result unused.\n", WarnMsg());}}
+: expr END_COMMA                                                                {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC && Check_Main()) exec_Expression($1);}
 | return_statement                                                              {if(P_DEBUGGING==1) printf("BISON: Return statement found\n");                                     if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
 | declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");   if(Check_ArrayDimension($1)) if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC) exec_DclN(MainNode,$1);}
 | assignment END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Assignment statement found\n");                                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC && Check_Main()) exec_Asgn(MainNode,$1);}
