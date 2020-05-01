@@ -131,7 +131,7 @@ main_function
 ;
 
 main_function_declaration
-: INT MAIN arguments_declaration                                                {if(P_DEBUGGING==1) printf("BISON: MAIN function declaration found\n"); if(TREE_BUILDING) create_MainFunction(MainNode, $3); if(EXEC) MainNode -> exec_state = 1;}
+: INT MAIN arguments_declaration                                                {if(P_DEBUGGING==1) printf("BISON: MAIN function declaration found\n"); if(TREE_BUILDING) create_MainFunction(MainNode, $3);}
 ;
 
 function_declaration
@@ -154,7 +154,7 @@ scope
 ;
 
 start_scope
-: OPEN_BRACKET                                                                  {if(P_DEBUGGING==1) printf("BISON: Start of the scope found\n"); if(TREE_BUILDING) { $$ = create_ScopeNode(); Add_Node_Tree(MainNode, $$); SetAs_ActualScope(MainNode, $$);}}
+: OPEN_BRACKET                                                                  {if(P_DEBUGGING==1) printf("BISON: Start of the scope found\n"); if(TREE_BUILDING) { $$ = create_ScopeNode(); Add_Node_Tree(MainNode, $$); SetAs_ActualScope(MainNode, $$, Check_activation());}}
 ;
 
 statement_list
@@ -170,13 +170,13 @@ statement_scope
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 statement
-: expr END_COMMA                                                                {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC && Check_Main()) exec_Expression($1);}
+: expr END_COMMA                                                                {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Expression($1);}
 | return_statement                                                              {if(P_DEBUGGING==1) printf("BISON: Return statement found\n");                                     if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
-| declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");   if(Check_ArrayDimension($1)) if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC) exec_DclN(MainNode,$1);}
-| assignment END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Assignment statement found\n");                                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC && Check_Main()) exec_Asgn(MainNode,$1);}
-| multi_dec END_COMMA                                                           {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                          if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC && Check_Main()) exec_Multi_DclN($1);}
-| multi_asgn END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                           if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC && Check_Main()) exec_Multi_Asgn($1);}
-| declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(EXEC && Check_Main()) exec_DclN_Asgn($1)}
+| declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");   if(Check_ArrayDimension($1)) if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); exec_DclN(MainNode,$1);}
+| assignment END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Assignment statement found\n");                                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Asgn(MainNode,$1);}
+| multi_dec END_COMMA                                                           {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                          if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_DclN($1);}
+| multi_asgn END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                           if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_Asgn($1);}
+| declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_DclN_Asgn($1)}
 | if_statement                                                                  {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
 | while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                            if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
 | END_COMMA                                                                     {if(P_DEBUGGING==1) printf("BISON: Empty statement found\n");}
@@ -196,19 +196,19 @@ if_statement
 
 else_declaration
 : ELSE                                                                          {if(P_DEBUGGING==1) printf("BISON: Else declaration found\n");
-                                                                                  if(TREE_BUILDING) {
+                                                                                  if(TREE_BUILDING) {/*
                                                                                       struct TreeNode * newNode = create_ElseNode();
                                                                                       Add_Node_Tree(MainNode, newNode);
-                                                                                      SetAs_ActualScope(MainNode,newNode);
+                                                                                      SetAs_ActualScope(MainNode,newNode);*/
                                                                                   }
                                                                                 }
 ;
 
 if_declaration //here starts a new scope
 : IF OPEN_ROUND expr CLOSED_ROUND                                               {if(P_DEBUGGING==1) printf("BISON: If declaration found\n");
-                                                                                  if(TREE_BUILDING) {
+                                                                                  if(TREE_BUILDING) {/*
                                                                                       $$ = create_IfNode(If, $3);
-                                                                                      SetAs_ActualScope(MainNode,$$);
+                                                                                      SetAs_ActualScope(MainNode,$$);*/
                                                                                   }
                                                                                 }
 ;
@@ -374,6 +374,7 @@ struct TreeNode * create_ScopeNode(){
   newTreeNode -> nodeType = Scope;
   newTreeNode -> node.ST = SymbolTable_Set();
 
+
   return newTreeNode;
 }
 
@@ -529,7 +530,8 @@ struct TreeNode * create_WhileDeclaration(){
   // linking while scope to the while node
   TreeNodeList_Add(newWhileNode -> child_list, whileScope);
   // setting while scope as new actual scope
-  SetAs_ActualScope(MainNode, whileScope);
+  // while scope is inactive by default
+  SetAs_ActualScope(MainNode, whileScope, 0);
 
   return newWhileNode;
 }
@@ -1151,6 +1153,8 @@ void create_MainFunction(ProgramNode * prog, struct TreeNode * arguments){
 
       struct TreeNode * identifier = create_ExprNode(ID, 0, "main", NULL, NULL, 0);
       FunNodeList_Add (prog, create_DeclarationNode(INT_, identifier));
+      // main scope is always an active scope
+      Scope_Activation();
     }
   }
 }
@@ -1888,5 +1892,19 @@ int Check_Main(){
   }
   else{
     return 0;
+  }
+}
+
+char Check_activation(){
+  struct Scope * actualScope = MainNode -> actual_stack -> top;
+  // activation value is by default inherited by previous scope
+  return actualScope -> active;
+}
+
+void Scope_Activation(){
+  struct Scope * actualScope = MainNode -> actual_stack -> top;
+  // check if previous scope is active
+  if (actualScope -> prevScope -> active){
+    actualScope -> active = 1;
   }
 }

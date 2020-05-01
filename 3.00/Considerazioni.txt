@@ -13,6 +13,18 @@ V nuova expression (x = 3) esempio   x = ((x=y=2)+(x=3));
 - migliorare subsequent assignment
 
 
+
+SCOPE ACTIVE PICCOLA RIVOLUZIONE
+
+Nello scope stack ad ogni nodo scope è associato un flag active.
+Quando viene creato il global scope di default è attivo
+Quando viene creato uno scopo funzione di default è inattivo
+Quando viene creato lo scope main è inattivo come ogni funzione ma viene successivamente attivato
+Quando viene creato uno scope normale questo eredita il flag di attivazione dallo scope padre, ossia il precedente nello scope stack
+Quando viene creato uno scope while if o else è inattivo di default. Può essere attivato dalla condition.
+
+
+
 ASSEGNAZIONI E COMPARISON
 
 Una assegnazione come condizione viene accettata anche se con un warning. Ma che senso ha?

@@ -1,11 +1,23 @@
 int main(){
 
 
-  int x = 0;
-  int y;
-
+  int x = 10;
+  int y = 100;
+  --ST
   while (x=y) {
 
+  }
+
+  {
+    {
+      {
+        {
+          int x = 10;
+          int y = 100;
+          --ST
+        }
+      }
+    }
   }
 
   while (x < 5) x++;
@@ -14,7 +26,9 @@ int main(){
 
 
     {
-
+      int x = 10;
+      int y = 100;
+      --ST
 
 
       {

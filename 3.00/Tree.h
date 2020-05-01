@@ -53,8 +53,6 @@ typedef struct ProgramNode {
   struct ScopeStack* global_scope_stack;
   // todo: potrebbe non servire più se uso il global_scope_stack
   struct TreeNode * global_scope;
-  // execution state
-  char exec_state;
   // warnings counter
   int warnings;
 } ProgramNode;
@@ -148,12 +146,12 @@ void ScopeStack_Add(struct ScopeStack *, struct TreeNode *, struct FunNode *);
 void ScopeStack_Rem(struct ScopeStack *);
 */
 
-void ScopeStack_Push(struct ScopeStack *, struct TreeNode *);
+void ScopeStack_Push(struct ScopeStack *, struct TreeNode *, char);
 void ScopeStack_Pop(struct ScopeStack *);
 struct TreeNode * ScopeStack_Peek(struct ScopeStack *);
 
 void Add_Node_Tree (ProgramNode *, struct TreeNode *);
-void SetAs_ActualScope(ProgramNode *, struct TreeNode *);
+void SetAs_ActualScope(ProgramNode *, struct TreeNode *, char);
 void Remove_ActualScope(struct ProgramNode *);
 struct TreeNode * Get_ActualScope(struct ProgramNode *);
 int ScopeStack_Elements();

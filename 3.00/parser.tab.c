@@ -1672,7 +1672,7 @@ yyreduce:
 
   case 17:
 #line 134 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: MAIN function declaration found\n"); if(TREE_BUILDING) create_MainFunction(MainNode, (yyvsp[(3) - (3)].node)); if(EXEC) MainNode -> exec_state = 1;;}
+    {if(P_DEBUGGING==1) printf("BISON: MAIN function declaration found\n"); if(TREE_BUILDING) create_MainFunction(MainNode, (yyvsp[(3) - (3)].node));;}
     break;
 
   case 18:
@@ -1712,12 +1712,12 @@ yyreduce:
 
   case 25:
 #line 157 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Start of the scope found\n"); if(TREE_BUILDING) { (yyval.node) = create_ScopeNode(); Add_Node_Tree(MainNode, (yyval.node)); SetAs_ActualScope(MainNode, (yyval.node));};}
+    {if(P_DEBUGGING==1) printf("BISON: Start of the scope found\n"); if(TREE_BUILDING) { (yyval.node) = create_ScopeNode(); Add_Node_Tree(MainNode, (yyval.node)); SetAs_ActualScope(MainNode, (yyval.node), Check_activation());};}
     break;
 
   case 30:
 #line 173 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(EXEC && Check_Main()) exec_Expression((yyvsp[(1) - (2)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(Check_activation()) exec_Expression((yyvsp[(1) - (2)].node));;}
     break;
 
   case 31:
@@ -1727,27 +1727,27 @@ yyreduce:
 
   case 32:
 #line 175 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");   if(Check_ArrayDimension((yyvsp[(1) - (2)].node))) if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(EXEC) exec_DclN(MainNode,(yyvsp[(1) - (2)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");   if(Check_ArrayDimension((yyvsp[(1) - (2)].node))) if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); exec_DclN(MainNode,(yyvsp[(1) - (2)].node));;}
     break;
 
   case 33:
 #line 176 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Assignment statement found\n");                                 if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(EXEC && Check_Main()) exec_Asgn(MainNode,(yyvsp[(1) - (2)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Assignment statement found\n");                                 if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(Check_activation()) exec_Asgn(MainNode,(yyvsp[(1) - (2)].node));;}
     break;
 
   case 34:
 #line 177 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                          if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(EXEC && Check_Main()) exec_Multi_DclN((yyvsp[(1) - (2)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                          if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(Check_activation()) exec_Multi_DclN((yyvsp[(1) - (2)].node));;}
     break;
 
   case 35:
 #line 178 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                           if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(EXEC && Check_Main()) exec_Multi_Asgn((yyvsp[(1) - (2)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                           if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(Check_activation()) exec_Multi_Asgn((yyvsp[(1) - (2)].node));;}
     break;
 
   case 36:
 #line 179 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                 if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(EXEC && Check_Main()) exec_DclN_Asgn((yyvsp[(1) - (2)].node));}
+    {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                 if(TREE_BUILDING) Add_Node_Tree(MainNode, (yyvsp[(1) - (2)].node)); if(Check_activation()) exec_DclN_Asgn((yyvsp[(1) - (2)].node));}
     break;
 
   case 37:
@@ -1788,10 +1788,10 @@ yyreduce:
   case 44:
 #line 198 "parser.y"
     {if(P_DEBUGGING==1) printf("BISON: Else declaration found\n");
-                                                                                  if(TREE_BUILDING) {
+                                                                                  if(TREE_BUILDING) {/*
                                                                                       struct TreeNode * newNode = create_ElseNode();
                                                                                       Add_Node_Tree(MainNode, newNode);
-                                                                                      SetAs_ActualScope(MainNode,newNode);
+                                                                                      SetAs_ActualScope(MainNode,newNode);*/
                                                                                   }
                                                                                 ;}
     break;
@@ -1799,131 +1799,131 @@ yyreduce:
   case 45:
 #line 208 "parser.y"
     {if(P_DEBUGGING==1) printf("BISON: If declaration found\n");
-                                                                                  if(TREE_BUILDING) {
-                                                                                      (yyval.node) = create_IfNode(If, (yyvsp[(3) - (4)].node));
-                                                                                      SetAs_ActualScope(MainNode,(yyval.node));
+                                                                                  if(TREE_BUILDING) {/*
+                                                                                      $$ = create_IfNode(If, $3);
+                                                                                      SetAs_ActualScope(MainNode,$$);*/
                                                                                   }
                                                                                 ;}
     break;
 
   case 46:
 #line 219 "parser.y"
-    {printf("while con scope\n");             (yyval.node) = create_WhileNode((yyvsp[(1) - (5)].node),(yyvsp[(2) - (5)].node)); ScopeStack_Pop(MainNode -> actual_stack);;}
+    {if(P_DEBUGGING==1) printf("BISON: While statement1 found\n");             if(TREE_BUILDING) {(yyval.node) = create_WhileNode((yyvsp[(1) - (5)].node),(yyvsp[(2) - (5)].node)); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: While statement node created\n");;}
     break;
 
   case 47:
 #line 220 "parser.y"
-    {printf("while con scope vuoto\n");       (yyval.node) = create_WhileNode((yyvsp[(1) - (4)].node),(yyvsp[(2) - (4)].node)); ScopeStack_Pop(MainNode -> actual_stack);;}
+    {if(P_DEBUGGING==1) printf("BISON: While statement2 found\n");             if(TREE_BUILDING) {(yyval.node) = create_WhileNode((yyvsp[(1) - (4)].node),(yyvsp[(2) - (4)].node)); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: While statement node created\n");;}
     break;
 
   case 48:
 #line 221 "parser.y"
-    {printf("while con singolo statement\n"); (yyval.node) = create_WhileNode((yyvsp[(1) - (3)].node),(yyvsp[(2) - (3)].node)); ScopeStack_Pop(MainNode -> actual_stack);;}
+    {if(P_DEBUGGING==1) printf("BISON: While statement3 found\n");             if(TREE_BUILDING) {(yyval.node) = create_WhileNode((yyvsp[(1) - (3)].node),(yyvsp[(2) - (3)].node)); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: While statement node created\n");;}
     break;
 
   case 49:
 #line 225 "parser.y"
-    { printf("%d while condition\n",yylineno); (yyval.node) = create_Condition((yyvsp[(2) - (3)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: While condition1 found\n");             if(TREE_BUILDING)  (yyval.node) = create_Condition((yyvsp[(2) - (3)].node));;}
     break;
 
   case 50:
 #line 226 "parser.y"
-    { printf("%d while condition con warning\n",yylineno); (yyval.node) = create_Condition((yyvsp[(2) - (3)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: While condition2 found\n");             if(TREE_BUILDING)  (yyval.node) = create_Condition((yyvsp[(2) - (3)].node));;}
     break;
 
   case 51:
 #line 230 "parser.y"
-    { printf("while declaration\n"); (yyval.node) = create_WhileDeclaration();;}
+    {if(P_DEBUGGING==1) printf("BISON: While declaration found\n");            if(TREE_BUILDING) (yyval.node) = create_WhileDeclaration();                          if(TREE_DEBUGGING) printf("TREE: While node created\n");;}
     break;
 
   case 52:
 #line 236 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi assignment found\n");  (yyval.node) = create_MultiAssignment((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi assignment1 found\n");            if(TREE_BUILDING) (yyval.node) = create_MultiAssignment((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));                     if(TREE_DEBUGGING) printf("TREE: Multi assignment node created\n");;}
     break;
 
   case 53:
 #line 237 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi assignment found\n");  (yyval.node) = create_MultiAssignment((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi assignment2 found\n");            if(TREE_BUILDING) (yyval.node) = create_MultiAssignment((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));                     if(TREE_DEBUGGING) printf("TREE: Multi assignment node created\n");;}
     break;
 
   case 54:
 #line 241 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi declaration1 found\n");  (yyval.node) = create_MultiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 1);;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration1 found\n");           if(TREE_BUILDING) (yyval.node) = create_MultiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 1);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");;}
     break;
 
   case 55:
 #line 242 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi declaration2 found\n");  (yyval.node) = create_MultiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 1);;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration2 found\n");           if(TREE_BUILDING) (yyval.node) = create_MultiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 1);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");;}
     break;
 
   case 56:
 #line 243 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi declaration3 found\n");  (yyval.node) = create_MultiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 0);;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration3 found\n");           if(TREE_BUILDING) (yyval.node) = create_MultiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 0);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");;}
     break;
 
   case 57:
 #line 244 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi declaration4 found\n");  (yyval.node) = create_MultiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 0);;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration4 found\n");           if(TREE_BUILDING) (yyval.node) = create_MultiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 0);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");;}
     break;
 
   case 58:
 #line 245 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Multi declaration5 found\n");  (yyval.node) = create_MultiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 1);;}
+    {if(P_DEBUGGING==1) printf("BISON: Multi declaration5 found\n");           if(TREE_BUILDING) (yyval.node) = create_MultiDeclaration((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), 1);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");;}
     break;
 
   case 59:
 #line 249 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment1\n");  if(TREE_BUILDING) (yyval.node) = create_Declaration_AssignmentNode ((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment1\n");        if(TREE_BUILDING) (yyval.node) = create_Declaration_AssignmentNode ((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));         if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");;}
     break;
 
   case 60:
 #line 250 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment3\n");  if(TREE_BUILDING) (yyval.node) = create_Declaration_AssignmentNode ((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment3\n");        if(TREE_BUILDING) (yyval.node) = create_Declaration_AssignmentNode ((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));         if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");;}
     break;
 
   case 61:
 #line 251 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment2\n");  if(TREE_BUILDING) (yyval.node) = create_Declaration_AssignmentNode ((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment2\n");        if(TREE_BUILDING) (yyval.node) = create_Declaration_AssignmentNode ((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));         if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");;}
     break;
 
   case 62:
 #line 255 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: declaration\n"); if(TREE_BUILDING) (yyval.node) = create_DeclarationNode((yyvsp[(1) - (2)].intValue), (yyvsp[(2) - (2)].node)); if(TREE_DEBUGGING) printf("TREE: Declaration node created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: declaration found\n");                  if(TREE_BUILDING) (yyval.node) = create_DeclarationNode((yyvsp[(1) - (2)].intValue), (yyvsp[(2) - (2)].node));                     if(TREE_DEBUGGING) printf("TREE: Declaration node created\n");;}
     break;
 
   case 63:
 #line 259 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: assignment1 found\n"); if(TREE_BUILDING) (yyval.node) = create_AssignmentNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); if(TREE_DEBUGGING) printf("TREE: Assignment node created\n");}
+    {if(P_DEBUGGING==1) printf("BISON: assignment1 found\n");                  if(TREE_BUILDING) (yyval.node) = create_AssignmentNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));            if(TREE_DEBUGGING) printf("TREE: Assignment node created\n");}
     break;
 
   case 64:
 #line 260 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: assignment2 found\n"); if(TREE_BUILDING) (yyval.node) = create_AssignmentNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); if(TREE_DEBUGGING) printf("TREE: Multiple assignment node created\n");}
+    {if(P_DEBUGGING==1) printf("BISON: assignment2 found\n");                  if(TREE_BUILDING) (yyval.node) = create_AssignmentNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));            if(TREE_DEBUGGING) printf("TREE: Assignment node created\n");}
     break;
 
   case 65:
 #line 264 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: array initializer found\n"); (yyval.node)=(yyvsp[(2) - (3)].node);}
+    {if(P_DEBUGGING==1) printf("BISON: array initializer found\n");            if(TREE_BUILDING) (yyval.node)=(yyvsp[(2) - (3)].node);;}
     break;
 
   case 66:
 #line 268 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: expression list found\n"); if(TREE_BUILDING) (yyval.node) = create_Expr_ListNode(NULL, (yyvsp[(1) - (1)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: expression1 list found\n");             if(TREE_BUILDING) (yyval.node) = create_Expr_ListNode(NULL, (yyvsp[(1) - (1)].node));                     if(TREE_DEBUGGING) printf("TREE: Expression list node created\n");;}
     break;
 
   case 67:
 #line 269 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: expression list found\n"); if(TREE_BUILDING) (yyval.node) = create_Expr_ListNode((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: expression2 list found\n");             if(TREE_BUILDING) (yyval.node) = create_Expr_ListNode((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));                       if(TREE_DEBUGGING) printf("TREE: Expression list node created\n");;}
     break;
 
   case 68:
 #line 273 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: return statement1 found\n"); if(TREE_BUILDING) (yyval.node) = create_ReturnNode((yyvsp[(2) - (3)].node));;}
+    {if(P_DEBUGGING==1) printf("BISON: return statement1 found\n");            if(TREE_BUILDING) (yyval.node) = create_ReturnNode((yyvsp[(2) - (3)].node));                              if(TREE_DEBUGGING) printf("TREE: Return node created\n");;}
     break;
 
   case 69:
 #line 274 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: return statement2 found\n"); if(TREE_BUILDING) (yyval.node) = create_ReturnNode(NULL);;}
+    {if(P_DEBUGGING==1) printf("BISON: return statement2 found\n");            if(TREE_BUILDING) (yyval.node) = create_ReturnNode(NULL);                            if(TREE_DEBUGGING) printf("TREE: Return node created\n");;}
     break;
 
   case 70:
@@ -1933,17 +1933,17 @@ yyreduce:
 
   case 71:
 #line 279 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: integer -> expr\n");                    if(TREE_BUILDING) (yyval.node) = create_ExprNode(NUM, (yyvsp[(1) - (1)].intValue), NULL, NULL, NULL, 0);      if(TREE_DEBUGGING) printf("TREE: Expr node number type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: integer -> expr\n");                    if(TREE_BUILDING) (yyval.node) = create_ExprNode(NUM, (yyvsp[(1) - (1)].intValue), NULL, NULL, NULL, 0);      if(TREE_DEBUGGING) printf("TREE: Expr node integer type created\n");;}
     break;
 
   case 72:
 #line 280 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: positive integer -> expr\n");           if(TREE_BUILDING) (yyval.node) = create_ExprNode(NUM, (yyvsp[(2) - (2)].intValue), NULL, NULL, NULL, 0);      if(TREE_DEBUGGING) printf("TREE: Expr node number type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: positive integer -> expr\n");           if(TREE_BUILDING) (yyval.node) = create_ExprNode(NUM, (yyvsp[(2) - (2)].intValue), NULL, NULL, NULL, 0);      if(TREE_DEBUGGING) printf("TREE: Expr node integer type created\n");;}
     break;
 
   case 73:
 #line 281 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: negative integer -> expr\n");           if(TREE_BUILDING) (yyval.node) = create_ExprNode(NUM, -(yyvsp[(2) - (2)].intValue), NULL, NULL, NULL, 0);     if(TREE_DEBUGGING) printf("TREE: Expr node number type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: negative integer -> expr\n");           if(TREE_BUILDING) (yyval.node) = create_ExprNode(NUM, -(yyvsp[(2) - (2)].intValue), NULL, NULL, NULL, 0);     if(TREE_DEBUGGING) printf("TREE: Expr node integer type created\n");;}
     break;
 
   case 74:
@@ -1968,22 +1968,22 @@ yyreduce:
 
   case 78:
 #line 286 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: expr PLUS expr -> expr\n");             if(TREE_BUILDING) (yyval.node) = (yyvsp[(1) - (1)].node);                                                 if(TREE_DEBUGGING) printf("TREE: Expr node plus type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: expr PLUS expr -> expr\n");             if(TREE_BUILDING) (yyval.node) = (yyvsp[(1) - (1)].node);                                                 if(TREE_DEBUGGING) printf("TREE: Expr node operation type created\n");;}
     break;
 
   case 79:
 #line 287 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: pre increment_decrement -> expr\n");    if(TREE_BUILDING) (yyval.node) = (yyvsp[(1) - (1)].node);                                                 if(TREE_DEBUGGING) printf("TREE: Expr node post pre_incdec type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: pre increment_decrement -> expr\n");    if(TREE_BUILDING) (yyval.node) = (yyvsp[(1) - (1)].node);                                                 if(TREE_DEBUGGING) printf("TREE: Expr node pre-increment/decrement type created\n");;}
     break;
 
   case 80:
 #line 288 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: post increment_decrement -> expr\n");   if(TREE_BUILDING) (yyval.node) = (yyvsp[(1) - (1)].node);                                                 if(TREE_DEBUGGING) printf("TREE: Expr node post post_incdec type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: post increment_decrement -> expr\n");   if(TREE_BUILDING) (yyval.node) = (yyvsp[(1) - (1)].node);                                                 if(TREE_DEBUGGING) printf("TREE: Expr node post-increment/decrement type created\n");;}
     break;
 
   case 81:
 #line 289 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: parentheses assignment -> expr\n");     if(TREE_BUILDING) (yyval.node) = create_ExprNode(PA, 0, NULL, (yyvsp[(2) - (3)].node), NULL, 0);          if(TREE_DEBUGGING) printf("TREE: Expr node post post_incdec type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: parentheses assignment -> expr\n");     if(TREE_BUILDING) (yyval.node) = create_ExprNode(PA, 0, NULL, (yyvsp[(2) - (3)].node), NULL, 0);          if(TREE_DEBUGGING) printf("TREE: Expr node parentheses assignment type created\n");;}
     break;
 
   case 82:
@@ -2068,12 +2068,12 @@ yyreduce:
 
   case 98:
 #line 321 "parser.y"
-    {if(TREE_BUILDING) (yyval.intValue) = INT_;}
+    {if(P_DEBUGGING==1) printf("BISON: INT -> type\n");                        if(TREE_BUILDING) (yyval.intValue) = INT_ ;}
     break;
 
   case 99:
 #line 322 "parser.y"
-    {if(TREE_BUILDING) (yyval.intValue) = CHAR_;}
+    {if(P_DEBUGGING==1) printf("BISON: CHAR -> type\n");                       if(TREE_BUILDING) (yyval.intValue) = CHAR_;}
     break;
 
   case 100:
@@ -2354,6 +2354,7 @@ struct TreeNode * create_ScopeNode(){
   newTreeNode -> nodeType = Scope;
   newTreeNode -> node.ST = SymbolTable_Set();
 
+
   return newTreeNode;
 }
 
@@ -2509,7 +2510,8 @@ struct TreeNode * create_WhileDeclaration(){
   // linking while scope to the while node
   TreeNodeList_Add(newWhileNode -> child_list, whileScope);
   // setting while scope as new actual scope
-  SetAs_ActualScope(MainNode, whileScope);
+  // while scope is inactive by default
+  SetAs_ActualScope(MainNode, whileScope, 0);
 
   return newWhileNode;
 }
@@ -3131,6 +3133,8 @@ void create_MainFunction(ProgramNode * prog, struct TreeNode * arguments){
 
       struct TreeNode * identifier = create_ExprNode(ID, 0, "main", NULL, NULL, 0);
       FunNodeList_Add (prog, create_DeclarationNode(INT_, identifier));
+      // main scope is always an active scope
+      Scope_Activation();
     }
   }
 }
@@ -3868,6 +3872,20 @@ int Check_Main(){
   }
   else{
     return 0;
+  }
+}
+
+char Check_activation(){
+  struct Scope * actualScope = MainNode -> actual_stack -> top;
+  // activation value is by default inherited by previous scope
+  return actualScope -> active;
+}
+
+void Scope_Activation(){
+  struct Scope * actualScope = MainNode -> actual_stack -> top;
+  // check if previous scope is active
+  if (actualScope -> prevScope -> active){
+    actualScope -> active = 1;
   }
 }
 

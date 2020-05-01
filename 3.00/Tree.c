@@ -996,13 +996,15 @@ struct ScopeStack * ScopeStack_Set (){
   stack -> elements = 0;
   return stack;
 }
-void ScopeStack_Push(struct ScopeStack * stack, struct TreeNode * scope){
+void ScopeStack_Push(struct ScopeStack * stack, struct TreeNode * scope, char active){
 
   if (stack -> elements == 0){
     /* no need to memory allocation cause the first element was already allocated
      during the scope stack initialization
      */
     stack -> top -> thisScope = scope;
+    // flag that specifies if the scope is active or not
+    stack -> top -> active = active;
   }
   else{
     struct Scope * newScope = (struct Scope *) malloc (sizeof(struct Scope));
@@ -1015,6 +1017,8 @@ void ScopeStack_Push(struct ScopeStack * stack, struct TreeNode * scope){
     newScope -> thisScope = scope;
     newScope -> prevScope = stack -> top;
     stack -> top = newScope;
+    // flag that specifies if the scope is active or not
+    stack -> top -> active = active;
   }
   stack -> elements += 1;
   // debug si potrebbe tenere con un if di controllo
@@ -1032,8 +1036,8 @@ struct TreeNode * ScopeStack_Peek(struct ScopeStack * stack){
 
   return stack -> top -> thisScope;
 }
-void SetAs_ActualScope(struct ProgramNode * prog, struct TreeNode * scope){
-  ScopeStack_Push(prog -> actual_stack, scope);
+void SetAs_ActualScope(struct ProgramNode * prog, struct TreeNode * scope, char active){
+  ScopeStack_Push(prog -> actual_stack, scope, active);
 }
 void Remove_ActualScope(struct ProgramNode * prog){
   ScopeStack_Pop(prog -> actual_stack);
@@ -1134,9 +1138,11 @@ void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
   newFunction -> function_scope = create_ScopeNode(); // global scope setting
 
   // Setting global scope at the bottom of the function scope stack
-  ScopeStack_Push(newFunction -> scope_stack, MainNode -> global_scope_stack -> top -> thisScope);
+  // Global scope is active by default
+  ScopeStack_Push(newFunction -> scope_stack, MainNode -> global_scope_stack -> top -> thisScope, 1);
   // Adding function scope to the stack as first scope
-  ScopeStack_Push(newFunction -> scope_stack, newFunction -> function_scope);
+  // Function scope is inactive by default
+  ScopeStack_Push(newFunction -> scope_stack, newFunction -> function_scope, 0);
 
   // Setting the function scope stack as actual scope stack
   prog -> actual_stack = newFunction -> scope_stack;
@@ -1286,11 +1292,10 @@ ProgramNode* ProgramNode_Set (){
   // global scope stack setting
   prog -> global_scope_stack = ScopeStack_Set();
   // setting the global scope as first scope in the global scope stack
-  ScopeStack_Push(prog -> global_scope_stack, prog -> global_scope);
+  // global scope is active by default
+  ScopeStack_Push(prog -> global_scope_stack, prog -> global_scope, 1);
   // setting global scope stack as actual scope stack
   prog -> actual_stack = prog -> global_scope_stack;
-  // setting initial state
-  prog -> exec_state = 0;
   // setting warnings counter
   prog -> warnings = 0;
   return prog;

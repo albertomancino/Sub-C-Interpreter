@@ -88,6 +88,8 @@ void Check_AsgnConcistency                            (struct ProgramNode *, str
 void Check_DeclConcistency                            (struct TreeNode *);
 int Check_ArrayDimension                              (struct TreeNode *);
 int Check_Main                                        ();
+char Check_activation                                 ();
+void Scope_Activation                                 ();
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -157,6 +159,7 @@ struct TreeNodeList{
 struct Scope{
   struct TreeNode * thisScope;
   struct Scope * prevScope;
+  char active;
 };
 
 struct ScopeStack{
