@@ -1426,13 +1426,13 @@ void PrintExprType (unsigned int type, struct TreeNode* Tnode){
   switch (type) {
     case NUM: printf("num expr with value: %d",Tnode->node.Expr->exprVal.intExpr);
             break;
-    case ID: printf("identifier expr with value %s",Tnode->node.Expr->exprVal.stringExpr);
+    case ID: printf("identifier expr with value \'%s\'",Tnode->node.Expr->exprVal.stringExpr);
             break;
     case VEC: printf("array expr with value \"%s\"",Tnode->node.Expr->exprVal.stringExpr);
             break;
     case STR: printf("string expr with value \"%s\"",Tnode->node.Expr->exprVal.stringExpr);
             break;
-    case C: printf("char expr with value '%c'(%d)",Tnode->node.Expr->exprVal.charExpr,Tnode->node.Expr->exprVal.charExpr);
+    case C: printf("char expr with value \'%c\'(%d)",Tnode->node.Expr->exprVal.charExpr,Tnode->node.Expr->exprVal.charExpr);
             break;
     case FC: printf("function call expr");
             break;

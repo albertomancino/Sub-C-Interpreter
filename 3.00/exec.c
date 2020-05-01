@@ -653,37 +653,113 @@ void exec_Multi_Asgn (struct TreeNode * node){
   }
 }
 
+///////////////////////////  MULTI ASSIGNMENT   ////////////////////////////////
 
+void exec_while (struct TreeNode * node){
 
-// todo rimuovere perchè dovrebbe essere ben sostituito da Retrieve Array index
-/*
-// Given a Treenode Declaration return the dimension of the declared array
-int exec_arrayDim (ProgramNode * prog, struct TreeNode * node){
-  // must be a Declaration Node
-  if (node -> nodeType == DclN){
-    // check if the dimension node is present
-    if(node -> node.DclN -> arrayDim != NULL){
-      struct TreeNode * arrayDimNode = node -> node.DclN -> arrayDim;
-      enum exprType arrayDimNodeType = arrayDimNode -> node.Expr -> exprType;
+  if (node -> nodeType == While){
+    struct TreeNode * condition = node -> child_list -> first -> next;
+    if (condition -> nodeType == Expr){
 
-      if (arrayDimNodeType == NUM){
-        return arrayDimNode -> node.Expr -> exprVal.intExpr;
+      int condition_value = Expr_toInt(MainNode, condition);
+      int index = 0;
+      // todo: rimuovere il limite di 15
+      while(condition_value && (index < 150)){
+
+        condition_value = Expr_toInt(MainNode, condition);
+        // execution of the statement in the while scope
+        exec_scope(node -> child_list -> first);
+
+        // condition value update
+        condition_value = Expr_toInt(MainNode, condition);
+
+        index ++;
       }
-      else if(arrayDimNodeType == ID){
-        return Retrieve_VarValue(prog, arrayDimNode -> node.Expr -> exprVal.stringExpr, 0);
-      }
-      else{
-        printf("error - exec_arrayDim: array dimension node must be INTERGER or IDENTIFIER. Node found: %u", arrayDimNodeType);
-      }
-      // todo: mancano un sacco di casi. Si può inserire un generico Expr to int resolver
+      printf("WHILE eseguito con %d iterazioni!\n", index);
     }
     else{
-      printf("error - exec_arrayDim: array dimension node not found");
+      printf("%s exec_while - unexpected condition Tree Node type. Type found %s.\n", ErrorMsg(), NodeTypeString(condition));
+      exit(EXIT_FAILURE);
     }
   }
   else{
-    printf("error - exec_arrayDim: a declaration node was expected. Node type found: %u\n", node->nodeType);
+    printf("%s exec_while - unexpected Tree Node type. Expected While, found %s.\n", ErrorMsg(), NodeTypeString(node));
+    exit(EXIT_FAILURE);
   }
-  exit(EXIT_FAILURE);
+
 }
-*/
+
+
+///////////////////////////  SCOPE   ///////////////////////////////////////////
+
+void exec_scope (struct TreeNode * node){
+
+  if (node -> nodeType == Scope){
+    struct TreeNode * statement;
+    for (int i = 0; i < node -> child_list -> elements; i++){
+
+      if (i == 0) statement = node -> child_list -> first;
+      else statement = statement -> next;
+
+      exec_statement(statement);
+    }
+  }
+  else{
+    printf("%s exec_scope - unexpected Tree Node type. Expected Scope, found %s\n", ErrorMsg(), NodeTypeString(node));
+    exit(EXIT_FAILURE);
+  }
+}
+
+///////////////////////////  STATEMENTS   //////////////////////////////////////
+
+void exec_statement (struct TreeNode * node){
+
+  switch (node -> nodeType) {
+    case DclN:    /* DO NOTHING */
+    break;
+    case ArgD:    printf("%s exec_statement - unexpected statment. Type found: %s\n", ErrorMsg(), NodeTypeString(node)); exit(EXIT_FAILURE);
+    break;
+    case DclAsgn: /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_DclN_Asgn(node);
+    break;
+    case Expr:    /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_Expression(node);
+    break;
+    case Asgn:    /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_Asgn(MainNode, node);
+    break;
+    case Return: /* todo */
+    break;
+    case ExprLst: printf("%s exec_statement - unexpected statment. Type found: %s\n", ErrorMsg(), NodeTypeString(node)); exit(EXIT_FAILURE);
+    break;
+    case FunCall: /* todo */
+    break;
+    case ArgLst:  printf("%s exec_statement - unexpected statment. Type found: %s\n", ErrorMsg(), NodeTypeString(node)); exit(EXIT_FAILURE);
+    break;
+    case Scope:   /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_scope(node);
+    break;
+    case If:      /* todo */
+    break;
+    case Else:    /* todo */
+    break;
+    case While:   /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_while(node);
+    break;
+    case MultiDc: /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_Multi_DclN(node);
+    break;
+    case MultiAs: /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_Multi_Asgn(node);
+    break;
+    default:      printf("%s exec_statement - unexpected statment. Type found: %s\n", ErrorMsg(), NodeTypeString(node)); exit(EXIT_FAILURE);
+    break;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////

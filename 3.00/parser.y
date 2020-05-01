@@ -178,7 +178,7 @@ statement
 | multi_asgn END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                           if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_Asgn($1);}
 | declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_DclN_Asgn($1)}
 | if_statement                                                                  {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
-| while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                            if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
+| while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                            if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_while($1)}
 | END_COMMA                                                                     {if(P_DEBUGGING==1) printf("BISON: Empty statement found\n");}
 ;
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -475,8 +475,21 @@ struct TreeNode * create_IfNode(enum nodeType type, struct TreeNode * condition)
 
 struct TreeNode * create_WhileNode(struct TreeNode * while_node, struct TreeNode * condition){
 
-  TreeNodeList_Add(while_node -> child_list, condition);
-  return while_node;
+  if (while_node -> nodeType == While){
+    if (condition -> nodeType == Expr){
+
+      TreeNodeList_Add(while_node -> child_list, condition);
+      return while_node;
+    }
+    else{
+      printf("%s create_WhileNode - unexpected Tree Node type. Expected Expr, found %s.\n", ErrorMsg(), NodeTypeString(condition));
+      exit(EXIT_FAILURE);
+    }
+  }
+  else{
+    printf("%s create_WhileNode - unexpected Tree Node type. Expected While, found %s.\n", ErrorMsg(), NodeTypeString(while_node));
+    exit(EXIT_FAILURE);
+  }
 }
 
 struct TreeNode * create_Condition(struct TreeNode * expr){
@@ -1251,7 +1264,7 @@ void Check_IdentifierConcistency(ProgramNode * prog, struct TreeNode * identifie
       // check declaration
       if (!Check_VarWasDeclared(prog, identifier, 1)){
 
-        printf("line %d: %serror:%s use of undeclared identifier %s\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET, identifier);
+        printf("line %d: %serror:%s use of undeclared identifier \'%s\'.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET, identifier);
         exit(EXIT_FAILURE);
       }
     }
@@ -1275,7 +1288,7 @@ void Check_ArrayConcistency(ProgramNode * prog, struct TreeNode * array){
       // check declaration
       if (!Check_VarWasDeclared(prog, array_id, 1)){
 
-        printf("line %d: %serror:%s use of undeclared identifier %s\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET, array_id);
+        printf("line %d: %serror:%s use of undeclared identifier \'%s\'.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET, array_id);
         exit(EXIT_FAILURE);
       }
       else{
@@ -1362,7 +1375,7 @@ void Check_OperationConcistency (ProgramNode * prog, struct TreeNode * operation
         char * left_identifier = TreeNode_Identifier(leftOp);
         if (!Check_VarWasDeclared(prog, left_identifier, 1)){
 
-          printf("%s use of undeclared identifier %s\n",ErrorMsg(),left_identifier);
+          printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),left_identifier);
           exit(EXIT_FAILURE);
         }
       }
@@ -1371,7 +1384,7 @@ void Check_OperationConcistency (ProgramNode * prog, struct TreeNode * operation
         char * right_identifier = TreeNode_Identifier(rightOp);
         if (!Check_VarWasDeclared(prog, right_identifier, 1)){
 
-          printf("%s use of undeclared identifier %s\n",ErrorMsg(),right_identifier);
+          printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),right_identifier);
           exit(EXIT_FAILURE);
         }
       }
@@ -1458,7 +1471,7 @@ void Check_ComparisonConcistency (ProgramNode * prog, struct TreeNode * comparis
         char * left_identifier = TreeNode_Identifier(leftOp);
         if (!Check_VarWasDeclared(prog, left_identifier, 1)){
 
-          printf("%s use of undeclared identifier %s\n",ErrorMsg(),left_identifier);
+          printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),left_identifier);
           exit(EXIT_FAILURE);
         }
       }
@@ -1468,7 +1481,7 @@ void Check_ComparisonConcistency (ProgramNode * prog, struct TreeNode * comparis
 
         if (!Check_VarWasDeclared(prog, right_identifier, 1)){
 
-          printf("%s use of undeclared identifier %s\n",ErrorMsg(),right_identifier);
+          printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),right_identifier);
           exit(EXIT_FAILURE);
         }
       }

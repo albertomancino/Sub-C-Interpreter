@@ -3,8 +3,7 @@ int main(){
 
   int x = 10;
   int y = 100;
-  --ST
-  while (x=y) {
+  while (x==y) {
 
   }
 
@@ -14,7 +13,6 @@ int main(){
         {
           int x = 10;
           int y = 100;
-          --ST
         }
       }
     }
@@ -28,7 +26,6 @@ int main(){
     {
       int x = 10;
       int y = 100;
-      --ST
 
 
       {
@@ -45,6 +42,8 @@ int main(){
   while(0){
     //printf("ciao\n" );
   }
+
+  x = 0;
 
   return 1;
 }
