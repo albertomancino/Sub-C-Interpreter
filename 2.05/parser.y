@@ -483,6 +483,7 @@ struct TreeNode * create_WhileNode(enum nodeType type, struct TreeNode * conditi
   return newTreeNode;
 }
 
+////////////////////  multi assignment PRODUCTION  /////////////////////////////
 
 struct TreeNode * create_multiAssignment(struct TreeNode * first, struct TreeNode * second){
 
@@ -637,7 +638,6 @@ struct TreeNode * create_multiDeclaration(struct TreeNode * declaration, struct 
     exit(EXIT_FAILURE);
   }
 }
-
 
 ////////////////////  declaration_and_assignment PRODUCTION  ///////////////////
 

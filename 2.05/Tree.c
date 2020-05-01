@@ -1394,19 +1394,20 @@ void PrintTreeNodeType (unsigned int type, struct TreeNode* Tnode){
             break;
     case FunCall: printf("function call");
             break;
-    case ArgLst:printf("Arguments list");
+    case ArgLst:printf("arguments list");
             break;
-    case Scope:printf("SCOPE");
+    case Scope:printf("scope");
             break;
-    case If:printf("If");
+    case If:printf("if");
             break;
-    case Else:printf("Else");
+    case Else:printf("else");
             break;
-    case While:printf("While");
+    case While:printf("while");
             break;
-    case MultiDc:printf("Multi declaration");
+    case MultiDc:printf("multi declaration");
             break;
-
+    case MultiAs:printf("multi assignment");
+            break;
   }
 }
 void PrintExprType (unsigned int type, struct TreeNode* Tnode){
