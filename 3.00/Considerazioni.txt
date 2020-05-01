@@ -1,13 +1,10 @@
 OBIETTIVO
 
-V Assignement di un array con parentesi graffa lo si fa? char a[3] = {'a','l','b'}
+- While loop
 - IDEONA (per ora non pare essere necessaria): le expr possono "portarsi dietro" il proprio tipo. Ad esempio ( 1 + ( 2 + 3 )) so che è un int perchè (2+3) è int e 1+(2+3) è int + int. Potrebbe essere inutile dato che i tipi sono solo char e int. Potrebbe essere utile intercettare le STRINGHE.
 - Ricordarsi che è valido come assignment anche l'espressione (a)=10;
 - Aggiungere il modo per passare un array ad una funzione come argomento
 - Attenzione a liberare la memoria, soprattutto quando si hanno nodi rimossi oppure quando termina uno scope
-V Inserire la multi declaration and assignment
-V Quando ho delle virgole come dichiarazioni multiple posso semplicemente creare più nodi dello stesso tipo, senza creare nuove strutture
-V Migliorare il warining "expression result unused" (non deve essere eseguito in caso di inc e dec)
 
 
 
