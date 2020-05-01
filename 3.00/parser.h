@@ -37,7 +37,9 @@ enum exprType {
   PI,             // 13 Pre Increment
   PD,             // 14 Pre Decrement
   IP,             // 15 Post Decrement
-  DP              // 16 Post Decrement
+  DP,             // 16 Post Decrement
+  PA,             // 17 Parathesis Assignment
+
 };
 
 enum cmpType{
@@ -56,8 +58,8 @@ enum cmpType{
 struct TreeNode * create_DeclarationNode              (enum Type, struct TreeNode *);
 struct TreeNode * create_ScopeNode                    ();
 struct TreeNode * create_ExprNode                     (enum exprType, long, char *, struct TreeNode *, struct TreeNode *, enum cmpType);
-struct TreeNode * create_multiAssignment              (struct TreeNode *, struct TreeNode *);
-struct TreeNode * create_multiDeclaration             (struct TreeNode *, struct TreeNode *, char);
+struct TreeNode * create_MultiAssignment              (struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_MultiDeclaration             (struct TreeNode *, struct TreeNode *, char);
 struct TreeNode * create_Declaration_AssignmentNode   (struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_AssignmentNode               (struct ProgramNode *, struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_ReturnNode                   (struct TreeNode *);
@@ -69,7 +71,9 @@ struct TreeNode * create_ComparisonNode               (ProgramNode *, struct Tre
 struct TreeNode * create_IncDecNode                   (enum exprType, struct TreeNode *);
 struct TreeNode * create_IfNode                       (enum nodeType, struct TreeNode *);
 struct TreeNode * create_ElseNode                     ();
-struct TreeNode * create_WhileNode                    (enum nodeType, struct TreeNode *);
+struct TreeNode * create_WhileNode                    (struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_Condition                    (struct TreeNode *);
+struct TreeNode * create_WhileDeclaration             ();
 struct TreeNode * TreeNodeInitialization              ();
 void create_GlobalDeclarationNode                     (ProgramNode *, struct TreeNode *);
 void create_MainFunction                              (struct ProgramNode *, struct TreeNode *);

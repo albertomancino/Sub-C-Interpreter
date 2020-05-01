@@ -395,7 +395,8 @@ int CMP_node_logicValue (ProgramNode * prog, struct TreeNode * node){
       logicValue = exec_CMP (node);
     }
     else if(type == STR){
-      logicValue = 1;
+        printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
+        exit(EXIT_FAILURE);
     }
     else if(type == C){
       value = node -> node.Expr -> exprVal.charExpr;
@@ -426,6 +427,17 @@ int CMP_node_logicValue (ProgramNode * prog, struct TreeNode * node){
     }
     else if(type == PI || type == PD || type == IP || type == DP){
       value = Expr_toInt(MainNode, node);
+      if(value == 0){
+        logicValue = 0;
+      }
+      else{
+        logicValue = 1;
+      }
+    }
+    else if(type == PA){
+
+      value = Expr_toInt(prog, node);
+
       if(value == 0){
         logicValue = 0;
       }
@@ -489,8 +501,11 @@ void exec_Expression (struct TreeNode * node){
                 break;
       case DP:  exec_IncDec(node);
                 break;
+      case PA:  exec_Asgn(MainNode, node -> child_list -> first);
+                break;
       defalut:
       break;
+
     }
   }
   else{

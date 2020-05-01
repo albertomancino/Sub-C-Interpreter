@@ -5,10 +5,23 @@ OBIETTIVO
 - Ricordarsi che è valido come assignment anche l'espressione (a)=10;
 - Aggiungere il modo per passare un array ad una funzione come argomento
 - Attenzione a liberare la memoria, soprattutto quando si hanno nodi rimossi oppure quando termina uno scope
+- PROVA TUTTO
+V Rimuovere le stinghe dalle comparison
+V nuova expression (x = 3) esempio   x = ((x=y=2)+(x=3));
+- Controllare per bene la nuova expression PA
+- buttare un occhio su CMP_node_logicValue si può fare meglio
+- migliorare subsequent assignment
 
 
+ASSEGNAZIONI E COMPARISON
 
+Una assegnazione come condizione viene accettata anche se con un warning. Ma che senso ha?
+parser.y:487:40: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+    if ( expr -> node.Expr -> exprType = STR){
 
+STRINGHE E COMPARISON
+
+Le stringhe paionoa avere valore logico 1. Ma è davvero così? Probabilmente fa riferimento al puntatore ma il mio interprete non deve gestirli!
 
 
 MULTIPLE MODIFICATION WARNING

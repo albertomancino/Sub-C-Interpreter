@@ -177,6 +177,9 @@ int Expr_toInt(ProgramNode * prog, struct TreeNode * node){
                   break;
         case DP:  value = exec_IncDec(node);
                   break;
+        case PA:  exec_Asgn(MainNode, node -> child_list -> first);
+                  value = Expr_toInt(MainNode, node -> child_list -> first -> child_list -> first);
+                  break;
         default:  printf("%s Expr_toInt - incorrect call. Unexpected Expr.\n", ErrorMsg());
                   exit(EXIT_FAILURE);
                   break;
@@ -228,6 +231,8 @@ int IsCostant(struct TreeNode * node){
       case IP:  return 0;
                 break;
       case DP:  return 0;
+                break;
+      case PA:  return (IsCostant(node -> child_list -> first -> child_list -> last));
                 break;
       default:
                 printf("%s IsCostant - unexpected exprType. Type found %u.\n", ErrorMsg(), type);
@@ -1346,6 +1351,7 @@ void PrintTreeNode (struct TreeNodeList* main_list){
   if(main_list -> elements == 0) {
     PrintDepth ();
     printf("END Node\n");
+    printf("------------------------------------------------------------------------\n");
     }
 
   struct TreeNode* support;
@@ -1413,32 +1419,42 @@ void PrintTreeNodeType (unsigned int type, struct TreeNode* Tnode){
 void PrintExprType (unsigned int type, struct TreeNode* Tnode){
 
   switch (type) {
-    case 0: printf("num expr with value: %d",Tnode->node.Expr->exprVal.intExpr);
+    case NUM: printf("num expr with value: %d",Tnode->node.Expr->exprVal.intExpr);
             break;
-    case 1: printf("identifier expr with value %s",Tnode->node.Expr->exprVal.stringExpr);
+    case ID: printf("identifier expr with value %s",Tnode->node.Expr->exprVal.stringExpr);
             break;
-    case 2: printf("vector expr with value \"%s\"",Tnode->node.Expr->exprVal.stringExpr);
+    case VEC: printf("array expr with value \"%s\"",Tnode->node.Expr->exprVal.stringExpr);
             break;
-    case 3: printf("string expr with value \"%s\"",Tnode->node.Expr->exprVal.stringExpr);
+    case STR: printf("string expr with value \"%s\"",Tnode->node.Expr->exprVal.stringExpr);
             break;
-    case 4: printf("char expr with value '%c'(%d)",Tnode->node.Expr->exprVal.charExpr,Tnode->node.Expr->exprVal.charExpr);
+    case C: printf("char expr with value '%c'(%d)",Tnode->node.Expr->exprVal.charExpr,Tnode->node.Expr->exprVal.charExpr);
             break;
-    case 5: printf("function call expr");
+    case FC: printf("function call expr");
             break;
-    case 6: printf("sum expr \"+\"");
+    case SUM: printf("sum expr \"+\"");
             break;
-    case 7: printf("difference expr \"-\"");
+    case DIF: printf("difference expr \"-\"");
             break;
-    case 8: printf("times expr \"*\"");
+    case TIM: printf("times expr \"*\"");
             break;
-    case 9: printf("divide expr \"/\"");
+    case DIV: printf("divide expr \"/\"");
             break;
-    case 10: printf("modulo expr \"%%\"");
+    case MOD: printf("modulo expr \"%%\"");
             break;
-    case 11:printf("round brackets (expr)");
+    case RND:printf("round parathesis (expr)");
             break;
-    case 12:printf("comparison ");
+    case CMP:printf("comparison ");
             PrintCmpType(Tnode->node.Expr->exprVal.cmpExpr, NULL);
+            break;
+    case PI:printf("pre-increment");
+            break;
+    case PD:printf("pre-decrement");
+            break;
+    case IP:printf("post-increment");
+            break;
+    case DP:printf("post-decrement");
+            break;
+    case PA:printf("parentheses assignment");
             break;
   }
 }
@@ -1591,6 +1607,8 @@ char * ExprTypeString(struct TreeNode * node){
       case IP:   return "post increment";
               break;
       case DP:   return "post decrement";
+              break;
+      case PA:   return "parentheses assignment";
               break;
     }
 

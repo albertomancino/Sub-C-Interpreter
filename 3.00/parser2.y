@@ -13,8 +13,8 @@
 
 enum exprType;
 
-int L_DEBUGGING = 0;
-int P_DEBUGGING = 0;
+int L_DEBUGGING = 1;
+int P_DEBUGGING = 1;
 int TREE_DEBUGGING = 0;
 int TREE_BUILDING = 1;
 int ST_DEBUGGING = 0;
@@ -84,7 +84,6 @@ struct TreeNode * NullTreeNode;
 %type <node> if_declaration
 %type <node> else_declaration
 %type <node> while_statement
-%type <node> while_condition
 %type <node> while_declaration
 %type <intValue> type
 %type <node> variable
@@ -154,7 +153,10 @@ scope
 ;
 
 start_scope
-: OPEN_BRACKET                                                                  {if(P_DEBUGGING==1) printf("BISON: Start of the scope found\n"); if(TREE_BUILDING) { $$ = create_ScopeNode(); Add_Node_Tree(MainNode, $$); SetAs_ActualScope(MainNode, $$);}}
+: OPEN_BRACKET                                                                  {if(P_DEBUGGING==1) printf("BISON: Start of the scope found\n"); if(TREE_BUILDING) { $$ = create_ScopeNode(); /*Add_Node_Tree(MainNode, $$); SetAs_ActualScope(MainNode, $$);*/
+                                                                                    /*ScopeStack_Add(MainNode->ActualScope, $$, NULL);*/
+                                                                                  }
+                                                                                }
 ;
 
 statement_list
@@ -213,80 +215,72 @@ if_declaration //here starts a new scope
                                                                                 }
 ;
 
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 while_statement
-: while_declaration while_condition OPEN_BRACKET statement_list CLOSED_BRACKET  {if(P_DEBUGGING==1) printf("BISON: While statement1 found\n");             if(TREE_BUILDING) {$$ = create_WhileNode($1,$2); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
-| while_declaration while_condition OPEN_BRACKET CLOSED_BRACKET                 {if(P_DEBUGGING==1) printf("BISON: While statement2 found\n");             if(TREE_BUILDING) {$$ = create_WhileNode($1,$2); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
-| while_declaration while_condition statement                                   {if(P_DEBUGGING==1) printf("BISON: While statement3 found\n");             if(TREE_BUILDING) {$$ = create_WhileNode($1,$2); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
+: while_declaration statement_list CLOSED_BRACKET {printf("while con scope\n" );}
+| WHILE OPEN_ROUND expr CLOSED_ROUND statement {printf("while con singolo statement\n");}
 ;
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-while_condition
-: OPEN_ROUND expr CLOSED_ROUND                                                  {if(P_DEBUGGING==1) printf("BISON: While condition1 found\n");             if(TREE_BUILDING)  $$ = create_Condition($2);}
-| OPEN_ROUND assignment CLOSED_ROUND                                            {if(P_DEBUGGING==1) printf("BISON: While condition2 found\n");             if(TREE_BUILDING)  $$ = create_Condition($2);}
-;
+
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 while_declaration
-: WHILE                                                                         {if(P_DEBUGGING==1) printf("BISON: While declaration found\n");            if(TREE_BUILDING) $$ = create_WhileDeclaration();                          if(TREE_DEBUGGING) printf("TREE: While node created\n");}
+: WHILE OPEN_ROUND expr CLOSED_ROUND OPEN_BRACKET{ printf("while declaration\n");}
 ;
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 multi_asgn
-: assignment COMMA assignment                                                   {if(P_DEBUGGING==1) printf("BISON: Multi assignment1 found\n");            if(TREE_BUILDING) $$ = create_MultiAssignment($1, $3);                     if(TREE_DEBUGGING) printf("TREE: Multi assignment node created\n");}
-| multi_asgn COMMA assignment                                                   {if(P_DEBUGGING==1) printf("BISON: Multi assignment2 found\n");            if(TREE_BUILDING) $$ = create_MultiAssignment($1, $3);                     if(TREE_DEBUGGING) printf("TREE: Multi assignment node created\n");}
+: assignment COMMA assignment                                                   {if(P_DEBUGGING==1) printf("BISON: Multi assignment found\n");  $$ = create_multiAssignment($1, $3);}
+| multi_asgn COMMA assignment                                                   {if(P_DEBUGGING==1) printf("BISON: Multi assignment found\n");  $$ = create_multiAssignment($1, $3);}
 ;
 
 multi_dec
-: declaration COMMA variable                                                    {if(P_DEBUGGING==1) printf("BISON: Multi declaration1 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 1);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
-| declaration_and_assignment COMMA variable                                     {if(P_DEBUGGING==1) printf("BISON: Multi declaration2 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 1);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
-| multi_dec EQUAL expr                                                          {if(P_DEBUGGING==1) printf("BISON: Multi declaration3 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 0);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
-| multi_dec EQUAL array_inizializer                                             {if(P_DEBUGGING==1) printf("BISON: Multi declaration4 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 0);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
-| multi_dec COMMA variable                                                      {if(P_DEBUGGING==1) printf("BISON: Multi declaration5 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 1);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
+: declaration COMMA variable                                                    {if(P_DEBUGGING==1) printf("BISON: Multi declaration1 found\n");  $$ = create_multiDeclaration($1, $3, 1);}
+| declaration_and_assignment COMMA variable                                     {if(P_DEBUGGING==1) printf("BISON: Multi declaration2 found\n");  $$ = create_multiDeclaration($1, $3, 1);}
+| multi_dec EQUAL expr                                                          {if(P_DEBUGGING==1) printf("BISON: Multi declaration3 found\n");  $$ = create_multiDeclaration($1, $3, 0);}
+| multi_dec EQUAL array_inizializer                                             {if(P_DEBUGGING==1) printf("BISON: Multi declaration4 found\n");  $$ = create_multiDeclaration($1, $3, 0);}
+| multi_dec COMMA variable                                                      {if(P_DEBUGGING==1) printf("BISON: Multi declaration5 found\n");  $$ = create_multiDeclaration($1, $3, 1);}
 ;
 
 declaration_and_assignment
-: declaration EQUAL expr                                                        {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment1\n");        if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3);         if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
-| declaration EQUAL array_inizializer                                           {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment3\n");        if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3);         if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
-| declaration_and_assignment EQUAL expr                                         {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment2\n");        if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3);         if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
+: declaration EQUAL expr                                                        {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment1\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
+| declaration EQUAL array_inizializer                                           {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment3\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3); if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
+| declaration_and_assignment EQUAL expr                                         {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment2\n");  if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3);}
 ;
 
 declaration
-: type variable                                                                 {if(P_DEBUGGING==1) printf("BISON: declaration found\n");                  if(TREE_BUILDING) $$ = create_DeclarationNode($1, $2);                     if(TREE_DEBUGGING) printf("TREE: Declaration node created\n");}
+: type variable                                                                 {if(P_DEBUGGING==1) printf("BISON: declaration\n"); if(TREE_BUILDING) $$ = create_DeclarationNode($1, $2); if(TREE_DEBUGGING) printf("TREE: Declaration node created\n");}
 ;
 
 assignment
-: expr EQUAL expr                                                               {if(P_DEBUGGING==1) printf("BISON: assignment1 found\n");                  if(TREE_BUILDING) $$ = create_AssignmentNode(MainNode, $1, $3);            if(TREE_DEBUGGING) printf("TREE: Assignment node created\n")}
-| assignment EQUAL expr                                                         {if(P_DEBUGGING==1) printf("BISON: assignment2 found\n");                  if(TREE_BUILDING) $$ = create_AssignmentNode(MainNode, $1, $3);            if(TREE_DEBUGGING) printf("TREE: Assignment node created\n")}
+: expr EQUAL expr                                                               {if(P_DEBUGGING==1) printf("BISON: assignment1 found\n"); if(TREE_BUILDING) $$ = create_AssignmentNode(MainNode, $1, $3); if(TREE_DEBUGGING) printf("TREE: Assignment node created\n")}
+| assignment EQUAL expr                                                         {if(P_DEBUGGING==1) printf("BISON: assignment2 found\n"); if(TREE_BUILDING) $$ = create_AssignmentNode(MainNode, $1, $3); if(TREE_DEBUGGING) printf("TREE: Multiple assignment node created\n")}
 ;
 
 array_inizializer
-: OPEN_BRACKET expr_list CLOSED_BRACKET                                         {if(P_DEBUGGING==1) printf("BISON: array initializer found\n");            if(TREE_BUILDING) $$=$2;}
+: OPEN_BRACKET expr_list CLOSED_BRACKET                                         {if(P_DEBUGGING==1) printf("BISON: array initializer found\n"); $$=$2}
 ;
 
 expr_list
-: expr                                                                          {if(P_DEBUGGING==1) printf("BISON: expression1 list found\n");             if(TREE_BUILDING) $$ = create_Expr_ListNode(NULL, $1);                     if(TREE_DEBUGGING) printf("TREE: Expression list node created\n");}
-| expr_list COMMA expr                                                          {if(P_DEBUGGING==1) printf("BISON: expression2 list found\n");             if(TREE_BUILDING) $$ = create_Expr_ListNode($1, $3);                       if(TREE_DEBUGGING) printf("TREE: Expression list node created\n");}
+: expr                                                                          {if(P_DEBUGGING==1) printf("BISON: expression list found\n"); if(TREE_BUILDING) $$ = create_Expr_ListNode(NULL, $1);}
+| expr_list COMMA expr                                                          {if(P_DEBUGGING==1) printf("BISON: expression list found\n"); if(TREE_BUILDING) $$ = create_Expr_ListNode($1, $3);}
 ;
 
 return_statement
-: RETURN expr END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: return statement1 found\n");            if(TREE_BUILDING) $$ = create_ReturnNode($2);                              if(TREE_DEBUGGING) printf("TREE: Return node created\n");}
-| RETURN END_COMMA                                                              {if(P_DEBUGGING==1) printf("BISON: return statement2 found\n");            if(TREE_BUILDING) $$ = create_ReturnNode(NULL);                            if(TREE_DEBUGGING) printf("TREE: Return node created\n");}
+: RETURN expr END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: return statement1 found\n"); if(TREE_BUILDING) $$ = create_ReturnNode($2);}
+| RETURN END_COMMA                                                              {if(P_DEBUGGING==1) printf("BISON: return statement2 found\n"); if(TREE_BUILDING) $$ = create_ReturnNode(NULL);}
 ;
 
 expr
 : comparison                                                                    {if(P_DEBUGGING==1) printf("BISON: comparison -> expr\n");                 if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node compare type created\n");}
-| NUMBER                                                                        {if(P_DEBUGGING==1) printf("BISON: integer -> expr\n");                    if(TREE_BUILDING) $$ = create_ExprNode(NUM, $1, NULL, NULL, NULL, 0);      if(TREE_DEBUGGING) printf("TREE: Expr node integer type created\n");}
-| PLUS NUMBER                                                                   {if(P_DEBUGGING==1) printf("BISON: positive integer -> expr\n");           if(TREE_BUILDING) $$ = create_ExprNode(NUM, $2, NULL, NULL, NULL, 0);      if(TREE_DEBUGGING) printf("TREE: Expr node integer type created\n");}
-| MINUS NUMBER                                                                  {if(P_DEBUGGING==1) printf("BISON: negative integer -> expr\n");           if(TREE_BUILDING) $$ = create_ExprNode(NUM, -$2, NULL, NULL, NULL, 0);     if(TREE_DEBUGGING) printf("TREE: Expr node integer type created\n");}
+| NUMBER                                                                        {if(P_DEBUGGING==1) printf("BISON: integer -> expr\n");                    if(TREE_BUILDING) $$ = create_ExprNode(NUM, $1, NULL, NULL, NULL, 0);      if(TREE_DEBUGGING) printf("TREE: Expr node number type created\n");}
+| PLUS NUMBER                                                                   {if(P_DEBUGGING==1) printf("BISON: positive integer -> expr\n");           if(TREE_BUILDING) $$ = create_ExprNode(NUM, $2, NULL, NULL, NULL, 0);      if(TREE_DEBUGGING) printf("TREE: Expr node number type created\n");}
+| MINUS NUMBER                                                                  {if(P_DEBUGGING==1) printf("BISON: negative integer -> expr\n");           if(TREE_BUILDING) $$ = create_ExprNode(NUM, -$2, NULL, NULL, NULL, 0);     if(TREE_DEBUGGING) printf("TREE: Expr node number type created\n");}
 | variable                                                                      {if(P_DEBUGGING==1) printf("BISON: variable -> expr\n");                   if(TREE_BUILDING) if(Check_ArrayDimension($1)) $$ = $1;                    if(TREE_DEBUGGING) printf("TREE: Expr node variable type created\n");}
 | STRING                                                                        {if(P_DEBUGGING==1) printf("BISON: expr STRING -> expr\n");                if(TREE_BUILDING) $$ = create_ExprNode(STR, 0, $1, NULL, NULL, 0);         if(TREE_DEBUGGING) printf("TREE: Expr node string type created\n");}
 | CH                                                                            {if(P_DEBUGGING==1) printf("BISON: expr character -> expr\n");             if(TREE_BUILDING) $$ = create_ExprNode(C, 0, &$1, NULL, NULL, 0);          if(TREE_DEBUGGING) printf("TREE: Expr node char type created\n");}
 | function_call                                                                 {if(P_DEBUGGING==1) printf("BISON: expr function_call -> expr\n");         if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node function call type created\n");}
-| operation                                                                     {if(P_DEBUGGING==1) printf("BISON: expr PLUS expr -> expr\n");             if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node operation type created\n");}
-| pre_incdec                                                                    {if(P_DEBUGGING==1) printf("BISON: pre increment_decrement -> expr\n");    if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node pre-increment/decrement type created\n");}
-| post_incdec                                                                   {if(P_DEBUGGING==1) printf("BISON: post increment_decrement -> expr\n");   if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node post-increment/decrement type created\n");}
-| OPEN_ROUND assignment CLOSED_ROUND                                            {if(P_DEBUGGING==1) printf("BISON: parentheses assignment -> expr\n");     if(TREE_BUILDING) $$ = create_ExprNode(PA, 0, NULL, $2, NULL, 0);          if(TREE_DEBUGGING) printf("TREE: Expr node parentheses assignment type created\n");}
+| operation                                                                     {if(P_DEBUGGING==1) printf("BISON: expr PLUS expr -> expr\n");             if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node plus type created\n");}
+| pre_incdec                                                                    {if(P_DEBUGGING==1) printf("BISON: pre increment_decrement -> expr\n");    if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node post pre_incdec type created\n");}
+| post_incdec                                                                   {if(P_DEBUGGING==1) printf("BISON: post increment_decrement -> expr\n");   if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node post post_incdec type created\n");}
 ;
 
 pre_incdec
@@ -318,8 +312,8 @@ comparison
 ;
 
 type
-: INT                                                                           {if(P_DEBUGGING==1) printf("BISON: INT -> type\n");                        if(TREE_BUILDING) $$ = INT_ }
-| CHAR                                                                          {if(P_DEBUGGING==1) printf("BISON: CHAR -> type\n");                       if(TREE_BUILDING) $$ = CHAR_}
+: INT                                                                           {if(TREE_BUILDING) $$ = INT_}
+| CHAR                                                                          {if(TREE_BUILDING) $$ = CHAR_}
 ;
 
 variable
@@ -372,7 +366,11 @@ struct TreeNode * create_ScopeNode(){
 
   // Linking specific node to generic Tree Node
   newTreeNode -> nodeType = Scope;
+
   newTreeNode -> node.ST = SymbolTable_Set();
+
+  Add_Node_Tree(MainNode, newTreeNode);
+  SetAs_ActualScope(MainNode, newTreeNode);
 
   return newTreeNode;
 }
@@ -472,71 +470,19 @@ struct TreeNode * create_IfNode(enum nodeType type, struct TreeNode * condition)
 
 ////////////////////  while PRODUCTION  ////////////////////////////////////////
 
-struct TreeNode * create_WhileNode(struct TreeNode * while_node, struct TreeNode * condition){
+struct TreeNode * create_WhileNode(enum nodeType type, struct TreeNode * condition){
 
-  TreeNodeList_Add(while_node -> child_list, condition);
-  return while_node;
-}
+  struct TreeNode * newTreeNode = TreeNodeInitialization (); // generic Tree Node memory space allocation
+  newTreeNode -> nodeType = type;
 
-struct TreeNode * create_Condition(struct TreeNode * expr){
+  TreeNodeList_Add(newTreeNode -> child_list, condition);
 
-  struct TreeNode * condition;
-
-  if ( expr -> nodeType == Expr){
-
-    if (expr -> node.Expr -> exprType == STR){
-      printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
-      exit(EXIT_FAILURE);
-    }
-    if(IsCostant(expr)){
-      char value = CMP_node_logicValue(MainNode, expr);
-      if (value == 1){
-        printf("%s condition is always true.\n", WarnMsg());
-      }
-      else if(value == 0){
-        printf("%s condition is always false.\n", WarnMsg());
-      }
-    }
-
-    condition = expr;
-  }
-  else if (expr -> nodeType == Asgn){
-
-    // transforming assignment in a parathesis assignment node
-    struct TreeNode * newExpr = create_ExprNode(PA, 0, NULL, expr, NULL, 0);
-    condition = create_Condition(newExpr);
-    // print warning
-    printf("%s using the result of an assignment as a condition without parentheses\n", WarnMsg());
-    printf("note: use '==' to turn this assignment into an equality comparison\n");
-  }
-  else{
-    printf("%s create_Condition - unexpected Tree Node type. Expected Expr, found %s.\n", ErrorMsg(), NodeTypeString(expr));
-    exit(EXIT_FAILURE);
-  }
-
-  return condition;
-}
-
-struct TreeNode * create_WhileDeclaration(){
-
-  // creating a generic Tree Node with memory allocation
-  struct TreeNode * newWhileNode = TreeNodeInitialization();
-  // Tree Node Type
-  newWhileNode -> nodeType = While;
-
-  // creating while scope
-  struct TreeNode * whileScope = create_ScopeNode();
-  // linking while scope to the while node
-  TreeNodeList_Add(newWhileNode -> child_list, whileScope);
-  // setting while scope as new actual scope
-  SetAs_ActualScope(MainNode, whileScope);
-
-  return newWhileNode;
+  return newTreeNode;
 }
 
 ////////////////////  multi assignment PRODUCTION  /////////////////////////////
 
-struct TreeNode * create_MultiAssignment(struct TreeNode * first, struct TreeNode * second){
+struct TreeNode * create_multiAssignment(struct TreeNode * first, struct TreeNode * second){
 
   struct TreeNode * multiAssignment;
 
@@ -551,7 +497,7 @@ struct TreeNode * create_MultiAssignment(struct TreeNode * first, struct TreeNod
       TreeNodeList_Add(multiAssignment -> child_list, second);
     }
     else{
-      printf("%s create_MultiAssignment - unexpected Tree node type. Expected Asgn, found %s.\n", ErrorMsg(), NodeTypeString(second));
+      printf("%s create_multiAssignment - unexpected Tree node type. Expected Asgn, found %s.\n", ErrorMsg(), NodeTypeString(second));
       exit(EXIT_FAILURE);
     }
   }
@@ -562,12 +508,12 @@ struct TreeNode * create_MultiAssignment(struct TreeNode * first, struct TreeNod
       multiAssignment = first;
     }
     else{
-      printf("%s create_MultiAssignment - unexpected Tree node type. Expected Asgn, found %s.\n", ErrorMsg(), NodeTypeString(second));
+      printf("%s create_multiAssignment - unexpected Tree node type. Expected Asgn, found %s.\n", ErrorMsg(), NodeTypeString(second));
       exit(EXIT_FAILURE);
     }
   }
   else{
-    printf("%s create_MultiAssignment - unexpected Tree node type. Expected Asgn / MultiAs found %s.\n", ErrorMsg(), NodeTypeString(first));
+    printf("%s create_multiAssignment - unexpected Tree node type. Expected Asgn / MultiAs found %s.\n", ErrorMsg(), NodeTypeString(first));
     exit(EXIT_FAILURE);
   }
 
@@ -576,7 +522,7 @@ struct TreeNode * create_MultiAssignment(struct TreeNode * first, struct TreeNod
 
 ////////////////////  multi declaration PRODUCTION  ////////////////////////////
 
-struct TreeNode * create_MultiDeclaration(struct TreeNode * declaration, struct TreeNode * expr, char flag){
+struct TreeNode * create_multiDeclaration(struct TreeNode * declaration, struct TreeNode * expr, char flag){
 
   if (declaration -> nodeType == DclN){
 
@@ -602,7 +548,7 @@ struct TreeNode * create_MultiDeclaration(struct TreeNode * declaration, struct 
       TreeNodeList_Add(newTreeNode -> child_list, newDeclaration);
     }
     else{
-      printf("%s create_MultiDeclaration - unexpected variable. Type found %u.\n", ErrorMsg(), expr -> node.Expr -> exprType);
+      printf("%s create_multiDeclaration - unexpected variable. Type found %u.\n", ErrorMsg(), expr -> node.Expr -> exprType);
       exit(EXIT_FAILURE);
     }
 
@@ -629,7 +575,7 @@ struct TreeNode * create_MultiDeclaration(struct TreeNode * declaration, struct 
       TreeNodeList_Add(newTreeNode -> child_list, newDeclaration);
     }
     else{
-      printf("%s create_MultiDeclaration - unexpected variable. Type found %u.\n", ErrorMsg(), expr -> node.Expr -> exprType);
+      printf("%s create_multiDeclaration - unexpected variable. Type found %u.\n", ErrorMsg(), expr -> node.Expr -> exprType);
       exit(EXIT_FAILURE);
     }
 
@@ -665,7 +611,7 @@ struct TreeNode * create_MultiDeclaration(struct TreeNode * declaration, struct 
         TreeNodeList_Add(declaration -> child_list, newDeclaration);
       }
       else{
-        printf("%s create_MultiDeclaration - unexpected variable. Type found %u.\n", ErrorMsg(), expr -> node.Expr -> exprType);
+        printf("%s create_multiDeclaration - unexpected variable. Type found %u.\n", ErrorMsg(), expr -> node.Expr -> exprType);
         exit(EXIT_FAILURE);
       }
     }
@@ -685,7 +631,7 @@ struct TreeNode * create_MultiDeclaration(struct TreeNode * declaration, struct 
     return declaration;
   }
   else{
-    printf("%s create_MultiDeclaration - incorrect call. Unexpected %s type node.\n", ErrorMsg(), NodeTypeString(declaration));
+    printf("%s create_multiDeclaration - incorrect call. Unexpected %s type node.\n", ErrorMsg(), NodeTypeString(declaration));
     exit(EXIT_FAILURE);
   }
 }
@@ -1121,8 +1067,6 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
                 break;
       case DP:  TreeNodeList_Add(newTreeNode -> child_list, first);
                 break;
-      case PA:  TreeNodeList_Add(newTreeNode -> child_list, first);
-                break;
       }
 
     // Linking specific node to generic Tree Node
@@ -1227,7 +1171,8 @@ void Check_ExprConcistency(ProgramNode * prog, struct TreeNode * expr_node){
       case PD:  break;
       case IP:  break;
       case DP:  break;
-      case PA:  break;
+
+
     }
   }
   // Error: unexpected TreeNode type
@@ -1440,13 +1385,6 @@ void Check_ComparisonConcistency (ProgramNode * prog, struct TreeNode * comparis
       // comparison is a binary logic operation with two operands: leftOp and rightOp
       enum exprType leftOp_type = leftOp -> node.Expr -> exprType;
       enum exprType rightOp_type = rightOp -> node.Expr -> exprType;
-
-
-      // Raise an error if one or two operands are strings
-      if (leftOp_type == STR || rightOp_type == STR){
-        printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
-        exit(EXIT_FAILURE);
-      }
 
       // Raise an error if one operand is an undeclared identifier
       if (leftOp_type == ID || leftOp_type == VEC){
