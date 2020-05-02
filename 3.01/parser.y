@@ -186,43 +186,45 @@ statement
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function_call
-: IDENTIFIER OPEN_ROUND expr_list CLOSED_ROUND                                  {if(P_DEBUGGING==1) printf("BISON: Function call found1\n"); if(TREE_BUILDING) $$ = create_Function_CallNode(MainNode, $1, $3);}
-| IDENTIFIER OPEN_ROUND CLOSED_ROUND                                            {if(P_DEBUGGING==1) printf("BISON: Function call found2\n"); if(TREE_BUILDING) { $$ = create_Function_CallNode(MainNode, $1, NULL);}}
+: IDENTIFIER OPEN_ROUND expr_list CLOSED_ROUND                                  {if(P_DEBUGGING==1) printf("BISON: Function call1 found\n");               if(TREE_BUILDING) $$ = create_Function_CallNode(MainNode, $1, $3);         if(TREE_DEBUGGING) printf("TREE: Function call statement node created\n");}
+| IDENTIFIER OPEN_ROUND CLOSED_ROUND                                            {if(P_DEBUGGING==1) printf("BISON: Function call2 found\n");               if(TREE_BUILDING) $$ = create_Function_CallNode(MainNode, $1, NULL);       if(TREE_DEBUGGING) printf("TREE: Function call statement node created\n");}
 ;
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 
 if_else_statement
-: if_statement  {$$ = create_IfElseNode($1, NULL);}
-| if_statement else_statement {$$ = create_IfElseNode($1, $2);}
+: if_statement                                                                  {if(P_DEBUGGING==1) printf("BISON: If-else statement1 found\n");           if(TREE_BUILDING) $$ = create_IfElseNode($1, NULL);                        if(TREE_DEBUGGING) printf("TREE: If-else statement node created\n");}
+| if_statement else_statement                                                   {if(P_DEBUGGING==1) printf("BISON: If-else statement1 found\n");           if(TREE_BUILDING) $$ = create_IfElseNode($1, $2);                          if(TREE_DEBUGGING) printf("TREE: If-else statement node created\n");}
 ;
 
 else_statement
-: else_declaration OPEN_BRACKET statement_list CLOSED_BRACKET                   {if(P_DEBUGGING==1) printf("BISON: Else statement1 found\n");              if(TREE_BUILDING) {$$ = create_ElseNode($1);}                               if(TREE_DEBUGGING) printf("TREE: Else statement node created\n");}
-| else_declaration statement                                                    {if(P_DEBUGGING==1) printf("BISON: Else statement2 found\n");              if(TREE_BUILDING) {$$ = create_ElseNode($1);}                               if(TREE_DEBUGGING) printf("TREE: Else statement node created\n");}
+: else_declaration OPEN_BRACKET statement_list CLOSED_BRACKET                   {if(P_DEBUGGING==1) printf("BISON: Else statement1 found\n");              if(TREE_BUILDING) $$ = create_ElseNode($1);                                if(TREE_DEBUGGING) printf("TREE: Else statement node created\n");}
+| else_declaration statement                                                    {if(P_DEBUGGING==1) printf("BISON: Else statement2 found\n");              if(TREE_BUILDING) $$ = create_ElseNode($1);                                if(TREE_DEBUGGING) printf("TREE: Else statement node created\n");}
 ;
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 if_statement
-: if_declaration condition OPEN_BRACKET statement_list CLOSED_BRACKET           {if(P_DEBUGGING==1) printf("BISON: If statement1 found\n");                if(TREE_BUILDING) {$$ = create_IfNode($1,$2);}                              if(TREE_DEBUGGING) printf("TREE: If statement node created\n");}
-| if_declaration condition OPEN_BRACKET CLOSED_BRACKET                          {if(P_DEBUGGING==1) printf("BISON: If statement2 found\n");                if(TREE_BUILDING) {$$ = create_IfNode($1,$2);}                              if(TREE_DEBUGGING) printf("TREE: If statement node created\n");}
-| if_declaration condition statement                                            {if(P_DEBUGGING==1) printf("BISON: If statement3 found\n");                if(TREE_BUILDING) {$$ = create_IfNode($1,$2);}                              if(TREE_DEBUGGING) printf("TREE: If statement node created\n");}
+: if_declaration condition OPEN_BRACKET statement_list CLOSED_BRACKET           {if(P_DEBUGGING==1) printf("BISON: If statement1 found\n");                if(TREE_BUILDING) $$ = create_IfNode($1,$2);                               if(TREE_DEBUGGING) printf("TREE: If statement node created\n");}
+| if_declaration condition OPEN_BRACKET CLOSED_BRACKET                          {if(P_DEBUGGING==1) printf("BISON: If statement2 found\n");                if(TREE_BUILDING) $$ = create_IfNode($1,$2);                               if(TREE_DEBUGGING) printf("TREE: If statement node created\n");}
+| if_declaration condition statement                                            {if(P_DEBUGGING==1) printf("BISON: If statement3 found\n");                if(TREE_BUILDING) $$ = create_IfNode($1,$2);                               if(TREE_DEBUGGING) printf("TREE: If statement node created\n");}
 ;
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 else_declaration
-: ELSE                                                                          {if(P_DEBUGGING==1) printf("BISON: Else declaration found\n");             if(TREE_BUILDING) $$ = create_ElseDeclaration();                            if(TREE_DEBUGGING) printf("TREE: Else node created\n");}
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+: ELSE                                                                          {if(P_DEBUGGING==1) printf("BISON: Else declaration found\n");             if(TREE_BUILDING) $$ = create_ElseDeclaration();                           if(TREE_DEBUGGING) printf("TREE: Else node created\n");}
+;
 
 if_declaration
 : IF                                                                            {if(P_DEBUGGING==1) printf("BISON: If declaration found\n");               if(TREE_BUILDING) $$ = create_IfDeclaration();                             if(TREE_DEBUGGING) printf("TREE: If node created\n");}
 ;
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 while_statement
-: while_declaration condition OPEN_BRACKET statement_list CLOSED_BRACKET        {if(P_DEBUGGING==1) printf("BISON: While statement1 found\n");             if(TREE_BUILDING) {$$ = create_WhileNode($1,$2);}                          if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
-| while_declaration condition OPEN_BRACKET CLOSED_BRACKET                       {if(P_DEBUGGING==1) printf("BISON: While statement2 found\n");             if(TREE_BUILDING) {$$ = create_WhileNode($1,$2);}                          if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
-| while_declaration condition statement                                         {if(P_DEBUGGING==1) printf("BISON: While statement3 found\n");             if(TREE_BUILDING) {$$ = create_WhileNode($1,$2);}                          if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
+: while_declaration condition OPEN_BRACKET statement_list CLOSED_BRACKET        {if(P_DEBUGGING==1) printf("BISON: While statement1 found\n");             if(TREE_BUILDING) $$ = create_WhileNode($1,$2);                            if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
+| while_declaration condition OPEN_BRACKET CLOSED_BRACKET                       {if(P_DEBUGGING==1) printf("BISON: While statement2 found\n");             if(TREE_BUILDING) $$ = create_WhileNode($1,$2);                            if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
+| while_declaration condition statement                                         {if(P_DEBUGGING==1) printf("BISON: While statement3 found\n");             if(TREE_BUILDING) $$ = create_WhileNode($1,$2);                            if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
 ;
 
 condition
@@ -244,13 +246,13 @@ multi_dec
 | declaration_and_assignment COMMA variable                                     {if(P_DEBUGGING==1) printf("BISON: Multi declaration2 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 1);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
 | multi_dec EQUAL expr                                                          {if(P_DEBUGGING==1) printf("BISON: Multi declaration3 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 0);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
 | multi_dec EQUAL array_inizializer                                             {if(P_DEBUGGING==1) printf("BISON: Multi declaration4 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 0);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
-| multi_dec COMMA variable                                                      {if(P_DEBUGGING==1) printf("BISON: Multi declaration5 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 1);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
+| multi_dec COMMA variable                                                      {if(P_DEBUGGING==1) printf("BISON: Multi declaration5 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 1);                  if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
 ;
 
 declaration_and_assignment
-: declaration EQUAL expr                                                        {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment1\n");        if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3);         if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
-| declaration EQUAL array_inizializer                                           {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment3\n");        if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3);         if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
-| declaration_and_assignment EQUAL expr                                         {if(P_DEBUGGING==1) printf("BISON: declaration_and_assignment2\n");        if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3);         if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
+: declaration EQUAL expr                                                        {if(P_DEBUGGING==1) printf("BISON: declaration and assignment 1 found\n"); if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3);         if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
+| declaration EQUAL array_inizializer                                           {if(P_DEBUGGING==1) printf("BISON: declaration and assignment 2 found\n"); if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3);         if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
+| declaration_and_assignment EQUAL expr                                         {if(P_DEBUGGING==1) printf("BISON: declaration and assignment 3 found\n"); if(TREE_BUILDING) $$ = create_Declaration_AssignmentNode ($1, $3);         if(TREE_DEBUGGING) printf("TREE: Declaration and Assignment node created\n");}
 ;
 
 declaration
