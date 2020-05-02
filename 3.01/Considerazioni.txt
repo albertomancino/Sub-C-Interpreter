@@ -1,6 +1,6 @@
 OBIETTIVO
 
-- IF ELSE
+V IF ELSE
 - IDEONA (per ora non pare essere necessaria): le expr possono "portarsi dietro" il proprio tipo. Ad esempio ( 1 + ( 2 + 3 )) so che è un int perchè (2+3) è int e 1+(2+3) è int + int. Potrebbe essere inutile dato che i tipi sono solo char e int. Potrebbe essere utile intercettare le STRINGHE.
 - Ricordarsi che è valido come assignment anche l'espressione (a)=10;
 - Aggiungere il modo per passare un array ad una funzione come argomento

@@ -133,30 +133,30 @@ main_function
 ;
 
 main_function_declaration
-: INT MAIN arguments_declaration                                                {if(P_DEBUGGING==1) printf("BISON: MAIN function declaration found\n"); if(TREE_BUILDING) create_MainFunction(MainNode, $3);}
+: INT MAIN arguments_declaration                                                {if(P_DEBUGGING==1) printf("BISON: MAIN function declaration found\n");    if(TREE_BUILDING) create_MainFunction(MainNode, $3);}
 ;
 
 function_declaration
-: declaration arguments_declaration                                             {if(P_DEBUGGING==1) printf("BISON: Function declaration found\n"); if(TREE_BUILDING) {FunNodeList_Add (MainNode, $1); Add_Node_Tree(MainNode, $2);}}
+: declaration arguments_declaration                                             {if(P_DEBUGGING==1) printf("BISON: Function declaration found\n");         if(TREE_BUILDING) {FunNodeList_Add (MainNode, $1); Add_Node_Tree(MainNode, $2);}}
 ;
 
 arguments_declaration
-: OPEN_ROUND arguments_declaration_list CLOSED_ROUND                            {if(P_DEBUGGING==1) printf("BISON: arguments_declaration1 found\n"); if(TREE_BUILDING) $$ = $2}
-| OPEN_ROUND CLOSED_ROUND                                                       {if(P_DEBUGGING==1) printf("BISON: arguments_declaration1 found\n"); if(TREE_BUILDING) $$ = create_Arg_ListNode(NULL, NULL);}
+: OPEN_ROUND arguments_declaration_list CLOSED_ROUND                            {if(P_DEBUGGING==1) printf("BISON: arguments_declaration1 found\n");       if(TREE_BUILDING) $$ = $2}
+| OPEN_ROUND CLOSED_ROUND                                                       {if(P_DEBUGGING==1) printf("BISON: arguments_declaration1 found\n");       if(TREE_BUILDING) $$ = create_Arg_ListNode(NULL, NULL);}
 ;
 
 arguments_declaration_list
-: declaration                                                                   {if(P_DEBUGGING==1) printf("BISON: arguments_declaration_list1 found\n"); if(TREE_BUILDING) $$ = create_Arg_ListNode(NULL, $1);}
-| arguments_declaration_list COMMA declaration                                  {if(P_DEBUGGING==1) printf("BISON: arguments_declaration_list2 found\n"); if(TREE_BUILDING) $$ = create_Arg_ListNode($1, $3);}
+: declaration                                                                   {if(P_DEBUGGING==1) printf("BISON: arguments_declaration_list1 found\n");  if(TREE_BUILDING) $$ = create_Arg_ListNode(NULL, $1);}
+| arguments_declaration_list COMMA declaration                                  {if(P_DEBUGGING==1) printf("BISON: arguments_declaration_list2 found\n");  if(TREE_BUILDING) $$ = create_Arg_ListNode($1, $3);}
 ;
 
 scope
-: start_scope statement_list CLOSED_BRACKET                                     {if(P_DEBUGGING==1) printf("BISON: End of the scope found\n"); if(TREE_BUILDING) ScopeStack_Pop(MainNode -> actual_stack);/*SymbolTable_Print(MainNode->ActualScope->last -> ThisScope.Tree -> node.ST); ScopeStack_Rem(MainNode->ActualScope);*/}
-| start_scope CLOSED_BRACKET                                                    {if(P_DEBUGGING==1) printf("BISON: New empty scope found\n");  if(TREE_BUILDING) ScopeStack_Pop(MainNode -> actual_stack);/*ScopeStack_Rem(MainNode->ActualScope);*/}
+: start_scope statement_list CLOSED_BRACKET                                     {if(P_DEBUGGING==1) printf("BISON: End of the scope found\n");             if(TREE_BUILDING) ScopeStack_Pop(MainNode -> actual_stack);/*SymbolTable_Print(MainNode->ActualScope->last -> ThisScope.Tree -> node.ST); ScopeStack_Rem(MainNode->ActualScope);*/}
+| start_scope CLOSED_BRACKET                                                    {if(P_DEBUGGING==1) printf("BISON: New empty scope found\n");              if(TREE_BUILDING) ScopeStack_Pop(MainNode -> actual_stack);/*ScopeStack_Rem(MainNode->ActualScope);*/}
 ;
 
 start_scope
-: OPEN_BRACKET                                                                  {if(P_DEBUGGING==1) printf("BISON: Start of the scope found\n"); if(TREE_BUILDING) { $$ = create_ScopeNode(); Add_Node_Tree(MainNode, $$); SetAs_ActualScope(MainNode, $$, Check_activation());}}
+: OPEN_BRACKET                                                                  {if(P_DEBUGGING==1) printf("BISON: Start of the scope found\n");           if(TREE_BUILDING) { $$ = create_ScopeNode(); Add_Node_Tree(MainNode, $$); SetAs_ActualScope(MainNode, $$, Check_activation());}}
 ;
 
 statement_list
@@ -386,35 +386,48 @@ struct TreeNode * create_ScopeNode(){
 
 struct TreeNode * create_Expr_ListNode(struct TreeNode * expr_list, struct TreeNode * expr){
 
-  if (expr_list == NULL){ // first element of the list
+  if (expr -> nodeType == Expr){
+    // first expression of the list
+    if (expr_list == NULL){ // first element of the list
 
-    struct TreeNode * newTreeNode = TreeNodeInitialization (); // generic Tree Node memory space allocation
-    // Linking specific node to generic Tree Node
-    newTreeNode -> nodeType = ExprLst;
-    TreeNodeList_Add(newTreeNode -> child_list, expr);
-    return newTreeNode;
+      struct TreeNode * newTreeNode = TreeNodeInitialization (); // generic Tree Node memory space allocation
+      // Linking specific node to generic Tree Node
+      newTreeNode -> nodeType = ExprLst;
+      TreeNodeList_Add(newTreeNode -> child_list, expr);
+      return newTreeNode;
+    }
+    // subsequent expression of the list
+    else{
+      if( expr_list -> nodeType == ExprLst){
+        TreeNodeList_Add(expr_list -> child_list, expr);
+        return expr_list;
+      }
+      else{
+        printf("%s create_Expr_ListNode - unexpected Tree Node type. Expected ExprLst, found %s.\n", ErrorMsg(), NodeTypeString(expr_list));
+        exit(EXIT_FAILURE);
+      }
+    }
   }
   else{
-    TreeNodeList_Add(expr_list -> child_list, expr);
-    return expr_list;
+    printf("%s create_Expr_ListNode - unexpected Tree Node type. Expected Expr, found %s.\n", ErrorMsg(), NodeTypeString(expr));
+    exit(EXIT_FAILURE);
   }
-
 }
 
 ////////////////////  function_call PRODUCTION  ////////////////////////////////
 
 struct TreeNode * create_Function_CallNode(ProgramNode * prog, char * function_id, struct TreeNode * expr_list){
 
-  if (expr_list != NULL){
+  if (expr_list -> nodeType == ExprLst){
+
     struct TreeNode * node = create_ExprNode(FC, 0, function_id, expr_list, NULL, 0);
     Check_FunctionCallConcistency(prog, node);
     return node;
+
   }
   else{
-    struct TreeNode * node = create_ExprNode(FC, 0, function_id, NULL, NULL, 0);
-    Check_FunctionCallConcistency(prog, node);
-
-    return node;
+    printf("%s create_Function_CallNode - unexpected Tree Node type. Expected ExprLst, found %s.\n", ErrorMsg(), NodeTypeString(expr_list));
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -1422,12 +1435,14 @@ void Check_FunctionCallConcistency (ProgramNode * prog, struct TreeNode * functi
 
   if(function_call -> nodeType == Expr){
     if(function_call -> node.Expr -> exprType == FC){
+
       char * function_id = function_call -> node.Expr -> exprVal.stringExpr;
 
       // check if function was declared
       if(CheckFunAlreadyExist(prog, function_id)){
 
         if (function_call -> child_list -> elements > 0){
+
           struct TreeNode * arguments = function_call -> child_list -> first;
           struct TreeNode * argument = arguments -> child_list -> first;
           // check arguments
@@ -1438,11 +1453,13 @@ void Check_FunctionCallConcistency (ProgramNode * prog, struct TreeNode * functi
             Check_ExprConcistency(prog, argument);
           }
         }
+
       }
       else{
         printf("%s call of undeclared function \'%s\'\n", ErrorMsg(), function_id);
         exit(EXIT_FAILURE);
       }
+
     }
     else{
       printf("line %d: %serror:%s Check_FunctionCallConcistency - incorrect call. FC Expr TreeNode expected.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
