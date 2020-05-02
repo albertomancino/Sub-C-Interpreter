@@ -279,7 +279,7 @@ int isAssignable(struct TreeNode * node){
       // check if the variable was previously declared before be assigned
       if (!Check_VarWasDeclared(MainNode, identifier, 1)){
 
-        printf("%s use of undeclared identifier %s\n", ErrorMsg(), identifier);
+        printf("%s use of undeclared identifier \'%s\'\n", ErrorMsg(), identifier);
         exit(EXIT_FAILURE);
       }
 
@@ -1336,7 +1336,7 @@ void PrintTree (ProgramNode* prog){
   FunNode* support;
 
   // print all the functions
-  printf("TREE: Program with %d functions\n",prog -> function_list -> elements);
+  printf("|TREE: Program with %d functions\n",prog -> function_list -> elements);
   if(prog -> function_list -> elements == 0) printf("WARNING: no function found in this C program\n");
 
     for (int i=0; i<prog -> function_list -> elements; i++){
@@ -1347,7 +1347,7 @@ void PrintTree (ProgramNode* prog){
         support = support -> next;
       }
       // print the single function
-      printf("TREE: Function Node - function number %d identifier %s with type %s\n",i+1,support->funName,PrintVarType(support->funType));
+      printf("|TREE: Function Node - function number %d identifier %s with type %s\n",i+1,support->funName,PrintVarType(support->funType));
       PrintTreeNode (support -> function_scope -> child_list);
     }
 }
@@ -1355,8 +1355,15 @@ void PrintTreeNode (struct TreeNodeList* main_list){
 
   if(main_list -> elements == 0) {
     PrintDepth ();
-    printf("END Node\n");
-    printf("------------------------------------------------------------------------\n");
+    printf("|END Node\n");
+    /*PrintDepth ();
+    printf("|");
+    for(int i = 0; i < 50; i++) printf("-");
+    printf("\n");
+    //printf("------------------------------------------------------------------------\n");*/
+    PrintDepth ();
+    printf("|");
+    printf("\n");
     }
 
   struct TreeNode* support;
@@ -1368,18 +1375,15 @@ void PrintTreeNode (struct TreeNodeList* main_list){
     else{
       support = support -> next;
     }
-    //printf("DO STANN L PROBLEM\n");
-    //printf("MA MANCO QUESTO? %u\n", support -> nodeType);
-    //printf("PROSSIMO NODE DI TIPO %s\n", NodeTypeString(support));
     PrintDepth ();
-    printf("TREE: Tree Node - ");
+    printf("|TREE: Tree Node - ");
     PrintTreeNodeType(support -> nodeType, support);
     printf(".\n");
 
     PrintTreeNode(support->child_list);
     if (i+1 == main_list -> elements){
       treeDepth --;
-      printf("\n");
+      //printf("\n");
     }
   }
 
@@ -1499,6 +1503,7 @@ void PrintDepth (){
 
   for (int i=0; i<treeDepth; i++){
     printf("\t");
+    //printf("-----");
   }
 }
 void PrintTreeNodeList (struct TreeNodeList* list){

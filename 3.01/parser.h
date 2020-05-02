@@ -69,8 +69,9 @@ struct TreeNode * create_Function_CallNode            (ProgramNode * , char *, s
 struct TreeNode * create_OperationNode                (ProgramNode *, struct TreeNode *, struct TreeNode *, enum exprType);
 struct TreeNode * create_ComparisonNode               (ProgramNode *, struct TreeNode *, struct TreeNode *, enum cmpType);
 struct TreeNode * create_IncDecNode                   (enum exprType, struct TreeNode *);
-struct TreeNode * create_IfNode                       (enum nodeType, struct TreeNode *);
 struct TreeNode * create_ElseNode                     ();
+struct TreeNode * create_IfDeclaration                ();
+struct TreeNode * create_IfNode                       (struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_WhileNode                    (struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_Condition                    (struct TreeNode *);
 struct TreeNode * create_WhileDeclaration             ();

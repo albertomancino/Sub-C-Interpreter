@@ -6,6 +6,7 @@
 #include "parser.h"
 #include "exec.h"
 #define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_BOLD_YELLOW   "\033[1m\033[33m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
 ProgramNode * MainNode;
@@ -653,7 +654,7 @@ void exec_Multi_Asgn (struct TreeNode * node){
   }
 }
 
-///////////////////////////  MULTI ASSIGNMENT   ////////////////////////////////
+///////////////////////////  WHILE LOOP   //////////////////////////////////////
 
 void exec_while (struct TreeNode * node){
 
@@ -663,10 +664,8 @@ void exec_while (struct TreeNode * node){
 
       int condition_value = Expr_toInt(MainNode, condition);
       int index = 0;
-      // todo: rimuovere il limite di 15
+      // todo: rimuovere il limite di 150
       while(condition_value && (index < 150)){
-
-        condition_value = Expr_toInt(MainNode, condition);
         // execution of the statement in the while scope
         exec_scope(node -> child_list -> first);
 
@@ -675,7 +674,7 @@ void exec_while (struct TreeNode * node){
 
         index ++;
       }
-      printf("WHILE eseguito con %d iterazioni!\n", index);
+      printf("\n%s %d WHILE eseguito con %d iterazioni!%s\n\n", ANSI_BOLD_YELLOW, yylineno, index, ANSI_COLOR_RESET);
     }
     else{
       printf("%s exec_while - unexpected condition Tree Node type. Type found %s.\n", ErrorMsg(), NodeTypeString(condition));
@@ -689,6 +688,39 @@ void exec_while (struct TreeNode * node){
 
 }
 
+///////////////////////////  WHILE LOOP   //////////////////////////////////////
+
+void exec_if (struct TreeNode * node){
+
+  if (node -> nodeType == If){
+
+    struct TreeNode * condition = node -> child_list -> first -> next;
+
+    if (condition -> nodeType == Expr){
+
+      int condition_value = Expr_toInt(MainNode, condition);
+
+      if (condition_value){
+        // execution of the statement in the if scope
+        exec_scope(node -> child_list -> first);
+        printf("%s %d IF eseguito! %s\n", ANSI_BOLD_YELLOW, yylineno, ANSI_COLOR_RESET);
+      }
+      else{
+        printf("%s %d IF non eseguito! %s\n", ANSI_BOLD_YELLOW, yylineno, ANSI_COLOR_RESET);
+      }
+
+    }
+    else{
+      printf("%s exec_if - unexpected condition Tree Node type. Type found %s.\n", ErrorMsg(), NodeTypeString(condition));
+      exit(EXIT_FAILURE);
+    }
+  }
+  else{
+    printf("%s exec_if - unexpected Tree Node type. Expected If, found %s.\n", ErrorMsg(), NodeTypeString(node));
+    exit(EXIT_FAILURE);
+  }
+
+}
 
 ///////////////////////////  SCOPE   ///////////////////////////////////////////
 

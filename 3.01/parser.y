@@ -84,12 +84,12 @@ struct TreeNode * NullTreeNode;
 %type <node> if_declaration
 %type <node> else_declaration
 %type <node> while_statement
-%type <node> while_condition
+%type <node> condition
 %type <node> while_declaration
 %type <intValue> type
 %type <node> variable
 
-%expect 1 // https://www.math.utah.edu/docs/info/bison_8.html
+%expect 0 // https://www.math.utah.edu/docs/info/bison_8.html
 
 
 %%
@@ -177,9 +177,10 @@ statement
 | multi_dec END_COMMA                                                           {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                          if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_DclN($1);}
 | multi_asgn END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                           if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_Asgn($1);}
 | declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_DclN_Asgn($1)}
-| if_statement                                                                  {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
+| if_statement                                                                  {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_if($1)}
 | while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                            if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_while($1)}
 | END_COMMA                                                                     {if(P_DEBUGGING==1) printf("BISON: Empty statement found\n");}
+| else_declaration
 ;
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -189,48 +190,41 @@ function_call
 | IDENTIFIER OPEN_ROUND CLOSED_ROUND                                            {if(P_DEBUGGING==1) printf("BISON: Function call found2\n"); if(TREE_BUILDING) { $$ = create_Function_CallNode(MainNode, $1, NULL);}}
 ;
 
+
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 if_statement
-: if_declaration statement_scope                                                {if(P_DEBUGGING==1) printf("BISON: IF found\n"); if(TREE_BUILDING)  {$$=$1; Remove_ActualScope(MainNode);}}
-| if_declaration statement_scope else_declaration statement_scope               {if(P_DEBUGGING==1) printf("BISON: IF ELSE found\n"); if(TREE_BUILDING)  {$$=$1; Remove_ActualScope(MainNode); Remove_ActualScope(MainNode);}}
+: if_declaration condition OPEN_BRACKET statement_list CLOSED_BRACKET           {if(P_DEBUGGING==1) printf("BISON: If statement1 found\n");             if(TREE_BUILDING) {$$ = create_IfNode($1,$2); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: If statement node created\n");}
+| if_declaration condition OPEN_BRACKET CLOSED_BRACKET                          {if(P_DEBUGGING==1) printf("BISON: If statement2 found\n");             if(TREE_BUILDING) {$$ = create_IfNode($1,$2); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: If statement node created\n");}
+| if_declaration condition statement                                            {if(P_DEBUGGING==1) printf("BISON: If statement3 found\n");             if(TREE_BUILDING) {$$ = create_IfNode($1,$2); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: If statement node created\n");}
 ;
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 else_declaration
-: ELSE                                                                          {if(P_DEBUGGING==1) printf("BISON: Else declaration found\n");
-                                                                                  if(TREE_BUILDING) {/*
-                                                                                      struct TreeNode * newNode = create_ElseNode();
-                                                                                      Add_Node_Tree(MainNode, newNode);
-                                                                                      SetAs_ActualScope(MainNode,newNode);*/
-                                                                                  }
-                                                                                }
+: ELSE                                                                          {if(P_DEBUGGING==1) printf("BISON: Else declaration found\n");}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+if_declaration
+: IF                                                                            {if(P_DEBUGGING==1) printf("BISON: If declaration found\n");            if(TREE_BUILDING) $$ = create_IfDeclaration();                          if(TREE_DEBUGGING) printf("TREE: If node created\n");}
 ;
-
-if_declaration //here starts a new scope
-: IF OPEN_ROUND expr CLOSED_ROUND                                               {if(P_DEBUGGING==1) printf("BISON: If declaration found\n");
-                                                                                  if(TREE_BUILDING) {/*
-                                                                                      $$ = create_IfNode(If, $3);
-                                                                                      SetAs_ActualScope(MainNode,$$);*/
-                                                                                  }
-                                                                                }
-;
-
-
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 while_statement
-: while_declaration while_condition OPEN_BRACKET statement_list CLOSED_BRACKET  {if(P_DEBUGGING==1) printf("BISON: While statement1 found\n");             if(TREE_BUILDING) {$$ = create_WhileNode($1,$2); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
-| while_declaration while_condition OPEN_BRACKET CLOSED_BRACKET                 {if(P_DEBUGGING==1) printf("BISON: While statement2 found\n");             if(TREE_BUILDING) {$$ = create_WhileNode($1,$2); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
-| while_declaration while_condition statement                                   {if(P_DEBUGGING==1) printf("BISON: While statement3 found\n");             if(TREE_BUILDING) {$$ = create_WhileNode($1,$2); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
+: while_declaration condition OPEN_BRACKET statement_list CLOSED_BRACKET  {if(P_DEBUGGING==1) printf("BISON: While statement1 found\n");             if(TREE_BUILDING) {$$ = create_WhileNode($1,$2); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
+| while_declaration condition OPEN_BRACKET CLOSED_BRACKET                 {if(P_DEBUGGING==1) printf("BISON: While statement2 found\n");             if(TREE_BUILDING) {$$ = create_WhileNode($1,$2); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
+| while_declaration condition statement                                   {if(P_DEBUGGING==1) printf("BISON: While statement3 found\n");             if(TREE_BUILDING) {$$ = create_WhileNode($1,$2); ScopeStack_Pop(MainNode -> actual_stack);}  if(TREE_DEBUGGING) printf("TREE: While statement node created\n");}
 ;
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-while_condition
+
+condition
 : OPEN_ROUND expr CLOSED_ROUND                                                  {if(P_DEBUGGING==1) printf("BISON: While condition1 found\n");             if(TREE_BUILDING)  $$ = create_Condition($2);}
 | OPEN_ROUND assignment CLOSED_ROUND                                            {if(P_DEBUGGING==1) printf("BISON: While condition2 found\n");             if(TREE_BUILDING)  $$ = create_Condition($2);}
 ;
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 while_declaration
 : WHILE                                                                         {if(P_DEBUGGING==1) printf("BISON: While declaration found\n");            if(TREE_BUILDING) $$ = create_WhileDeclaration();                          if(TREE_DEBUGGING) printf("TREE: While node created\n");}
 ;
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 multi_asgn
 : assignment COMMA assignment                                                   {if(P_DEBUGGING==1) printf("BISON: Multi assignment1 found\n");            if(TREE_BUILDING) $$ = create_MultiAssignment($1, $3);                     if(TREE_DEBUGGING) printf("TREE: Multi assignment node created\n");}
@@ -458,17 +452,41 @@ struct TreeNode * create_ElseNode(){
   return newTreeNode;
 }
 
+struct TreeNode * create_IfNode (struct TreeNode * if_node, struct TreeNode * condition){
 
-struct TreeNode * create_IfNode(enum nodeType type, struct TreeNode * condition){
+  if (if_node -> nodeType == If){
+    if (condition -> nodeType == Expr){
 
-  struct TreeNode * newTreeNode = TreeNodeInitialization (); // generic Tree Node memory space allocation
-  newTreeNode -> nodeType = type;
+      TreeNodeList_Add(if_node -> child_list, condition);
+      return if_node;
+    }
+    else{
+      printf("%s create_IfNode - unexpected Tree Node type. Expected Expr, found %s.\n", ErrorMsg(), NodeTypeString(condition));
+      exit(EXIT_FAILURE);
+    }
+  }
+  else{
+    printf("%s create_IfNode - unexpected Tree Node type. Expected If, found %s.\n", ErrorMsg(), NodeTypeString(if_node));
+    exit(EXIT_FAILURE);
+  }
+}
 
-  TreeNodeList_Add(newTreeNode -> child_list, condition);
+struct TreeNode * create_IfDeclaration(){
 
-//  ScopeStack_Add(MainNode -> ActualScope, newTreeNode, NULL);
+  // creating a generic Tree Node with memory allocation
+  struct TreeNode * newIfNode = TreeNodeInitialization();
+  // Tree Node Type
+  newIfNode -> nodeType = If;
 
-  return newTreeNode;
+  // creating if scope
+  struct TreeNode * ifScope = create_ScopeNode();
+  // linking while scope to the while node
+  TreeNodeList_Add(newIfNode -> child_list, ifScope);
+  // setting while scope as new actual scope
+  // if scope is inactive by default
+  SetAs_ActualScope(MainNode, ifScope, 0);
+
+  return newIfNode;
 }
 
 ////////////////////  while PRODUCTION  ////////////////////////////////////////

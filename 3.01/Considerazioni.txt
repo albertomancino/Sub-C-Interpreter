@@ -9,7 +9,7 @@ OBIETTIVO
 - Controllare per bene la nuova expression PA
 - buttare un occhio su CMP_node_logicValue si può fare meglio
 - migliorare subsequent assignment
-
+- analizzare le precedenze, soprattutto tra comparison a AND/OR. Es: x > 10 && x < 50;  come lo prende così? con le parentesei è tutto più chiaro ovviamente
 
 
 SCOPE ACTIVE PICCOLA RIVOLUZIONE

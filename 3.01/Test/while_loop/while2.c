@@ -1,17 +1,19 @@
 int main(){
 
   int x = 0;
-  char password[] = "arzigogolato";
+  char password[] = "arzigogolato1";
 
   int index = 0;
+  int flag = 0;
 
-  while(password[index] != '\0'){
+  while(password[index++] != '\0'){
 
-      password[index] = password[index+1];
-      index ++;
+      if ((47 < password[index]) && (password[index] < 58)) flag = 1;
   }
 
   int a = 10;
+
+  --ST
 
   while(a > 0) a--;
 

@@ -24,7 +24,7 @@ int main (int argc, char *argv[]){
     printf("\n\n%sSuccessul parsing%s\n\n\n", GREEN, RESET);
   }
 
-  //PrintTree(MainNode);
+  PrintTree(MainNode);
 
   // warnings counter printer
   if(MainNode -> warnings > 0){

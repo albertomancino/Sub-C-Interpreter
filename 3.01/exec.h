@@ -15,6 +15,7 @@ void exec_Multi_Asgn          (struct TreeNode *);
 int exec_CMP                  (struct TreeNode *);
 int exec_Operation            (struct TreeNode *);
 void exec_while               (struct TreeNode *);
+void exec_if                  (struct TreeNode *);
 void exec_scope               (struct TreeNode *);
 void exec_statement           (struct TreeNode *);
 
