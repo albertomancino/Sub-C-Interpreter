@@ -1,0 +1,176 @@
+OBIETTIVO
+
+- IF ELSE
+- IDEONA (per ora non pare essere necessaria): le expr possono "portarsi dietro" il proprio tipo. Ad esempio ( 1 + ( 2 + 3 )) so che è un int perchè (2+3) è int e 1+(2+3) è int + int. Potrebbe essere inutile dato che i tipi sono solo char e int. Potrebbe essere utile intercettare le STRINGHE.
+- Ricordarsi che è valido come assignment anche l'espressione (a)=10;
+- Aggiungere il modo per passare un array ad una funzione come argomento
+- Attenzione a liberare la memoria, soprattutto quando si hanno nodi rimossi oppure quando termina uno scope
+- PROVA TUTTO
+- Controllare per bene la nuova expression PA
+- buttare un occhio su CMP_node_logicValue si può fare meglio
+- migliorare subsequent assignment
+
+
+
+SCOPE ACTIVE PICCOLA RIVOLUZIONE
+
+Nello scope stack ad ogni nodo scope è associato un flag active.
+Quando viene creato il global scope di default è attivo
+Quando viene creato uno scopo funzione di default è inattivo
+Quando viene creato lo scope main è inattivo come ogni funzione ma viene successivamente attivato
+Quando viene creato uno scope normale questo eredita il flag di attivazione dallo scope padre, ossia il precedente nello scope stack
+Quando viene creato uno scope while if o else è inattivo di default. Può essere attivato dalla condition.
+
+
+
+ASSEGNAZIONI E COMPARISON
+
+Una assegnazione come condizione viene accettata anche se con un warning. Ma che senso ha?
+parser.y:487:40: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+    if ( expr -> node.Expr -> exprType = STR){
+
+STRINGHE E COMPARISON
+
+Le stringhe paionoa avere valore logico 1. Ma è davvero così? Probabilmente fa riferimento al puntatore ma il mio interprete non deve gestirli!
+
+
+MULTIPLE MODIFICATION WARNING
+
+Per ora il warning funziona solo sugli assignment. Cio x = x++. Non funziona in questo caso x = y++ + y++.
+
+
+SCOPE E GLOBAL SCOPE
+
+Per poter garantire la ricera all'interno del global scope ogni volta che creo lo scope stack di una funzione viene aggiunto alla base dello stack un riferimento allo scope globale
+
+
+(IDEA) RETURN
+Per verificare se una funzione ha un return o no posso associare i return ad ogni scope.
+Se tutti gli scope figli di uno scope hanno un return allora anche quello scope può considerarsi returnato.
+
+POST INCREMENT
+
+I compiler quello che fanno è creare un copia della variabile prima di incrementarla e usare quella nelle operazioni.
+POLITICA ADOTTATA: a prescindere da dove vengano utilizzati la variabile viene sempre pre o post incre/decrementata.
+
+DIVISIONE PER ZERO
+
+Mi attengo al C99 che non impone limiti ergo decido di bloccare con errore a runtime
+C99 6.5.5p5 - The result of the / operator is the quotient from the division of the first operand by the second; the result of the % operator is the remainder. In both operations, if the value of the second operand is zero, the behavior is undefined.
+[From C99 std (late draft)] "undefined behavior: behavior, upon use of a nonportable or erroneous program construct or of erroneous data, for which this International Standard imposes no requirements"
+Note there is "no requirement" imposed for undefined behavior!
+
+CHAR OUT OF RANGE
+
+Ha senso gestire i char con i range? è meglio comportarsi come gcc.
+
+FLAG KNOW
+Sono i nodi operazioni che possono avere il flag valorizzato ad 1 se il valore è appunto noto e viene memorizzato nel intval.intExpr.
+I nodi integer e char non lo hanno valorizzato ad 1 perchè sono noti di per se. Uno avrò il valore nell'intval.intExpr, l'altro nell'intval.charExpr
+
+ATTENZIONE
+
+https://stackoverflow.com/questions/7565794/assign-single-value-to-multiple-variables (risolto)
+
+ESCAPE SEQUENCES: https://en.wikipedia.org/wiki/Escape_sequences_in_C
+
+Come gestire le uguaglianze multiple?
+  Nella soluzione assignment EQUAL expr, avrei delle uguaglianze da expr. La cosa positiva è che potrei intervenire sull'errore.
+  Nella soluzione multi viene direttamente bloccato dal parser
+
+
+  multi
+  : mult expr
+  ;
+
+  mult
+  : variable EQUAL variable EQUAL
+  | mult variable EQUAL
+  ;
+
+  assignment
+  : variable EQUAL expr                                                           {if(P_DEBUGGING==1) printf("BISON: assignment\n"); if(TREE_BUILDING) $$ = create_AssignementNode($1, $3, NULL); if(TREE_DEBUGGING) printf("TREE: Assignment node created\n")}
+  ;
+
+
+RIGURADO LE stringhe
+
+Trattare le stringhe come expr ha ben poco senso dal momento in cui non possono essere utilizzate come tali.
+Come Expr la loro utilità è praticamente quella di non permettere di fare certe operazioni.
+Ai fini pratici inutile.
+Avrebbe più senso trattarla nell'unico ambito in cui viene utilizzata ossia come:
+- argomento di una funzione
+- array initializer nella dichiarazione e assegnazione di un vettore
+Quindi per comodità ho dovuto trattarle come expr.
+
+RIGUARDO GLI ASSIGMENT
+Modifica sostanziale nel parsing.
+Precedentemente l'assignement era così:
+
+assignment
+: variable EQUAL expr
+: assignment EQUAL expr
+;
+
+Adesso ho sostituito variable che è un caso più specifico con il caso più generale expr, in questo modo:
+
+assignment
+: expr EQUAL expr
+: assignment EQUAL expr
+;
+
+L'ho fatto per poter printare l'errore specifico nel caso venga ad esempio inserita l'espressione:
+ 1 = a;
+Nel primo caso avrei avuto un generico syntax error
+Nel secondo caso avendo controllo nelle produzioni viene printato l'errore specifico "error: expression is not assignable"
+
+
+
+CHIAMATA A FUNZIONE
+
+Quando chiamo una funzione non posso far riferimento allo scope stack attuale.
+Devo utilizzare lo scope della funzione e quello globale ma non devo poter accedere
+agli scope precedenti.
+Dunque devo memorizzare lo scope stack attuale per riprenderlo successivamente.
+Lo devo sostituire con uno scope stack che ha al primo nodo sempre il nodo global
+e al secondo lo scope della funzione.
+
+
+DA FARE IN ALTRE VERSIONI
+IDEA: fare in modo che in caso di errore l'operazione venga annullata. Sarebbe comodo nel caso in cui si stia scrivendo il codice a mano.
+In caso di codice "in batch" potrebbe avere meno senso.
+fare in modo che le funzioni sulle simbol table abbiano come parametro il program node e non la tabella
+aggiungere ricerca anche nello scope globale
+Ricorda di liberare la memoria in presenza di nodi non più utili.
+Gestire il numero di riga della produzione. Dovrà far riferimento
+alla riga del primo token che genera la produzione. Usare la variabile yylineno
+Valutare quali funzioni della Symbol Table rimuovere. Alcune sono già segnate come probabilmente inutili.
+Cambiare l'ordine degli elementi del programma. Gli statement globali possono stare ovunque. L'importante è che termini con una funzione main.
+Gestire la visibilità degli scope (una variabile dichiarata in uno scope includente può essere vista nello scope incluso)
+Le funzioni (nella programmazione) devono avere la lettera maiuscola
+
+IF:
+in mancanza di graffe quali operazioni sono permesse? (Ad esempio la dichiarazione no)
+
+SCOPE GLOBALE
+Nello scope globale non ci possono essere scope annidati
+
+
+
+SUGGESTIONE:
+- statement come l'if, il while, ecc potrebbero essere gestiti come funzioni.
+La grande differenza è che loro possono accedere alle variabili dello scope cui appartengono.
+
+CONTARE IL NUMERO DI ERRORI HA SENSO?
+Un compiler solitmente dopo un certo numero di ERROR riporta il FATAL ERROR per numero di errori superati.
+In un interprete ha senso? Essendo un programma con il compito di testare del codice al più in caso di errore potrebbe annullare l'operazione.
+
+LIMITI IMPOSTI E SCELTE
+
+Gli identificatori possono avere un nome al più di 1023 caratteri
+Mancano void functions.
+No dichiarazioni multiple. (es: int a,b,*c)
+Numero di figli pari al valore limite di un integer
+Le variabili quando dichiarate hanno un valore di default.
+Il main non deve avere argomenti
+Ho scelto di stamapare un warning quando in un operazione logica di AND o OR è coinvolta una stringa. Questa varrà sempre 1.

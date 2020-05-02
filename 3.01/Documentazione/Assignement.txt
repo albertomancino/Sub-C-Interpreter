@@ -1,0 +1,4 @@
+Considerazioni sulle uguaglianze
+
+L'uguaglianza è un operazione "da destra verso sinistra".
+In una ugualianza multipla devo procedere dall'ugualianza più a destra verso quella a sinistra.

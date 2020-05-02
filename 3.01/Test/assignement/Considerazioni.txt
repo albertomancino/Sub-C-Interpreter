@@ -1,0 +1,26 @@
+Un array di char quando dichiarato ma non assegnato è un vettore di 0.
+Posso assegnare un char a int e viceversa. In pratica sono interscambiali. Il limite è che i char hanno un valore massimo di 2^8 valori.
+CHAR da -128 a 127. Alternativamente viene proposta una conversione automatica. MA non è mia intenzione implementarla.
+
+Gcc prevede che un assegnazione del tipo (x)=2 sia possibile. Per ora non l'ho prevista. Ci vorrebbe un resolver per le parentesi.
+
+Assegnazione del risulato di una comparison è possibile.
+
+Se voglio accedere ad un elemento che supera la dimensione del vettore do errore. Il C invece da un warning e poi da l'abort trap. Non posso gestire l'abort perchè non gestisco una memoria.
+
+Devo gestire le chiamate di funzioniiii!!
+
+
+FUNZIONAMENTO:
+
+I problemi principali che si possono avere sono:
+1 uso di variabili non dichiarate
+2 assegnazione di una stringa
+3 identificatori di array senza indice
+4 indicizzazione di un array sbagliata
+5 assegnazione ad un char di un valore fuori scala
+
+tutti i problemi sono risolvibili in fase di creazione del nodo asgn.
+Tranne quando il valore da assegnare è una variabile.
+In quel caso va verificato il numero 5.
+In pratica nell'esecuzione faccio il controllo sui valori delle variabili.
