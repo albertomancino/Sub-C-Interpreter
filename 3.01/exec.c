@@ -688,7 +688,32 @@ void exec_while (struct TreeNode * node){
 
 }
 
-///////////////////////////  WHILE LOOP   //////////////////////////////////////
+///////////////////////////  IF ELSE   /////////////////////////////////////////
+
+void exec_ifElse (struct TreeNode * node){
+
+  if (node -> nodeType == IfElse){
+    printf("Questo if else ha %d figli.\n", node -> child_list -> elements);
+    printf("%s\n", NodeTypeString(node -> child_list -> first -> next));
+    printf("%s\n", NodeTypeString(node -> child_list -> last));
+    printf("%d\n", node -> child_list -> first -> node.flag);
+
+    // if the if condition was false and an else statement is present
+    if (node -> child_list -> first -> node.flag == 0 && node -> child_list -> last -> nodeType == Else){
+        printf("QUI DENTRO\n" );
+      // exec statements in the else scope
+      {
+        // execution of the statement in the if scope
+        exec_scope(node -> child_list -> last -> child_list -> first);
+        printf("%s %d ELSE eseguito! %s\n", ANSI_BOLD_YELLOW, yylineno, ANSI_COLOR_RESET);
+      }
+    }
+  }
+  else{
+    printf("%s exec_ifElse - unexpected Tree Node type. Expected IfElse, found %s.\n", ErrorMsg(), NodeTypeString(node));
+    exit(EXIT_FAILURE);
+  }
+}
 
 void exec_if (struct TreeNode * node){
 
@@ -704,9 +729,12 @@ void exec_if (struct TreeNode * node){
         // execution of the statement in the if scope
         exec_scope(node -> child_list -> first);
         printf("%s %d IF eseguito! %s\n", ANSI_BOLD_YELLOW, yylineno, ANSI_COLOR_RESET);
+
+        node -> node.flag = 1;
       }
       else{
         printf("%s %d IF non eseguito! %s\n", ANSI_BOLD_YELLOW, yylineno, ANSI_COLOR_RESET);
+        node -> node.flag = 0;
       }
 
     }

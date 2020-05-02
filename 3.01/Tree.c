@@ -1417,6 +1417,8 @@ void PrintTreeNodeType (unsigned int type, struct TreeNode* Tnode){
             break;
     case Else:printf("else");
             break;
+    case IfElse:printf("if else");
+            break;
     case While:printf("while");
             break;
     case MultiDc:printf("multi declaration");
@@ -1568,6 +1570,8 @@ char * NodeTypeString(struct TreeNode * node){
     case If:      return "if";
             break;
     case Else:    return "else";
+            break;
+    case IfElse:  return "if else";
             break;
     case While:   return "while";
             break;

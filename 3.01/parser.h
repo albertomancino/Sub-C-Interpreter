@@ -14,9 +14,10 @@ enum nodeType {
   Scope,          // 10 Scope Node
   If,             // 11 If Node
   Else,           // 12 Else
-  While,          // 13 While
-  MultiDc,        // 14 Multi Declaration
-  MultiAs         // 15 Multi Assignment
+  IfElse,         // 13 If Else
+  While,          // 14 While
+  MultiDc,        // 15 Multi Declaration
+  MultiAs         // 16 Multi Assignment
 
 };
 
@@ -69,7 +70,9 @@ struct TreeNode * create_Function_CallNode            (ProgramNode * , char *, s
 struct TreeNode * create_OperationNode                (ProgramNode *, struct TreeNode *, struct TreeNode *, enum exprType);
 struct TreeNode * create_ComparisonNode               (ProgramNode *, struct TreeNode *, struct TreeNode *, enum cmpType);
 struct TreeNode * create_IncDecNode                   (enum exprType, struct TreeNode *);
-struct TreeNode * create_ElseNode                     ();
+struct TreeNode * create_IfElseNode                   (struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_ElseNode                     (struct TreeNode *);
+struct TreeNode * create_ElseDeclaration              ();
 struct TreeNode * create_IfDeclaration                ();
 struct TreeNode * create_IfNode                       (struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_WhileNode                    (struct TreeNode *, struct TreeNode *);
@@ -141,6 +144,7 @@ struct TreeNode{
     struct exprNode * Expr;
     struct funCall * FunCall;
     struct SymbolTable * ST;
+           int flag;
   } node;
 
   struct TreeNode * next;
