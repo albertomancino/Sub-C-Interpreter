@@ -124,10 +124,6 @@ function_list
 | function_list function                                                        {if(P_DEBUGGING==1) printf("BISON: Function list found2\n");}
 ;
 
-function
-: function_declaration scope                                                    {if(P_DEBUGGING==1) printf("BISON: Function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
-;
-
 main_function
 : main_function_declaration scope                                               {if(P_DEBUGGING==1) printf("BISON: MAIN function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
 ;
@@ -136,8 +132,13 @@ main_function_declaration
 : INT MAIN arguments_declaration                                                {if(P_DEBUGGING==1) printf("BISON: MAIN function declaration found\n");    if(TREE_BUILDING) create_MainFunction(MainNode, $3);}
 ;
 
+function
+: function_declaration scope                                                    {if(P_DEBUGGING==1) printf("BISON: Function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
+;
+
+
 function_declaration
-: declaration arguments_declaration                                             {if(P_DEBUGGING==1) printf("BISON: Function declaration found\n");         if(TREE_BUILDING) {FunNodeList_Add (MainNode, $1); Add_Node_Tree(MainNode, $2);}}
+: declaration arguments_declaration                                             {if(P_DEBUGGING==1) printf("BISON: Function declaration found\n");         create_FunctionNode($1,$2); if(TREE_BUILDING) {FunNodeList_Add (MainNode, $1); Add_Node_Tree(MainNode, $2);}}
 ;
 
 arguments_declaration
@@ -431,23 +432,6 @@ struct TreeNode * create_Function_CallNode(ProgramNode * prog, char * function_i
   }
 }
 
-////////////////////  operation PRODUCTION  ////////////////////////////////////
-
-struct TreeNode * create_OperationNode(ProgramNode * prog, struct TreeNode * first, struct TreeNode * second, enum exprType type){
-
-  if (first == NULL || second == NULL) {
-      printf("%s create_OperationNode - comparison missing one or two expressions\n", ErrorMsg());
-      exit(EXIT_FAILURE);
-    }
-  else{
-    struct TreeNode * node = create_ExprNode(type, 0, NULL, first, second, 0);
-    Check_OperationConcistency(prog, node);
-
-    return node;
-  }
-
-}
-
 ////////////////////  comparison PRODUCTION  ///////////////////////////////////
 
 struct TreeNode * create_ComparisonNode(ProgramNode * prog, struct TreeNode * first, struct TreeNode * second, enum cmpType cmptype){
@@ -464,6 +448,46 @@ struct TreeNode * create_ComparisonNode(ProgramNode * prog, struct TreeNode * fi
       return node;
     }
 }
+
+////////////////////  main function PRODUCTION  ////////////////////////////////
+
+void create_MainFunction(ProgramNode * prog, struct TreeNode * arguments){
+
+  // arguments must be a ArgLst TreeNode
+  if (arguments -> nodeType != ArgLst){
+    printf("line %d: %serror:%s mainFunction - incorrect call. ArgLst TreeNode expected\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
+    exit(EXIT_FAILURE);
+  }
+  else{
+    // main function must not have arguments. argc and argv arguments are not supported.
+    if(arguments -> child_list -> elements != 0){
+        printf("%s this interpreter does not support main function arguments.\n",ErrorMsg());
+        exit(EXIT_FAILURE);
+    }
+    else{
+
+      struct TreeNode * identifier = create_ExprNode(ID, 0, "main", NULL, NULL, 0);
+      FunNodeList_Add (prog, create_DeclarationNode(INT_, identifier));
+      // main scope is always an active scope
+      Scope_Activation();
+    }
+  }
+}
+
+
+////////////////////  function node PRODUCTION  ////////////////////////////////
+
+struct TreeNode * create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parameters){
+
+  // check parameters
+  Check_NodeType(DclN, declaration, "create_functionNode");
+  Check_NodeType(ArgD, parameters, "create_functionNode");
+
+      //FunNodeList_Add (MainNode, $1);
+      //Add_Node_Tree(MainNode, $2);
+  return parameters;
+}
+
 
 ////////////////////  if PRODUCTION  ///////////////////////////////////////////
 
@@ -1172,6 +1196,23 @@ struct TreeNode * create_IncDecNode(enum exprType type, struct TreeNode * var){
   }
 }
 
+////////////////////  operation PRODUCTION  ////////////////////////////////////
+
+struct TreeNode * create_OperationNode(ProgramNode * prog, struct TreeNode * first, struct TreeNode * second, enum exprType type){
+
+  if (first == NULL || second == NULL) {
+      printf("%s create_OperationNode - comparison missing one or two expressions\n", ErrorMsg());
+      exit(EXIT_FAILURE);
+    }
+  else{
+    struct TreeNode * node = create_ExprNode(type, 0, NULL, first, second, 0);
+    Check_OperationConcistency(prog, node);
+
+    return node;
+  }
+
+}
+
 ////////////////////  expr PRODUCTION  /////////////////////////////////////////
 
 struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charExpr, struct TreeNode * first, struct TreeNode * second, enum cmpType cmptype){
@@ -1260,30 +1301,6 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
     return newTreeNode;
   }
 
-////////////////////  main function PRODUCTION  ////////////////////////////////
-
-void create_MainFunction(ProgramNode * prog, struct TreeNode * arguments){
-
-  // arguments must be a ArgLst TreeNode
-  if (arguments -> nodeType != ArgLst){
-    printf("line %d: %serror:%s mainFunction - incorrect call. ArgLst TreeNode expected\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
-    exit(EXIT_FAILURE);
-  }
-  else{
-    // main function must not have arguments. argc and argv arguments are not supported.
-    if(arguments -> child_list -> elements != 0){
-        printf("%s this interpreter does not support main function arguments.\n",ErrorMsg());
-        exit(EXIT_FAILURE);
-    }
-    else{
-
-      struct TreeNode * identifier = create_ExprNode(ID, 0, "main", NULL, NULL, 0);
-      FunNodeList_Add (prog, create_DeclarationNode(INT_, identifier));
-      // main scope is always an active scope
-      Scope_Activation();
-    }
-  }
-}
 
 
 struct TreeNode * TreeNodeInitialization (){
@@ -2012,6 +2029,24 @@ int Check_ArrayDimension(struct TreeNode * node){
     exit(EXIT_FAILURE);
   }
 }
+
+void Check_NodeType(enum nodeType type, struct TreeNode * node, char * function_id){
+  if( node -> nodeType != type){
+    printf("%s %s - unexpected tree node type. Expected \'%s\', found \'%s\'.\n", ErrorMsg(), function_id, PrintNodeType(type), NodeTypeString(node));
+    exit(EXIT_FAILURE);
+  }
+}
+
+void Check_ExprType (enum exprType type, struct TreeNode * node, char * function_id){
+
+  Check_NodeType(Expr, node, "Check_ExprType");
+
+  if( node -> node.Expr -> exprType != type){
+    printf("%s %s - unexpected expression tree node type. Expected \'%s\', found \'%s\'.\n", ErrorMsg(), function_id, PrintExpressionType(type), ExprTypeString(node));
+    exit(EXIT_FAILURE);
+  }
+}
+
 //////////////////  execution CONTROL  /////////////////////////////////////////
 
 int Check_Main(){

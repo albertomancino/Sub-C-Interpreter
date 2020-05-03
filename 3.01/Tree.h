@@ -22,6 +22,8 @@ union VarPtr{
 };
 
 struct TreeNode;  // avoiding compiler warning
+enum nodeType;
+enum exprType;
 
 typedef struct FunNode {
 
@@ -182,6 +184,8 @@ char * VarTypeString(enum Type);
 void PrintActualST(ProgramNode *);
 char * NodeTypeString(struct TreeNode *);
 char * ExprTypeString(struct TreeNode *);
+char * PrintNodeType (enum nodeType);
+char * PrintExpressionType (enum exprType);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////// ERROR MESSAGES //////////////////////////////////////////////

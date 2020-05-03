@@ -1021,15 +1021,17 @@ void ScopeStack_Push(struct ScopeStack * stack, struct TreeNode * scope, char ac
     stack -> top -> active = active;
   }
   stack -> elements += 1;
+  // todo valutare di rimuovere
   // debug si potrebbe tenere con un if di controllo
-  printf("New scope in the scope stack. Scope in the stacks: %d\n", stack -> elements);
+  if(ST_DEBUGGING) printf("New scope in the scope stack. Scope in the stacks: %d\n", stack -> elements);
 }
 void ScopeStack_Pop(struct ScopeStack * stack){
 
   struct Scope * previous_scope = stack -> top -> prevScope;
   stack -> top = previous_scope;
   stack -> elements -= 1;
-  printf("A scope has been removed from the scope stack. Scope in the stacks: %d\n", stack -> elements);
+  // todo valutare di rimuovere
+  if(ST_DEBUGGING) printf("A scope has been removed from the scope stack. Scope in the stacks: %d\n", stack -> elements);
 
 }
 struct TreeNode * ScopeStack_Peek(struct ScopeStack * stack){
@@ -1096,10 +1098,9 @@ void FunNodeList_Set (ProgramNode* prog){
 }
 // create a new FunNode and add it to the FunctionList
 void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
-  printf("- FunNodeList_Add: Creating a new function Node\n"); // debug
 
   if (declaration -> nodeType != DclN){
-    printf("%s FunNodeList_Add - incorrect call. DclN node expected. Node type: %u\n", ErrorMsg(), declaration -> nodeType);
+    printf("%s FunNodeList_Add - unexpected tree node type. Expected DclN, found %s.\n", ErrorMsg(), NodeTypeString(declaration));
     exit(EXIT_FAILURE);
   }
 
@@ -1146,7 +1147,8 @@ void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
 
   // Setting the function scope stack as actual scope stack
   prog -> actual_stack = newFunction -> scope_stack;
-  printf("New actual scope stack set.\n");
+  // todo valutare di rimuovere questo debugging
+  if (ST_DEBUGGING) printf("New actual scope stack set.\n");
 
   /*
   // Setting function scope as new actual scope
@@ -1174,7 +1176,7 @@ void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
 
   }
   prog -> function_list -> elements ++;
-  printf("- FunNodeList_Add: A new function Node was created\n");
+  if (ST_DEBUGGING) printf("- FunNodeList_Add: A new function Node was created\n");
 }
 /*
 * returns -1 if the list is empty
@@ -1553,7 +1555,7 @@ char * NodeTypeString(struct TreeNode * node){
             break;
     case DclAsgn: return "declaration and assignment";
             break;
-    case Expr:    return ExprTypeString(node);
+    case Expr:    return "expression";
             break;
     case Asgn:    return "assignment";
             break;
@@ -1630,5 +1632,86 @@ char * ExprTypeString(struct TreeNode * node){
   else{
     printf("%s ExprTypeString - incorrect call. Expr TrenNode type expected. Type found: %u.\n", ErrorMsg(), node -> nodeType);
     exit(EXIT_FAILURE);
+  }
+}
+char * PrintNodeType (enum nodeType type){
+  switch (type) {
+    case Ukn:     return "uknown";
+            break;
+    case DclN:    return "declaration";
+            break;
+    case ArgD:    return "arguments declaration";
+            break;
+    case DclAsgn: return "declaration and assignment";
+            break;
+    case Expr:    return "expression";
+            break;
+    case Asgn:    return "assignment";
+            break;
+    case Return:  return "return";
+            break;
+    case ExprLst: return "expression list";
+            break;
+    case FunCall: return "function call";
+            break;
+    case ArgLst:  return "arguments list";
+            break;
+    case Scope:   return "scope";
+            break;
+    case If:      return "if";
+            break;
+    case Else:    return "else";
+            break;
+    case IfElse:  return "if else";
+            break;
+    case While:   return "while";
+            break;
+    case MultiDc:   return "multi declaration";
+            break;
+    case MultiAs:   return "multi assignment";
+            break;
+    default:      return "unexpected";
+            break;
+  }
+}
+char * PrintExpressionType (enum exprType type){
+
+  switch (type){
+    case NUM:     return "integer";
+            break;
+    case ID:    return "identifier";
+            break;
+    case VEC:    return "array element";
+            break;
+    case STR: return "string";
+            break;
+    case C:    return "character";
+            break;
+    case FC:    return "function call";
+            break;
+    case SUM:  return "sum";
+            break;
+    case DIF: return "difference";
+            break;
+    case TIM: return "multiplication";
+            break;
+    case DIV:  return "division";
+            break;
+    case MOD:  return "modulus";
+            break;
+    case RND:   return "parathesis";
+            break;
+    case CMP:      return "comparison";
+            break;
+    case PI:    return "pre increment";
+            break;
+    case PD:   return "pre decrement";
+            break;
+    case IP:   return "post increment";
+            break;
+    case DP:   return "post decrement";
+            break;
+    case PA:   return "parentheses assignment";
+            break;
   }
 }

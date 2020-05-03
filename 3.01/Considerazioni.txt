@@ -12,6 +12,29 @@ V IF ELSE
 - analizzare le precedenze, soprattutto tra comparison a AND/OR. Es: x > 10 && x < 50;  come lo prende così? con le parentesei è tutto più chiaro ovviamente
 
 
+
+
+ARRAY SENZA DIMENSIONE SPECIFICATA
+
+In fase di parsing consideriamo un array senza dimensione.
+Il problema è che il C non da warning o errori in questo caso.
+Anzi in fase di esecuzione permette anche di accedere a elementi del vettore cui non potrei accedere se la dimensione
+fosse fissata in fase di inizializzazione.
+
+esempio nel main:
+
+char x[] = "abc";
+x[5] = 'd';
+
+Questo problema lo si ha anche nel main. Come si vede sopra posso accedere all'elemento 5 anche se è composto da 3 elementi(4 con il carattere di fine stringa)
+Questo avviene perchè il C ragiona con l'aritmetica dei puntatori, cosa che non ho implementato.
+
+Un problema lo si ha nelle funzioni dove posso avere come parametro un vettore senza dimensione specificata e non vi è neanche l'izializzazione che aiuta in questo senso.
+Per questo sposto il controllo dalla dimensione del vettore in fase di esecuzione se il vettore non ha una dimensione specificata.
+
+
+
+
 SCOPE ACTIVE PICCOLA RIVOLUZIONE
 
 Nello scope stack ad ogni nodo scope è associato un flag active.
