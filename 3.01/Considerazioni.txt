@@ -10,8 +10,10 @@ V IF ELSE
 - buttare un occhio su CMP_node_logicValue si può fare meglio
 - migliorare subsequent assignment
 - analizzare le precedenze, soprattutto tra comparison a AND/OR. Es: x > 10 && x < 50;  come lo prende così? con le parentesei è tutto più chiaro ovviamente
-
-
+- ATTENZIONE pare ci sia un eccesso di strcpy quando basterebbe il puntatore.
+- Considerare l'opzione di mettere nella lista degli statement la riga vuota (da valutare compatibilmente con il lexer), per evitare di specificare anche le {}
+- Forse il global scope stack non è così utile, perchè tanto quando una funzione finisce il proprio scope rimane il global scope
+- Forse non serve neanche il function_scope, basta crearlo e metterlo nella function scope stack.
 
 
 ARRAY SENZA DIMENSIONE SPECIFICATA
@@ -44,6 +46,12 @@ Quando viene creato lo scope main è inattivo come ogni funzione ma viene succes
 Quando viene creato uno scope normale questo eredita il flag di attivazione dallo scope padre, ossia il precedente nello scope stack
 Quando viene creato uno scope while if o else è inattivo di default. Può essere attivato dalla condition.
 
+
+
+CHECK ARRAY DIMENSION
+
+Prima questo check (quello che evita le parentesi quadre vuote []) veniva fatto prima di un declaration statement.
+Dato che era proprio brutto da vedere l'ho inserito nel exec_DclN, bisognerà controllare che non dia problemi.
 
 
 ASSEGNAZIONI E COMPARISON

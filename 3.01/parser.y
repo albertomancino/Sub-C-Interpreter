@@ -133,13 +133,17 @@ main_function_declaration
 ;
 
 function
-: function_declaration scope                                                    {if(P_DEBUGGING==1) printf("BISON: Function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
+: function_declaration statement_list CLOSED_BRACKET                            {if(P_DEBUGGING==1) printf("BISON: Function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
+| function_declaration CLOSED_BRACKET                                           {if(P_DEBUGGING==1) printf("BISON: Function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
 ;
 
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function_declaration
-: declaration arguments_declaration                                             {if(P_DEBUGGING==1) printf("BISON: Function declaration found\n");         create_FunctionNode($1,$2); if(TREE_BUILDING) {FunNodeList_Add (MainNode, $1); Add_Node_Tree(MainNode, $2);}}
+: declaration arguments_declaration OPEN_BRACKET                                {if(P_DEBUGGING==1) printf("BISON: Function declaration found\n");         if(TREE_BUILDING) create_FunctionNode($1,$2);}
 ;
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 arguments_declaration
 : OPEN_ROUND arguments_declaration_list CLOSED_ROUND                            {if(P_DEBUGGING==1) printf("BISON: arguments_declaration1 found\n");       if(TREE_BUILDING) $$ = $2}
@@ -175,12 +179,12 @@ statement_scope
 statement
 : expr END_COMMA                                                                {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Expression($1);}
 | return_statement                                                              {if(P_DEBUGGING==1) printf("BISON: Return statement found\n");                                     if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
-| declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");   if(Check_ArrayDimension($1)) if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); exec_DclN(MainNode,$1);}
+| declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");                                if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); exec_DclN(MainNode,$1);}
 | assignment END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Assignment statement found\n");                                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Asgn(MainNode,$1);}
 | multi_dec END_COMMA                                                           {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                          if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_DclN($1);}
 | multi_asgn END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                           if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_Asgn($1);}
 | declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_DclN_Asgn($1)}
-| if_else_statement                                                             {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_ifElse($1)}
+| if_else_statement                                                             {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); printf("Eseguo IF ELSE\n"); if(Check_activation()) exec_ifElse($1)}
 | while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                            if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_while($1)}
 | END_COMMA                                                                     {if(P_DEBUGGING==1) printf("BISON: Empty statement found\n");}
 ;
@@ -349,18 +353,20 @@ variable
 ////////////////////  arguments_declaration_list PRODUCTION  ///////////////////
 struct TreeNode * create_Arg_ListNode(struct TreeNode *arg_list, struct TreeNode *arg){
 
+  // first element of the list
   if (arg_list == NULL){
-    struct TreeNode * newTreeNode = TreeNodeInitialization (); // generic Tree Node memory space allocation
 
+    struct TreeNode * newTreeNode = TreeNodeInitialization (); // generic Tree Node memory space allocation
     // Linking specific node to generic Tree Node
     newTreeNode -> nodeType = ArgLst;
 
-    if (arg != NULL){       // first element of the list
+    if (arg != NULL){
       TreeNodeList_Add(newTreeNode -> child_list, arg);
       return newTreeNode;
     }
+    // in case of 0 arguments
     else{
-      return newTreeNode;  // in case of functions without arguments
+      return newTreeNode;
     }
   }
   else{
@@ -477,15 +483,32 @@ void create_MainFunction(ProgramNode * prog, struct TreeNode * arguments){
 
 ////////////////////  function node PRODUCTION  ////////////////////////////////
 
-struct TreeNode * create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parameters){
+void create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parameters){
 
   // check parameters
   Check_NodeType(DclN, declaration, "create_functionNode");
-  Check_NodeType(ArgD, parameters, "create_functionNode");
+  Check_NodeType(ArgLst, parameters, "create_functionNode");
 
-      //FunNodeList_Add (MainNode, $1);
-      //Add_Node_Tree(MainNode, $2);
-  return parameters;
+  FunNodeList_Add (MainNode, declaration);
+  Add_Node_Tree(MainNode, parameters);
+
+  // declaration of parameters
+  for (int i = 0; i < parameters -> child_list -> elements; i++){
+
+    struct TreeNode * parameter;
+
+    if (i == 0) parameter = parameters -> child_list -> first;
+    else parameter = parameter -> next;
+
+
+    if (parameter -> node.DclN -> arrayDim == NULL && (parameter -> node.DclN -> type == INT_V_ || parameter -> node.DclN -> type == CHAR_V_)){
+      parameter -> node.DclN -> arrayDim = create_ExprNode(NUM, 0, NULL, NULL, NULL, 0);
+      parameter -> node.DclN -> ignore = 1;
+    }
+
+    exec_DclN(MainNode, parameter);
+  }
+
 }
 
 
@@ -493,54 +516,38 @@ struct TreeNode * create_FunctionNode(struct TreeNode * declaration, struct Tree
 
 struct TreeNode * create_IfElseNode(struct TreeNode * if_node, struct TreeNode * else_node){
 
-  if (if_node -> nodeType == If){
 
-    // creating a generic Tree Node with memory allocation
-    struct TreeNode * newIfElseNode = TreeNodeInitialization();
-    // Tree Node Type
-    newIfElseNode -> nodeType = IfElse;
+  Check_NodeType(If, if_node, "create_IfElseNode");
 
-    TreeNodeList_Add(newIfElseNode -> child_list, if_node);
+  // creating a generic Tree Node with memory allocation
+  struct TreeNode * newIfElseNode = TreeNodeInitialization();
+  // Tree Node Type
+  newIfElseNode -> nodeType = IfElse;
 
-    printf("IF NODE HA %d FIGLI.\n", if_node -> child_list -> elements);
-    // exec if statement
-     if(Check_activation()) {exec_if(if_node);}
+  TreeNodeList_Add(newIfElseNode -> child_list, if_node);
 
-    // if there's an else condition
-    if (else_node != NULL){
-      if (else_node -> nodeType == Else){
-        TreeNodeList_Add(newIfElseNode -> child_list, else_node);
-      }
-      else{
-        printf("%s create_IfElseNode - unexpected Tree Node type. Expected Else, found %s.\n", ErrorMsg(), NodeTypeString(else_node));
-        exit(EXIT_FAILURE);
-      }
+  //printf("IF NODE HA %d FIGLI.\n", if_node -> child_list -> elements);
+  // exec if statement
+   if(Check_activation()) {exec_if(if_node);}
+
+  // if there's an else condition
+  if (else_node != NULL){
+    if (else_node -> nodeType == Else)  TreeNodeList_Add(newIfElseNode -> child_list, else_node);
+    else{
+      printf("%s create_IfElseNode - unexpected Tree Node type. Expected Else, found %s.\n", ErrorMsg(), NodeTypeString(else_node));
+      exit(EXIT_FAILURE);
     }
-
-    return newIfElseNode;
-  }
-  else{
-    printf("%s create_IfElseNode - unexpected Tree Node type. Expected If, found %s.\n", ErrorMsg(), NodeTypeString(if_node));
-    exit(EXIT_FAILURE);
   }
 
-
-
-  return if_node;
+  return newIfElseNode;
 }
 
 struct TreeNode * create_ElseNode (struct TreeNode * else_node){
 
-  if (else_node -> nodeType == Else){
-    // else scope is ended
-    ScopeStack_Pop(MainNode -> actual_stack);
+  Check_NodeType(Else, else_node, "create_ElseNode");
 
-    return else_node;
-  }
-  else{
-    printf("%s create_ElseNode - unexpected Tree Node type. Expected Else, found %s.\n", ErrorMsg(), NodeTypeString(else_node));
-    exit(EXIT_FAILURE);
-  }
+  // else scope is ended
+  ScopeStack_Pop(MainNode -> actual_stack);
 
   return else_node;
 }
@@ -565,25 +572,16 @@ struct TreeNode * create_ElseDeclaration(){
 
 struct TreeNode * create_IfNode (struct TreeNode * if_node, struct TreeNode * condition){
 
-  if (if_node -> nodeType == If){
-    if (condition -> nodeType == Expr){
 
-      // linking condition to the if node
-      TreeNodeList_Add(if_node -> child_list, condition);
-      // if scope is ended
-      ScopeStack_Pop(MainNode -> actual_stack);
+  Check_NodeType(If, if_node, "create_IfNode");
+  Check_NodeType(Expr, condition, "create_IfNode");
 
-      return if_node;
-    }
-    else{
-      printf("%s create_IfNode - unexpected Tree Node type. Expected Expr, found %s.\n", ErrorMsg(), NodeTypeString(condition));
-      exit(EXIT_FAILURE);
-    }
-  }
-  else{
-    printf("%s create_IfNode - unexpected Tree Node type. Expected If, found %s.\n", ErrorMsg(), NodeTypeString(if_node));
-    exit(EXIT_FAILURE);
-  }
+  // linking condition to the if node
+  TreeNodeList_Add(if_node -> child_list, condition);
+  // if scope is ended
+  ScopeStack_Pop(MainNode -> actual_stack);
+
+  return if_node;
 }
 
 struct TreeNode * create_IfDeclaration(){
@@ -1056,7 +1054,7 @@ struct TreeNode * create_AssignmentNode(struct ProgramNode * prog, struct TreeNo
   }
   // incorrect call
   else{
-    printf("line:%d %serror%s - create_AssignmentNode: incorrect call\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
+    printf("%s - create_AssignmentNode: incorrect call\n", ErrorMsg());
     exit(EXIT_FAILURE);
   }
 
@@ -1078,83 +1076,45 @@ struct TreeNode * create_DeclarationNode(enum Type type, struct TreeNode * var){
     // checking if the declaration is consistent
     Check_DeclConcistency(var);
     // memory space allocation for specific Declaration node
-    struct DeclarationNode * NewNodeType;
-    NewNodeType = (struct DeclarationNode *)malloc(sizeof(struct DeclarationNode));
+    struct DeclarationNode * newDeclaration;
+    newDeclaration = (struct DeclarationNode *)malloc(sizeof(struct DeclarationNode));
     // variable identifier
-    NewNodeType -> identifier = TreeNode_Identifier(var);
+    newDeclaration -> identifier = TreeNode_Identifier(var);
     // setting var type and array dimension
     if (var -> node.Expr -> exprType == ID){
       // variable type
-      NewNodeType -> type = type;
+      newDeclaration -> type = type;
       // array dimension
-      NewNodeType -> arrayDim = NULL;
+      newDeclaration -> arrayDim = NULL;
     }
     else if (var -> node.Expr -> exprType == VEC){
       if(type == INT_){
         // variable type
-        NewNodeType -> type = INT_V_;
+        newDeclaration -> type = INT_V_;
         // array dimension
-        NewNodeType -> arrayDim = var -> child_list -> first;
+        newDeclaration -> arrayDim = var -> child_list -> first;
       }
       else if(type == CHAR_){
         // variable type
-        NewNodeType -> type = CHAR_V_;
+        newDeclaration -> type = CHAR_V_;
         // array dimension
-        NewNodeType -> arrayDim = var -> child_list -> first;
+        newDeclaration -> arrayDim = var -> child_list -> first;
       }
       else{
         printf("%s create_DeclarationNode - unexpected variable type.\n", ErrorMsg());
         exit(EXIT_FAILURE);
       }
     }
+    // setting ignore flag, 0 by default
+    newDeclaration -> ignore = 0;
 
     // linking declaration struct to tree node
-    newTreeNode -> node.DclN = NewNodeType;
+    newTreeNode -> node.DclN = newDeclaration;
     // freeing memory
     free(var -> node.Expr);
     free(var);
 
     return newTreeNode;
-
-
-/*
-    // generic Tree Node memory space allocation
-    struct TreeNode * newTreeNode = TreeNodeInitialization ();
-    // memory space allocation for specific Declaration node
-    struct DeclarationNode * NewNodeType;
-    NewNodeType = (struct DeclarationNode *)malloc(sizeof(struct DeclarationNode));
-
-    // declaration node type is the declarated variable type
-    NewNodeType -> type = type;
-
-    // declaration node identifier is the declarated variable identifier
-    strcpy(NewNodeType -> identifier, var -> node.Expr -> exprVal.stringExpr);
-
-    // checks if the Tree Node is an array or an identifier (exprType = ID if IDENTIFIER, = VEC if ARRAY)
-    if (var -> node.Expr -> exprType == VEC) {
-
-      // check array lenght if costant, must be > 0
-      if (IsCostant(var -> child_list -> first)){
-        int lenght = Expr_toInt(MainNode, var -> child_list -> first);
-        if (lenght < 1){
-          printf("%s '%s' declared as an array with 0 or negative size\n", ErrorMsg(), NewNodeType -> identifier);
-          exit(EXIT_FAILURE);
-        }
-      }
-
-      NewNodeType -> arrayDim = var -> child_list -> first;
-    }
-    // otherwise the array dimension is null
-    else NewNodeType -> arrayDim = NULL;
-
-    // Tree Node Type
-    newTreeNode -> nodeType = DclN;
-    // Declaration Node inside the TreeNode
-    newTreeNode -> node.DclN = NewNodeType;
-
-    return newTreeNode;
-
-    */
 
   }
   else{
@@ -1387,64 +1347,43 @@ void Check_ExprConcistency(ProgramNode * prog, struct TreeNode * expr_node){
 
 void Check_IdentifierConcistency(ProgramNode * prog, struct TreeNode * identifier_node){
 
-  if (identifier_node -> nodeType == Expr){
-    if (identifier_node -> node.Expr -> exprType == ID){
+  Check_NodeType(Expr, identifier_node, "Check_IdentifierConcistency");
+  Check_ExprType(ID, identifier_node, "Check_IdentifierConcistency");
 
-      char * identifier = identifier_node -> node.Expr -> exprVal.stringExpr;
-      // check declaration
-      if (!Check_VarWasDeclared(prog, identifier, 1)){
-
-        printf("line %d: %serror:%s use of undeclared identifier \'%s\'.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET, identifier);
-        exit(EXIT_FAILURE);
-      }
-    }
-    else{
-      printf("%s Check_ArrayConcistency - incorrect call. ID Expr TreeNode expected.\n",ErrorMsg());
-      exit(EXIT_FAILURE);
-    }
-  }
-  else{
-    printf("%s Check_ArrayConcistency - incorrect call. Expr TreeNode expected.\n", ErrorMsg());
+  char * identifier = identifier_node -> node.Expr -> exprVal.stringExpr;
+  // check declaration
+  if (!Check_VarWasDeclared(prog, identifier, 1)){
+    printf("%s use of undeclared identifier \'%s\'.\n", ErrorMsg(), identifier);
     exit(EXIT_FAILURE);
   }
 }
 
 void Check_ArrayConcistency(ProgramNode * prog, struct TreeNode * array){
 
-  if (array -> nodeType == Expr){
-    if (array -> node.Expr -> exprType == VEC){
+  Check_NodeType(Expr, array, "Check_ArrayConcistency");
+  Check_ExprType(VEC, array, "Check_ArrayConcistency");
 
-      char * array_id = array -> node.Expr -> exprVal.stringExpr;
-      // check declaration
-      if (!Check_VarWasDeclared(prog, array_id, 1)){
+  char * array_id = array -> node.Expr -> exprVal.stringExpr;
+  // check declaration
+  if (!Check_VarWasDeclared(prog, array_id, 1)){
 
-        printf("line %d: %serror:%s use of undeclared identifier \'%s\'.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET, array_id);
-        exit(EXIT_FAILURE);
-      }
-      else{
-        // check array index
-        int index = Retrieve_ArrayIndex(prog, array);
-        int array_dim = Retrieve_ArrayDim(prog, array_id);
-
-        // out of bounds array error
-        if (index > array_dim - 1){
-          printf("line %d: %serror:%s array index %d is past the end of the array. Array contains %d elements.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET,index, array_dim);
-          exit(EXIT_FAILURE);
-        }
-        else if (index < 0){
-          printf("line %d: %serror:%s array index %d is before the beginning of the array. Array contains %d elements.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET,index, array_dim);
-          exit(EXIT_FAILURE);
-        }
-      }
-    }
-    else{
-      printf("line %d: %serror:%s Check_ArrayConcistency - incorrect call. VEC Expr TreeNode expected.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
-      exit(EXIT_FAILURE);
-    }
+    printf("%s use of undeclared identifier \'%s\'.\n", ErrorMsg(), array_id);
+    exit(EXIT_FAILURE);
   }
   else{
-    printf("line %d: %serror:%s Check_ArrayConcistency - incorrect call. Expr TreeNode expected.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
-    exit(EXIT_FAILURE);
+    // check array index
+    int index = Retrieve_ArrayIndex(prog, array);
+    int array_dim = Retrieve_ArrayDim(prog, array_id);
+
+    // out of bounds array error
+    if (index > array_dim - 1 && !IgnoreFlag(array_id)){
+      printf("%s array index %d is past the end of the array. Array contains %d elements.\n",ErrorMsg(),index, array_dim);
+      exit(EXIT_FAILURE);
+    }
+    else if (index < 0){
+      printf("%s array index %d is before the beginning of the array. Array contains %d elements.\n", ErrorMsg(),index, array_dim);
+      exit(EXIT_FAILURE);
+    }
   }
 }
 
@@ -1873,38 +1812,6 @@ void Check_AsgnConcistency(ProgramNode * prog, struct TreeNode * leftOp, struct 
 
     char * leftOp_identifier = TreeNode_Identifier(leftOp);
 
-    // todo se la chiamata di isAssignable funziona bene è da togliere dato che fanno la stessa cosa
-    /*
-
-    enum Type leftOp_varType = Retrieve_VarType(prog, leftOp_identifier);
-
-    if (leftOp_type == ID){
-
-      // check if left operator is not a vector identifier
-      if (leftOp_varType == INT_V_ || leftOp_varType == CHAR_V_){
-
-        int array_dim = Retrieve_ArrayDim(prog, leftOp_identifier);
-        if (leftOp_varType == INT_V_) printf("line %d: %serror:%s array type \'int[%d]\' is not assignable\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET,array_dim);
-        if (leftOp_varType == CHAR_V_) printf("line %d: %serror:%s array type \'char[%d]\' is not assignable\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET,array_dim);
-        exit(EXIT_FAILURE);
-      }
-    }
-    else if (leftOp_type == VEC){
-
-      int index = Retrieve_ArrayIndex(prog, leftOp);
-      int array_dim = Retrieve_ArrayDim(prog, leftOp_identifier);
-
-      // out of bounds array error
-      if (index > array_dim-1){
-        printf("line %d: %serror:%s array index %d is past the end of the array. Array contains %d elements.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET,index, array_dim);
-        exit(EXIT_FAILURE);
-      }
-      else if (index < 0){
-        printf("line %d: %serror:%s array index %d is before the beginning of the array. Array contains %d elements.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET,index, array_dim);
-        exit(EXIT_FAILURE);
-      }
-    }
-    */
     if (rightOp_type == STR){
       printf("%s a string is not assignable\n", ErrorMsg());
       exit(EXIT_FAILURE);
@@ -1928,14 +1835,16 @@ void Check_AsgnConcistency(ProgramNode * prog, struct TreeNode * leftOp, struct 
     int index = Retrieve_ArrayIndex(prog, rightOp);
     int array_dim = Retrieve_ArrayDim(prog, rightOp_identifier);
 
-    // out of bounds array error
-    if (index > array_dim-1){
-      printf("%s array index %d is past the end of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
-      exit(EXIT_FAILURE);
-    }
-    else if (index < 0){
-      printf("%s array index %d is before the beginning of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
-      exit(EXIT_FAILURE);
+    if (!IgnoreFlag(rightOp_identifier)){
+      // out of bounds array error
+      if (index > array_dim-1){
+        printf("%s array index %d is past the end of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
+        exit(EXIT_FAILURE);
+      }
+      else if (index < 0){
+        printf("%s array index %d is before the beginning of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
+        exit(EXIT_FAILURE);
+      }
     }
   }
 
@@ -1979,17 +1888,6 @@ void Check_DeclConcistency(struct TreeNode * variable){
           exit(EXIT_FAILURE);
         }
 
-        /* todo rimuovere
-        if(variable -> node.Expr -> exprType == VEC){
-
-          // array without dimension
-          if(variable -> child_list -> elements == 0 && flag){
-            printf("%s definition of variable %s with array type needs an explicit size or an initializer.\n", ErrorMsg(), identifier);
-            exit(EXIT_FAILURE);
-          }
-
-        }
-        */
       }
       else{
         printf("%s Check_DeclConcistency - unexpected Expr type. Type found: %u.\n", ErrorMsg(), variable -> node.Expr -> exprType);
@@ -2010,22 +1908,21 @@ int Check_ArrayDimension(struct TreeNode * node){
       exit(EXIT_FAILURE);
       return 0;
     }
-    else{
-      return 1;
-    }
+    else return 1;
   }
   else if (node -> nodeType == DclN){
     // array with no dimension specified
     if (node -> node.DclN -> arrayDim == NULL && (node -> node.DclN -> type == INT_V_ || node -> node.DclN -> type == CHAR_V_)){
-      printf("%s definition of '%s' variable with array type needs an explicit size or an initializer\n", ErrorMsg(), TreeNode_Identifier(node));
-      exit(EXIT_FAILURE);
+      if (IgnoreFlag(node -> node.DclN -> identifier)) return 1;
+      else{
+        printf("%s definition of '%s' variable with array type needs an explicit size or an initializer.\n", ErrorMsg(), TreeNode_Identifier(node));
+        exit(EXIT_FAILURE);
+      }
     }
-    else{
-      return 1;
-    }
+    else return 1;
   }
   else{
-    printf("%s Check_ArrayDimension - incorrect call. Expr or DclN node expected. Type found %u.\n", ErrorMsg(), node -> nodeType == Expr);
+    printf("%s Check_ArrayDimension - unexpected tree node type. Expected 'expression' or 'declaration' found %s.\n", ErrorMsg(), NodeTypeString(node));
     exit(EXIT_FAILURE);
   }
 }

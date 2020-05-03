@@ -78,6 +78,7 @@ struct SymbolTable_Node{
   union VarVal varVal;
   union VarPtr varPtr;
   int arrayDim;
+  char ignore;
 
   struct SymbolTable_Node * next;
 };
@@ -104,7 +105,7 @@ int Expr_toInt(ProgramNode *, struct TreeNode *);
 ////////////////////////////////////////////////////////////////////////////////
 
 struct SymbolTable * SymbolTable_Set();
-int SymbolTable_Add(struct SymbolTable *, char *, enum Type, int);
+int SymbolTable_Add(struct SymbolTable *, char *, enum Type, int, char);
 int SymbolTable_AddInt (struct SymbolTable *, char *, int);
 void SymbolTable_Print(struct SymbolTable *);
 struct SymbolTable_Node * SymbolTable_Get(struct SymbolTable *, int);
@@ -116,6 +117,7 @@ enum Type Retrieve_VarType(struct ProgramNode * , char *);
 int Retrieve_ArrayDim(struct ProgramNode *, char *);
 int Check_VarWasDeclared (struct ProgramNode *, char *, int);
 void SymbolTable_AssignValue (struct ProgramNode *, struct TreeNode *, int);
+int IgnoreFlag(char *);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////// PROGRAM NODE FUNCTIONS //////////////////////////////////////

@@ -520,46 +520,49 @@ void exec_Expression (struct TreeNode * node){
 *   Given a declaration node creates a SymbolTable_Node in the actual scope
 */
 void exec_DclN (ProgramNode * prog, struct TreeNode * node){
+
   // CHECK: TreeNode must be a Declaration Node
-  if (node -> nodeType == DclN){
-    char * variable_identifier = TreeNode_Identifier(node);
-    // retrieve the actual scope
-    struct TreeNode * actualScope = Get_ActualScope(prog);
-    // retrieve symbol table from the scope
-    struct SymbolTable * ST = actualScope -> node.ST;
-    // setting variable type
-    enum Type varType = node -> node.DclN -> type;
-    int arrayDim = 0;
+  Check_NodeType(DclN, node, "exec_DclN");
 
-    if(varType == INT_ || varType == CHAR_){
-      arrayDim = -1;
+  char * variable_identifier = TreeNode_Identifier(node);
+  // retrieve the actual scope
+  struct TreeNode * actualScope = Get_ActualScope(prog);
+  // retrieve symbol table from the scope
+  struct SymbolTable * ST = actualScope -> node.ST;
+
+  // setting variable type
+  enum Type varType = node -> node.DclN -> type;
+  int arrayDim = 0;
+
+  if(varType == INT_ || varType == CHAR_){
+    arrayDim = -1;
+  }
+  else if(varType == INT_V_ || varType == CHAR_V_){
+
+    // check if array dimension is defined
+    Check_ArrayDimension(node);
+
+    arrayDim = Retrieve_ArrayIndex(prog, node);
+    if (arrayDim < 0){
+      printf("%s '%s' declared as an array with 0 or negative size\n", ErrorMsg(), variable_identifier);
+      exit(EXIT_FAILURE);
     }
-    else if(varType == INT_V_ || varType == CHAR_V_){
-
-      arrayDim = Retrieve_ArrayIndex(prog, node);
-      if (arrayDim < 0){
-        printf("%s '%s' declared as an array with 0 or negative size\n", ErrorMsg(), variable_identifier);
-        exit(EXIT_FAILURE);
-      }
-    }
-    else{
-        printf("%s exec_DclN - unexpected variable type. Type found %u.\n", ErrorMsg(), varType);
-        exit(EXIT_FAILURE);
-      }
-
-    // adding variable to symbol table
-    int add = SymbolTable_Add(ST, variable_identifier, varType, arrayDim);
-    if(!add){
-      printf("%s exec_DclN - declaration of %s failed.\n", ErrorMsg(), variable_identifier);
+  }
+  else{
+      printf("%s exec_DclN - unexpected variable type. Type found %u.\n", ErrorMsg(), varType);
       exit(EXIT_FAILURE);
     }
 
-  }
-  // Unexpected node
-  else{
-    printf("ERROR: exec_DclN - a declaration node was expected. Node type found: %u\n", node->nodeType);
+  char ignoreFlag = node -> node.DclN -> ignore;
+  printf("Ignore flag per %s vale: %d\n", variable_identifier, ignoreFlag);
+
+  // adding variable to symbol table
+  int add = SymbolTable_Add(ST, variable_identifier, varType, arrayDim, ignoreFlag);
+  if(!add){
+    printf("%s exec_DclN - declaration of \'%s\' failed.\n", ErrorMsg(), variable_identifier);
     exit(EXIT_FAILURE);
   }
+
 }
 
 ///////////////////////////  ASSIGNMENT   /////////////////////////////////////
@@ -693,14 +696,14 @@ void exec_while (struct TreeNode * node){
 void exec_ifElse (struct TreeNode * node){
 
   if (node -> nodeType == IfElse){
-    printf("Questo if else ha %d figli.\n", node -> child_list -> elements);
-    printf("%s\n", NodeTypeString(node -> child_list -> first -> next));
-    printf("%s\n", NodeTypeString(node -> child_list -> last));
-    printf("%d\n", node -> child_list -> first -> node.flag);
+    //printf("Questo if else ha %d figli.\n", node -> child_list -> elements);
+    //printf("%s\n", NodeTypeString(node -> child_list -> first -> next));
+    //printf("%s\n", NodeTypeString(node -> child_list -> last));
+    //printf("%d\n", node -> child_list -> first -> node.flag);
 
     // if the if condition was false and an else statement is present
     if (node -> child_list -> first -> node.flag == 0 && node -> child_list -> last -> nodeType == Else){
-        printf("QUI DENTRO\n" );
+        //printf("QUI DENTRO\n" );
       // exec statements in the else scope
       {
         // execution of the statement in the if scope
@@ -726,9 +729,10 @@ void exec_if (struct TreeNode * node){
       int condition_value = Expr_toInt(MainNode, condition);
 
       if (condition_value){
+        printf("%s %d IF eseguito! %s\n", ANSI_BOLD_YELLOW, yylineno, ANSI_COLOR_RESET);
+
         // execution of the statement in the if scope
         exec_scope(node -> child_list -> first);
-        printf("%s %d IF eseguito! %s\n", ANSI_BOLD_YELLOW, yylineno, ANSI_COLOR_RESET);
 
         node -> node.flag = 1;
       }
@@ -795,9 +799,11 @@ void exec_statement (struct TreeNode * node){
     break;
     case Scope:   /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_scope(node);
     break;
-    case If:      /* todo */
+    case If:      exec_ifElse(node);
     break;
     case Else:    /* todo */
+    break;
+    case IfElse: exec_ifElse(node);
     break;
     case While:   /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_while(node);
     break;

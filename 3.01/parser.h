@@ -70,7 +70,6 @@ struct TreeNode * create_Function_CallNode            (ProgramNode * , char *, s
 struct TreeNode * create_OperationNode                (ProgramNode *, struct TreeNode *, struct TreeNode *, enum exprType);
 struct TreeNode * create_ComparisonNode               (ProgramNode *, struct TreeNode *, struct TreeNode *, enum cmpType);
 struct TreeNode * create_IncDecNode                   (enum exprType, struct TreeNode *);
-struct TreeNode * create_FunctionNode                 (struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_IfElseNode                   (struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_ElseNode                     (struct TreeNode *);
 struct TreeNode * create_ElseDeclaration              ();
@@ -80,6 +79,7 @@ struct TreeNode * create_WhileNode                    (struct TreeNode *, struct
 struct TreeNode * create_Condition                    (struct TreeNode *);
 struct TreeNode * create_WhileDeclaration             ();
 struct TreeNode * TreeNodeInitialization              ();
+void create_FunctionNode                              (struct TreeNode *, struct TreeNode *);
 void create_GlobalDeclarationNode                     (ProgramNode *, struct TreeNode *);
 void create_MainFunction                              (struct ProgramNode *, struct TreeNode *);
 void Check_ExprConcistency                            (ProgramNode *, struct TreeNode *);
@@ -125,6 +125,7 @@ struct DeclarationNode {
   char * identifier;
   enum Type type;
   struct TreeNode * arrayDim;
+  char ignore;
 };
 
 struct ArgumentsDeclaration {

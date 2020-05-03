@@ -299,19 +299,19 @@ int isAssignable(struct TreeNode * node){
       }
       else if (node -> node.Expr -> exprType == VEC){
 
+        printf("Il flag di %s vale: %d\n", identifier, IgnoreFlag(identifier));
         // array without dimension
         if(node -> child_list -> elements == 0){
           printf("%s array '%s' dimension expression missing.\n", ErrorMsg(), identifier);
           exit(EXIT_FAILURE);
           return 0;
         }
-        else{
-
+        else if (!IgnoreFlag(identifier)){
           int index = Retrieve_ArrayIndex(MainNode, node);
           int array_dim = Retrieve_ArrayDim(MainNode, identifier);
 
           // out of bounds array error
-          if (index > array_dim-1){
+          if (index > array_dim - 1){
             printf("%s array index %d is past the end of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
             exit(EXIT_FAILURE);
             return 0;
@@ -321,10 +321,10 @@ int isAssignable(struct TreeNode * node){
             exit(EXIT_FAILURE);
             return 0;
           }
-          else{
-            return 1;
-          }
+          else return 1;
         }
+        // ignore case
+        else return 1;
       }
     }
     else{
@@ -411,7 +411,7 @@ struct SymbolTable * SymbolTable_Set(){
 *   Returns 1 if the adding is made with success
 *   Returns 0 if it fails
 */
-int SymbolTable_Add(struct SymbolTable * table, char * identifier, enum Type type, int arrayDim){
+int SymbolTable_Add(struct SymbolTable * table, char * identifier, enum Type type, int arrayDim, char ignoreFlag){
 
   // check identifier lenght
   if (strlen(identifier) > 31){
@@ -438,6 +438,9 @@ int SymbolTable_Add(struct SymbolTable * table, char * identifier, enum Type typ
     // declaration of a variable
     if (type == INT_) newSTN -> arrayDim = 1;
     if (type == CHAR_) newSTN -> arrayDim = 1;
+
+    // setting ignore flag
+    newSTN -> ignore = ignoreFlag;
 
     // declaration of an array variable
     if (type == INT_V_ ) {
@@ -605,8 +608,9 @@ void SymbolTable_Print(struct SymbolTable * table){
 
     printf("Variable %d \n\tidentifier: %s\n\ttype: %s \n",i+1,newSTN -> identifier, VarTypeString(newSTN -> type));
     if (newSTN -> type == INT_V_ || newSTN -> type == CHAR_V_){
-      printf("\tdimension: %d\n", newSTN -> arrayDim);
-
+      printf("\tdimension: %d", newSTN -> arrayDim);
+      if (newSTN -> ignore) printf(" (IGNORE)");
+      printf("\n");
       if (newSTN -> type == INT_V_) printf("\tarray elements: [%d", newSTN -> varPtr.intPtr[0]);
       if (newSTN -> type == CHAR_V_) printf("\tarray elements: ['%c'(%d)", newSTN -> varPtr.charPtr[0], newSTN -> varPtr.charPtr[0]);
 
@@ -799,8 +803,8 @@ enum Type Retrieve_VarType(struct ProgramNode * prog, char * identifier){
 int Retrieve_ArrayDim(struct ProgramNode * prog, char * identifier){
 
   struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar (identifier);
-  if (ST_Node -> arrayDim == -1){
-    printf("Retrieve_ArrayDim - An error occurred retrieving array dimension. The variable is not an array.\n");
+  if (ST_Node -> type == INT_ || ST_Node -> type == INT_){
+    printf("%s Retrieve_ArrayDim - An error occurred retrieving array dimension. The variable is not an array.\n", ErrorMsg());
     exit(EXIT_FAILURE);
   }
   return ST_Node -> arrayDim;
@@ -874,6 +878,11 @@ void SymbolTable_AssignValue (struct ProgramNode * prog, struct TreeNode * varia
     exit(EXIT_FAILURE);
   }
 }
+int IgnoreFlag(char * identifier){
+  struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar(identifier);
+  return ST_Node -> ignore;
+};
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////  TREE NODE LIST FUNCTIONS  //////////////////////////////////
@@ -1099,33 +1108,30 @@ void FunNodeList_Set (ProgramNode* prog){
 // create a new FunNode and add it to the FunctionList
 void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
 
-  if (declaration -> nodeType != DclN){
-    printf("%s FunNodeList_Add - unexpected tree node type. Expected DclN, found %s.\n", ErrorMsg(), NodeTypeString(declaration));
-    exit(EXIT_FAILURE);
-  }
+  // check argument type
+  Check_NodeType(DclN, declaration, "FunNodeList_Add");
 
-  char * identifier = declaration -> node.DclN -> identifier;
+  // fuction identifier
+  char * identifier = TreeNode_Identifier(declaration);
+
   // check if a function with the same identifier was already declared
   if (CheckFunAlreadyExist(prog,identifier)){
     printf("%s redefinition of \'%s\'\n", ErrorMsg(),identifier);
     exit(EXIT_FAILURE);
   }
 
-  // Function Node space allocation
+  // function Node space allocation
   FunNode* newFunction;
-  newFunction = (FunNode*)malloc(sizeof(FunNode)); // memory space allocation
+  // memory space allocation
+  newFunction = (FunNode*)malloc(sizeof(FunNode));
+  // memory allocation error
   if ( newFunction == NULL ){
     printf("%s FunNodeList_Add - out of memory.\n", ErrorMsg());
     exit(EXIT_FAILURE);
   }
 
   // Linking function identifier to the created function node
-  newFunction -> funName = (char*)malloc(strlen(identifier));
-  if ( newFunction -> funName == NULL ){
-    printf("%s FunNodeList_Add - out of memory.\n", ErrorMsg());
-    exit(EXIT_FAILURE);
-  }
-  strcpy(newFunction -> funName, identifier);
+  newFunction -> funName = identifier;
 
   // Linking function type to the created function node
   newFunction -> funType = declaration -> node.DclN -> type;
@@ -1141,7 +1147,7 @@ void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
   // Setting global scope at the bottom of the function scope stack
   // Global scope is active by default
   ScopeStack_Push(newFunction -> scope_stack, MainNode -> global_scope_stack -> top -> thisScope, 1);
-  // Adding function scope to the stack as first scope
+  // Adding function scope to the stack as first scope after the global one
   // Function scope is inactive by default
   ScopeStack_Push(newFunction -> scope_stack, newFunction -> function_scope, 0);
 
@@ -1160,21 +1166,22 @@ void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
   //ScopeStack_Add(prog -> ActualScope, NULL, newElem);   //  adding scope as new actual scope
 
   // Adding function to ProgramNode function list
+  // Fist function in the function list
   if (prog -> function_list -> elements == 0){
-    if (TREE_DEBUGGING){
-    printf("TREE: %s first function insert in FunNodeList\n",identifier);
-  }
+
+    if (TREE_DEBUGGING)  printf("TREE: %s first function insert in FunNodeList\n",identifier);
     prog -> function_list -> first = newFunction;
     prog -> function_list -> last = newFunction;
   }
+  // Subsequent function in the function list
   else{
-    if (TREE_DEBUGGING){
-    printf("TREE: \"%s\" function insert in FunNodeList\n",identifier);
-    }
+
+    if (TREE_DEBUGGING)  printf("TREE: \"%s\" function insert in FunNodeList\n",identifier);
     prog -> function_list -> last -> next = newFunction;
     prog -> function_list -> last = newFunction;
 
   }
+
   prog -> function_list -> elements ++;
   if (ST_DEBUGGING) printf("- FunNodeList_Add: A new function Node was created\n");
 }
