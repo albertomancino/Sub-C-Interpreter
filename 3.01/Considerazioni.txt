@@ -20,6 +20,7 @@ V IF ELSE
 - Gli assignment possono essere parametri per le funzioni :)KILL ME PLS
 - Capire bene se gli assignement sono expr o pure no
 - Multi declaration non funziona bene perchè non dichiara l'ultima variabile!
+- Bisogna aggiustare la dichiarazione dei parametri nelle funzioni: manca il controllo se un parametro con lo stesso nome è stato già dichiarato
 
 
 

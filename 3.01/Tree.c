@@ -908,7 +908,24 @@ int IgnoreFlag(char * identifier){
   struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar(identifier);
   return ST_Node -> ignore;
 };
+void SymbolTableCopy (struct SymbolTable * SymbolTab){
 
+  struct SymbolTable * newSymbolTab = SymbolTable_Set();
+
+  for (int i = 0; i < SymbolTab -> elements; i++){
+
+    struct SymbolTable_Node * variable;
+    if (i == 0) variable = SymbolTab -> first;
+    else variable = variable -> next;
+
+    printf("Variabile di tipo %s\n", IdentifierTypeString(variable -> type));
+
+    if (variable -> type == INT_) SymbolTable_Add(newSymbolTab, variable -> identifier, INT_, 0, 0);
+  }
+
+  SymbolTable_Print(newSymbolTab);
+
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////  TREE NODE LIST FUNCTIONS  //////////////////////////////////

@@ -3298,7 +3298,7 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
     return newTreeNode;
   }
 
-
+////////////////////////////////////////////////////////////////////////////////
 
 struct TreeNode * TreeNodeInitialization (){
 
@@ -4029,24 +4029,7 @@ void CheckParameterAssignment(struct TreeNode * declaration, struct TreeNode * e
   Check_NodeType(Expr, expression, "CheckParameterAssignment");
 
   enum Type declaration_type = declaration -> node.DclN -> type;
-  enum exprType expression_exprType = expression -> node.Expr -> exprType;
   enum Type expression_type = expressionType(expression);
-
-/*
-  if (expression_exprType == ID){
-    enum Type identifier_type = Retrieve_VarType(MainNode, TreeNode_Identifier(expression));
-    printf("Identifier di tipo : %s\n", VarTypeString(identifier_type));
-
-    // error: incompatible conversion
-    if ((declaration_type == INT_ || declaration_type == CHAR_ ) && (identifier_type == INT_V_ || identifier_type == CHAR_V_)){
-      printf("%s incompatible pointer to integer conversion passing \'%s\' to parameter of type \'%s\'.\n", ErrorMsg(),IdentifierTypeString(identifier_type),IdentifierTypeString(declaration_type));
-      exit(EXIT_FAILURE);
-    }
-    else if ((declaration_type == INT_V_ || declaration_type == CHAR_V_ ) && (identifier_type == INT_ || identifier_type == CHAR_)){
-      printf("%s incompatible integer to pointer conversion passing \'%s\' to parameter of type \'%s\'.\n", ErrorMsg(),IdentifierTypeString(identifier_type),IdentifierTypeString(declaration_type));
-      exit(EXIT_FAILURE);
-    }
-  }*/
 
   if ((declaration_type == INT_V_ || declaration_type == CHAR_V_) && (expression_type == INT_ || expression_type == CHAR_)){
     printf("%s incompatible integer to pointer conversion passing \'%s\' to parameter of type \'%s\'.\n", ErrorMsg(), IdentifierTypeString(expression_type), IdentifierTypeString(declaration_type));

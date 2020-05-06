@@ -105,12 +105,32 @@ struct TreeNode * IdentifierResolverTreeNode (struct ProgramNode * prog, char * 
 
 /////////////////////////// FUNCTION CALL   ////////////////////////////////////
 
-int exec_FunctionCall(struct TreeNode * node){
+int exec_FunctionCall(struct TreeNode * function_call){
+
+  printf("------------ EXEC FUNCTION ------------\n");
+
+  Check_NodeType(Expr, function_call, "exec_FunctionCall");
+  Check_ExprType(FC, function_call, "exec_FunctionCall");
 
   // track the actual scope stack
   struct ScopeStack * previous_stack = MainNode -> actual_stack;
   // create a the new function scope stack
   struct ScopeStack * new_stack = ScopeStack_Set();
+
+  // Setting global scope at the bottom of the function scope stack
+  // Global scope is active by default
+  ScopeStack_Push(new_stack, MainNode -> global_scope_stack -> top -> thisScope, 1);
+
+  // Retrieving function declaration node
+  int index = FunNodeList_Search (MainNode, function_call -> node.Expr -> exprVal.stringExpr);
+  struct FunNode * functionNode = FunNodeList_Get (MainNode, index);
+
+  // Adding
+  SymbolTableCopy(functionNode -> function_scope -> node.ST);
+
+
+  // Setting the function scope stack as actual scope stack
+  MainNode -> actual_stack = new_stack;
 }
 
 ///////////////////////////  POST INCREMENT DECREMENT   ////////////////////////
@@ -488,7 +508,7 @@ void exec_Expression (struct TreeNode * node){
                 break;
       case C:   printf("%s expression result unused.\n", WarnMsg());
                 break;
-      case FC:
+      case FC:  exec_FunctionCall(node);
                 break;
       case SUM: printf("%s expression result unused.\n", WarnMsg());
                 break;
