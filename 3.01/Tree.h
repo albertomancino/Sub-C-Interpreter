@@ -93,6 +93,8 @@ int IsCostant(struct TreeNode *);
 int isOperation(struct TreeNode *);
 int isAssignable(struct TreeNode *);
 int Multiple_Modifications(struct TreeNode *, char*);
+enum Type expressionType(struct TreeNode *);
+
 
 // todo RIMUOVERE
 struct ErrorList * Error_Set();
@@ -188,6 +190,8 @@ char * NodeTypeString(struct TreeNode *);
 char * ExprTypeString(struct TreeNode *);
 char * PrintNodeType (enum nodeType);
 char * PrintExpressionType (enum exprType);
+char * IdentifierTypeString (enum Type);
+void PrintScopeStackDimension();
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////// ERROR MESSAGES //////////////////////////////////////////////

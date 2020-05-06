@@ -125,11 +125,12 @@ function_list
 ;
 
 main_function
-: main_function_declaration scope                                               {if(P_DEBUGGING==1) printf("BISON: MAIN function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
+: main_function_declaration statement_list CLOSED_BRACKET                       {if(P_DEBUGGING==1) printf("BISON: MAIN function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
+| main_function_declaration CLOSED_BRACKET                                      {if(P_DEBUGGING==1) printf("BISON: MAIN function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
 ;
 
 main_function_declaration
-: INT MAIN arguments_declaration                                                {if(P_DEBUGGING==1) printf("BISON: MAIN function declaration found\n");    if(TREE_BUILDING) create_MainFunction(MainNode, $3);}
+: INT MAIN arguments_declaration OPEN_BRACKET                                   {if(P_DEBUGGING==1) printf("BISON: MAIN function declaration found\n");    if(TREE_BUILDING) create_MainFunction(MainNode, $3);}
 ;
 
 function
@@ -184,7 +185,7 @@ statement
 | multi_dec END_COMMA                                                           {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                          if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_DclN($1);}
 | multi_asgn END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                           if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_Asgn($1);}
 | declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_DclN_Asgn($1)}
-| if_else_statement                                                             {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); printf("Eseguo IF ELSE\n"); if(Check_activation()) exec_ifElse($1)}
+| if_else_statement                                                             {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_ifElse($1)}
 | while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                            if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_while($1)}
 | END_COMMA                                                                     {if(P_DEBUGGING==1) printf("BISON: Empty statement found\n");}
 ;
@@ -425,17 +426,11 @@ struct TreeNode * create_Expr_ListNode(struct TreeNode * expr_list, struct TreeN
 
 struct TreeNode * create_Function_CallNode(ProgramNode * prog, char * function_id, struct TreeNode * expr_list){
 
-  if (expr_list -> nodeType == ExprLst){
+  if (expr_list != NULL) Check_NodeType(ExprLst, expr_list, "create_Function_CallNode");
 
-    struct TreeNode * node = create_ExprNode(FC, 0, function_id, expr_list, NULL, 0);
-    Check_FunctionCallConcistency(prog, node);
-    return node;
-
-  }
-  else{
-    printf("%s create_Function_CallNode - unexpected Tree Node type. Expected ExprLst, found %s.\n", ErrorMsg(), NodeTypeString(expr_list));
-    exit(EXIT_FAILURE);
-  }
+  struct TreeNode * node = create_ExprNode(FC, 0, function_id, expr_list, NULL, 0);
+  Check_FunctionCallConcistency(prog, node);
+  return node;
 }
 
 ////////////////////  comparison PRODUCTION  ///////////////////////////////////
@@ -461,7 +456,7 @@ void create_MainFunction(ProgramNode * prog, struct TreeNode * arguments){
 
   // arguments must be a ArgLst TreeNode
   if (arguments -> nodeType != ArgLst){
-    printf("line %d: %serror:%s mainFunction - incorrect call. ArgLst TreeNode expected\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
+    printf("%s mainFunction - incorrect call. ArgLst TreeNode expected\n", ErrorMsg());
     exit(EXIT_FAILURE);
   }
   else{
@@ -501,10 +496,12 @@ void create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parame
     else parameter = parameter -> next;
 
 
-    if (parameter -> node.DclN -> arrayDim == NULL && (parameter -> node.DclN -> type == INT_V_ || parameter -> node.DclN -> type == CHAR_V_)){
+    if (parameter -> node.DclN -> arrayDim != NULL){ if (!IsCostant(parameter -> node.DclN -> arrayDim)) parameter -> node.DclN -> ignore = 1;}
+    else if (parameter -> node.DclN -> arrayDim == NULL && (parameter -> node.DclN -> type == INT_V_ || parameter -> node.DclN -> type == CHAR_V_)){
       parameter -> node.DclN -> arrayDim = create_ExprNode(NUM, 0, NULL, NULL, NULL, 0);
       parameter -> node.DclN -> ignore = 1;
     }
+
 
     exec_DclN(MainNode, parameter);
   }
@@ -1188,16 +1185,14 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
     switch (type) {
       case NUM: NewExprNode -> exprVal.intExpr = (int)intExpr;
                 break;
-      case ID:  NewExprNode -> exprVal.stringExpr = (char *)malloc (sizeof(char) *strlen(charExpr)); // memory space allocation for storing string value.
-                strcpy(NewExprNode -> exprVal.stringExpr, charExpr);
+      case ID:  NewExprNode -> exprVal.stringExpr = charExpr;
                 break;
-      case VEC: NewExprNode -> exprVal.stringExpr = (char *)malloc (sizeof(char) *strlen(charExpr)); // memory space allocation for storing string value.
-                // copying variable identifier in the node
-                strcpy(NewExprNode -> exprVal.stringExpr, charExpr);
-                // check if vec as a dimension
+      case VEC: NewExprNode -> exprVal.stringExpr = charExpr;
+                // check if vec has a dimension
                 if(first != NULL){
                   // check if array dimension index is not a string
                   if (first -> node.Expr -> exprType != STR ){
+                    Check_ExprConcistency(MainNode, first);
                     // adding the array dimension index as tree node child
                     TreeNodeList_Add(newTreeNode -> child_list, first);
                   }
@@ -1206,6 +1201,7 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
                     printf("%s array index must not be a string.\n", ErrorMsg());
                     exit(EXIT_FAILURE);
                   }
+                  // check if dimension is a variable
                 }
                 break;
       case STR: NewExprNode -> exprVal.stringExpr = (char *)malloc (sizeof(char) *strlen(charExpr)-2); // sottraggo due alla dimensione per rimuovere gli apici
@@ -1215,11 +1211,9 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
                 break;
       case C:   NewExprNode -> exprVal.charExpr = *charExpr;
                 break;
-      case FC:  NewExprNode -> exprVal.stringExpr = (char *)malloc (sizeof(char) *strlen(charExpr)); // memory space allocation for storing string value.
-                strcpy(NewExprNode -> exprVal.stringExpr, charExpr); // function identifier
-                if (first != NULL){ // function parameters
-                  TreeNodeList_Add(newTreeNode -> child_list, first);
-                }
+      case FC:  NewExprNode -> exprVal.stringExpr = charExpr;
+                // function parameters
+                if (first != NULL) TreeNodeList_Add(newTreeNode -> child_list, first);
                 break;
       case SUM: TreeNodeList_Add(newTreeNode -> child_list, first);
                 TreeNodeList_Add(newTreeNode -> child_list, second);
@@ -1261,7 +1255,7 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
     return newTreeNode;
   }
 
-
+////////////////////////////////////////////////////////////////////////////////
 
 struct TreeNode * TreeNodeInitialization (){
 
@@ -1389,41 +1383,32 @@ void Check_ArrayConcistency(ProgramNode * prog, struct TreeNode * array){
 
 void Check_FunctionCallConcistency (ProgramNode * prog, struct TreeNode * function_call){
 
-  if(function_call -> nodeType == Expr){
-    if(function_call -> node.Expr -> exprType == FC){
+  Check_NodeType(Expr, function_call, "Check_FunctionCallConcistency");
+  Check_ExprType(FC, function_call, "Check_FunctionCallConcistency");
 
-      char * function_id = function_call -> node.Expr -> exprVal.stringExpr;
+  char * function_id = function_call -> node.Expr -> exprVal.stringExpr;
 
-      // check if function was declared
-      if(CheckFunAlreadyExist(prog, function_id)){
+  // check if function was declared
+  if(CheckFunAlreadyExist(prog, function_id)){
 
-        if (function_call -> child_list -> elements > 0){
+    if (function_call -> child_list -> elements > 0){
 
-          struct TreeNode * arguments = function_call -> child_list -> first;
-          struct TreeNode * argument = arguments -> child_list -> first;
-          // check arguments
-          for (int i = 0; i < arguments -> child_list -> elements; i++){
+      struct TreeNode * arguments = function_call -> child_list -> first;
+      struct TreeNode * argument = arguments -> child_list -> first;
+      // check arguments
+      for (int i = 0; i < arguments -> child_list -> elements; i++){
 
-            if (i!=0) argument = argument -> next;
-            // pensaci un attimo: se è stato creato il nodo expr, non è di per se già controllato in fase di creazione?
-            Check_ExprConcistency(prog, argument);
-          }
-        }
-
+        if (i != 0) argument = argument -> next;
+        // pensaci un attimo: se è stato creato il nodo expr, non è di per se già controllato in fase di creazione?
+        Check_ExprConcistency(prog, argument);
       }
-      else{
-        printf("%s call of undeclared function \'%s\'\n", ErrorMsg(), function_id);
-        exit(EXIT_FAILURE);
-      }
+    }
 
-    }
-    else{
-      printf("line %d: %serror:%s Check_FunctionCallConcistency - incorrect call. FC Expr TreeNode expected.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
-      exit(EXIT_FAILURE);
-    }
+    Check_FunctionParameters(function_call);
   }
+  // undeclared function error
   else{
-    printf("line %d: %serror:%s Check_FunctionCallConcistency - incorrect call. Expr TreeNode expected.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
+    printf("%s call of undeclared function \'%s\'\n", ErrorMsg(), function_id);
     exit(EXIT_FAILURE);
   }
 
@@ -1942,6 +1927,76 @@ void Check_ExprType (enum exprType type, struct TreeNode * node, char * function
     printf("%s %s - unexpected expression tree node type. Expected \'%s\', found \'%s\'.\n", ErrorMsg(), function_id, PrintExpressionType(type), ExprTypeString(node));
     exit(EXIT_FAILURE);
   }
+}
+/*
+*   comparing function call node with the function declaration
+*/
+void Check_FunctionParameters(struct TreeNode * function_call){
+
+  char * identifier = function_call -> node.Expr -> exprVal.stringExpr;
+  int index = FunNodeList_Search(MainNode, identifier);
+  struct FunNode * functionNode = FunNodeList_Get(MainNode, index);
+
+  struct TreeNode * call_parameters;
+  struct TreeNode * decl_parameters = functionNode -> function_scope -> child_list -> first;
+
+  int call_parameters_No;
+  int decl_parameters_No = decl_parameters -> child_list -> elements;
+
+  if (function_call -> child_list -> elements > 0){
+
+    call_parameters = function_call -> child_list -> first;
+    call_parameters_No = call_parameters -> child_list -> elements;
+  }
+  else call_parameters_No = 0;
+
+  if (call_parameters_No > decl_parameters_No){
+    printf("%s too many arguments to function call '%s', expected %d, have %d.\n", ErrorMsg(), identifier, decl_parameters_No, call_parameters_No);
+    exit(EXIT_FAILURE);
+  }
+  else if(call_parameters_No < decl_parameters_No){
+    printf("%s too few arguments to function call '%s', expected %d, have %d.\n", ErrorMsg(), identifier, decl_parameters_No, call_parameters_No);
+    exit(EXIT_FAILURE);
+  }
+  else{
+    struct TreeNode * declaration;
+    struct TreeNode * argument;
+    for (int i = 0; i < decl_parameters_No; i++){
+      if (i == 0) declaration = decl_parameters -> child_list -> first;
+      else declaration = declaration -> next;
+
+      if (i == 0) argument = call_parameters -> child_list -> first;
+      else argument = argument -> next;
+
+      printf("---------------- %d ----------------\n", i);
+      printf("NODO DI TIPO %s\n", NodeTypeString(declaration));
+      printf("Dichiarazione di tipo: %s\n", VarTypeString(declaration -> node.DclN -> type));
+      printf("PASSO UN TIPO %s\n",  NodeTypeString(argument));
+      printf("Argomento di tipo: %s\n", ExprTypeString(argument));
+
+      CheckParameterAssignment(declaration, argument);
+    }
+  }
+
+}
+
+void CheckParameterAssignment(struct TreeNode * declaration, struct TreeNode * expression){
+
+  Check_NodeType(DclN, declaration, "CheckParameterAssignment");
+  Check_NodeType(Expr, expression, "CheckParameterAssignment");
+
+  enum Type declaration_type = declaration -> node.DclN -> type;
+  enum Type expression_type = expressionType(expression);
+
+  if ((declaration_type == INT_V_ || declaration_type == CHAR_V_) && (expression_type == INT_ || expression_type == CHAR_)){
+    printf("%s incompatible integer to pointer conversion passing \'%s\' to parameter of type \'%s\'.\n", ErrorMsg(), IdentifierTypeString(expression_type), IdentifierTypeString(declaration_type));
+    exit(EXIT_FAILURE);
+  }
+  if ((declaration_type == INT_ || declaration_type == CHAR_) && (expression_type == INT_V_ || expression_type == CHAR_V_)){
+    printf("%s incompatible pointer to integer conversion passing \'%s\' to parameter of type \'%s\'.\n", ErrorMsg(), IdentifierTypeString(expression_type), IdentifierTypeString(declaration_type));
+    exit(EXIT_FAILURE);
+  }
+
 }
 
 //////////////////  execution CONTROL  /////////////////////////////////////////

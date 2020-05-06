@@ -5,8 +5,6 @@ int main(){
 
   int condition = 10;
 
-  --ST
-
   if (condition == 2){
     var = 1;
   }
@@ -21,8 +19,14 @@ int main(){
     }
   }
 
+  --ST
+
+  condition = 3;
+
   if(1) condition = 1;
 
-  --ST
   return 1;
+  --ST
 }
+--SD
+--PT

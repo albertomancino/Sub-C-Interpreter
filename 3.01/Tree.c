@@ -84,22 +84,25 @@ void PrintErrors (struct ErrorList * list){
 */
 char * TreeNode_Identifier(struct TreeNode * node){
 
-  if (node -> nodeType == DclN){
-    return node -> node.DclN -> identifier;
-  }
+  if (node -> nodeType == DclN) return node -> node.DclN -> identifier;
+
   else if (node -> nodeType == Expr){
 
-    struct exprNode * exprNode = node -> node.Expr;
+    enum exprType expression_type = node -> node.Expr -> exprType;
 
-    /* only identifiers nodes and vector nodes have an identifier stored within */
-    if (exprNode -> exprType == ID || exprNode -> exprType == VEC){
-      return exprNode -> exprVal.stringExpr;
-    }
+    if (expression_type == ID || expression_type == VEC)
+       return node -> node.Expr -> exprVal.stringExpr;
+    else if (expression_type == PI || expression_type == PD || expression_type == IP || expression_type == DP)
+       return TreeNode_Identifier(node -> child_list -> first);
+    else if (expression_type == PA) {return TreeNode_Identifier(node -> child_list -> first);}
     else{
-      printf("%s TreeNode_Identifier - this Expr TreeNode has not an identifier\n", ErrorMsg());
+      printf("%s TreeNode_Identifier - this expression tree node \'%s\' has not an identifier\n", ErrorMsg(), ExprTypeString(node));
       return NULL;
     }
   }
+
+  else if (node -> nodeType == Asgn) return TreeNode_Identifier(node -> child_list -> first);
+
   else{
     printf("%s TreeNode_Identifier - incorrect call. Expr or DclN TreeNode expected. Type found: %u\n", ErrorMsg(), node -> nodeType);
     return NULL;
@@ -299,7 +302,6 @@ int isAssignable(struct TreeNode * node){
       }
       else if (node -> node.Expr -> exprType == VEC){
 
-        printf("Il flag di %s vale: %d\n", identifier, IgnoreFlag(identifier));
         // array without dimension
         if(node -> child_list -> elements == 0){
           printf("%s array '%s' dimension expression missing.\n", ErrorMsg(), identifier);
@@ -384,6 +386,30 @@ int Multiple_Modifications(struct TreeNode * node, char* identifier){
   }
 }
 
+enum Type expressionType(struct TreeNode * expression){
+
+  Check_NodeType(Expr, expression, "expressionType");
+  enum exprType expression_type = expression -> node.Expr -> exprType;
+  enum Type return_type;
+
+  if (expression_type == NUM)                               return_type = INT_;
+  else if (expression_type == ID)                           return_type = Retrieve_VarType(MainNode, TreeNode_Identifier(expression));
+  else if (expression_type == VEC){
+    return_type = Retrieve_VarType(MainNode, TreeNode_Identifier(expression));
+    if (return_type == INT_V_) return_type = INT_;
+    if (return_type == CHAR_V_) return_type = CHAR_;
+  }
+  else if (expression_type == STR)                          return_type = CHAR_V_;
+  else if (expression_type == C)                            return_type = CHAR_;
+  else if (expression_type == FC)                           return_type = Retrive_FunType(MainNode, expression -> node.Expr -> exprVal.stringExpr);
+  else if (isOperation(expression))                         return_type = INT_;
+  else if (expression_type == CMP)                          return_type = CHAR_;
+  else if (expression_type == PI || expression_type == PD || expression_type == IP || expression_type == DP)
+                                                            return_type = expressionType(expression -> child_list -> first);
+  else if (expression_type == PA)                           return_type = expressionType(expression -> child_list -> first -> child_list -> first);
+
+  return return_type;
+}
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////  SYMBOL TABLE FUNCTIONS  ////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -1721,4 +1747,15 @@ char * PrintExpressionType (enum exprType type){
     case PA:   return "parentheses assignment";
             break;
   }
+}
+char * IdentifierTypeString (enum Type type){
+
+  if      (type == INT_)      return "int";
+  else if (type == CHAR_ )    return "char";
+  else if (type == INT_V_ )   return "int pointer";
+  else if (type == CHAR_V_ )  return "char pointer";
+  else                        return "unknown";
+}
+void PrintScopeStackDimension(){
+  printf("SCOPES IN THE STACK: %d\n", MainNode -> actual_stack -> elements);
 }

@@ -103,6 +103,16 @@ struct TreeNode * IdentifierResolverTreeNode (struct ProgramNode * prog, char * 
 ////////////////////////////// INTERPRETATION  /////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+/////////////////////////// FUNCTION CALL   ////////////////////////////////////
+
+int exec_FunctionCall(struct TreeNode * node){
+
+  // track the actual scope stack
+  struct ScopeStack * previous_stack = MainNode -> actual_stack;
+  // create a the new function scope stack
+  struct ScopeStack * new_stack = ScopeStack_Set();
+}
+
 ///////////////////////////  POST INCREMENT DECREMENT   ////////////////////////
 
 int exec_IncDec(struct TreeNode * node){
@@ -554,7 +564,6 @@ void exec_DclN (ProgramNode * prog, struct TreeNode * node){
     }
 
   char ignoreFlag = node -> node.DclN -> ignore;
-  printf("Ignore flag per %s vale: %d\n", variable_identifier, ignoreFlag);
 
   // adding variable to symbol table
   int add = SymbolTable_Add(ST, variable_identifier, varType, arrayDim, ignoreFlag);
@@ -620,21 +629,14 @@ void exec_DclN_Asgn (struct TreeNode * node){
 
 void exec_Multi_DclN (struct TreeNode * node){
 
-  if (node -> nodeType == MultiDc){
+  Check_NodeType(MultiDc, node, "exec_Multi_DclN");
+  struct TreeNode * declaration;
 
-    for (int i = 0; i < node -> child_list -> elements; i++){
-      struct TreeNode * childNode;
-      if ( i == 0) childNode = node -> child_list -> first;
-      else childNode = childNode -> next;
+  for (int i = 0; i < node -> child_list -> elements; i++){
+    if ( i == 0) declaration = node -> child_list -> first;
+    else declaration = declaration -> next;
 
-      if (childNode -> nodeType == DclAsgn){
-        exec_DclN_Asgn(childNode);
-      }
-    }
-  }
-  else{
-    printf("%s exec_Multi_DclN - incorrect call. Multi declaraton Tree Node type expected. Type found %s.\n", ErrorMsg(), NodeTypeString(node));
-    exit(EXIT_FAILURE);
+    if (declaration -> nodeType == DclAsgn)  exec_DclN_Asgn(declaration);
   }
 }
 
