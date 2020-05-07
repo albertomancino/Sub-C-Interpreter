@@ -908,9 +908,7 @@ int IgnoreFlag(char * identifier){
   struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar(identifier);
   return ST_Node -> ignore;
 };
-void SymbolTableCopy (struct SymbolTable * SymbolTab){
-
-  struct SymbolTable * newSymbolTab = SymbolTable_Set();
+void SymbolTableCopy (struct SymbolTable * SymbolTab, struct SymbolTable * newSymbolTab){
 
   for (int i = 0; i < SymbolTab -> elements; i++){
 
@@ -922,9 +920,6 @@ void SymbolTableCopy (struct SymbolTable * SymbolTab){
 
     if (variable -> type == INT_) SymbolTable_Add(newSymbolTab, variable -> identifier, INT_, 0, 0);
   }
-
-  SymbolTable_Print(newSymbolTab);
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1185,7 +1180,7 @@ void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
   // Function scope stack memory space allocation
   newFunction -> scope_stack = ScopeStack_Set();
   // Scope node space allocation
-  newFunction -> function_scope = create_ScopeNode(); // global scope setting
+  newFunction -> function_scope = create_ScopeNode();
 
   // Setting global scope at the bottom of the function scope stack
   // Global scope is active by default

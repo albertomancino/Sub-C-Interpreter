@@ -2429,7 +2429,6 @@ struct TreeNode * create_ScopeNode(){
   newTreeNode -> nodeType = Scope;
   newTreeNode -> node.ST = SymbolTable_Set();
 
-
   return newTreeNode;
 }
 

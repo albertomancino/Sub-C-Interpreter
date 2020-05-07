@@ -125,12 +125,28 @@ int exec_FunctionCall(struct TreeNode * function_call){
   int index = FunNodeList_Search (MainNode, function_call -> node.Expr -> exprVal.stringExpr);
   struct FunNode * functionNode = FunNodeList_Get (MainNode, index);
 
-  // Adding
-  SymbolTableCopy(functionNode -> function_scope -> node.ST);
+  // Function scope node
+  struct TreeNode * function_scope = create_ScopeNode();
+  // Copying symbol table from function declaration node
+  SymbolTableCopy(functionNode -> function_scope -> node.ST, function_scope -> node.ST);
 
+  // Adding symbol table to scope stack
+  ScopeStack_Push(new_stack, function_scope, 1);
 
   // Setting the function scope stack as actual scope stack
   MainNode -> actual_stack = new_stack;
+
+  // function statements exec
+  exec_functionScope(functionNode -> function_scope);
+
+  //SymbolTable_Print(function_scope -> node.ST);
+  PrintActualST(MainNode);
+
+  // restoring previous scope stack
+   MainNode -> actual_stack = previous_stack;
+
+   // freeing function call scope memory
+
 }
 
 ///////////////////////////  POST INCREMENT DECREMENT   ////////////////////////
@@ -778,21 +794,34 @@ void exec_if (struct TreeNode * node){
 
 ///////////////////////////  SCOPE   ///////////////////////////////////////////
 
+void exec_functionScope (struct TreeNode * node){
+
+  Check_NodeType(Scope, node, "exec_scope");
+  // assign parameters
+
+
+  struct TreeNode * statement;
+  // exec statements - first statement must not be executed
+  for (int i = 1; i < node -> child_list -> elements; i++){
+
+    if (i == 1) statement = node -> child_list -> first -> next;
+    else statement = statement -> next;
+
+    exec_statement(statement);
+  }
+}
+
 void exec_scope (struct TreeNode * node){
 
-  if (node -> nodeType == Scope){
-    struct TreeNode * statement;
-    for (int i = 0; i < node -> child_list -> elements; i++){
+  Check_NodeType(Scope, node, "exec_scope");
 
-      if (i == 0) statement = node -> child_list -> first;
-      else statement = statement -> next;
+  struct TreeNode * statement;
+  for (int i = 0; i < node -> child_list -> elements; i++){
 
-      exec_statement(statement);
-    }
-  }
-  else{
-    printf("%s exec_scope - unexpected Tree Node type. Expected Scope, found %s\n", ErrorMsg(), NodeTypeString(node));
-    exit(EXIT_FAILURE);
+    if (i == 0) statement = node -> child_list -> first;
+    else statement = statement -> next;
+
+    exec_statement(statement);
   }
 }
 

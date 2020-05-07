@@ -120,7 +120,7 @@ int Retrieve_ArrayDim(struct ProgramNode *, char *);
 int Check_VarWasDeclared (struct ProgramNode *, char *, int);
 void SymbolTable_AssignValue (struct ProgramNode *, struct TreeNode *, int);
 int IgnoreFlag(char *);
-void SymbolTableCopy (struct SymbolTable *);
+void SymbolTableCopy (struct SymbolTable *, struct SymbolTable *);
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////// PROGRAM NODE FUNCTIONS //////////////////////////////////////

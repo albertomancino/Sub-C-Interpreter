@@ -21,7 +21,7 @@ V IF ELSE
 - Capire bene se gli assignement sono expr o pure no
 - Multi declaration non funziona bene perchè non dichiara l'ultima variabile!
 - Bisogna aggiustare la dichiarazione dei parametri nelle funzioni: manca il controllo se un parametro con lo stesso nome è stato già dichiarato
-
+- Liberare la memoria dopo la chiamata di una funzione
 
 
 

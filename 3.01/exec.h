@@ -17,6 +17,7 @@ int exec_Operation            (struct TreeNode *);
 void exec_while               (struct TreeNode *);
 void exec_ifElse              (struct TreeNode *);
 void exec_if                  (struct TreeNode *);
+void exec_functionScope       (struct TreeNode *);
 void exec_scope               (struct TreeNode *);
 void exec_statement           (struct TreeNode *);
 
