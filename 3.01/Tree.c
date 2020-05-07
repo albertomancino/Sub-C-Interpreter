@@ -156,7 +156,7 @@ int Expr_toInt(ProgramNode * prog, struct TreeNode * node){
                   break;
         case C:   value = node -> node.Expr -> exprVal.charExpr;
                   break;
-        case FC:  value = 101;
+        case FC:  value = exec_FunctionCall(node);
                   break;
         case SUM: value = exec_Operation(node);
                   break;
@@ -919,7 +919,7 @@ void SymbolTableCopy (struct SymbolTable * SymbolTab, struct SymbolTable * newSy
     printf("Variabile di tipo %s\n", IdentifierTypeString(variable -> type));
 
     if (variable -> type == INT_) SymbolTable_Add(newSymbolTab, variable -> identifier, INT_, 0, 0);
-
+    else if (variable -> type == CHAR_) SymbolTable_Add(newSymbolTab, variable -> identifier, CHAR_, 0, 0);
   }
 }
 

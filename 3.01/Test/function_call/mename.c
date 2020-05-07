@@ -16,5 +16,9 @@ int main(){
 
   int b = 10;
   --ST
+
+  int a = fun(1) + fun(200);
+
+  --ST
   return 0;
 }

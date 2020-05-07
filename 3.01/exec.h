@@ -5,7 +5,10 @@ enum Type ExprNode_valueType  (ProgramNode *, struct TreeNode *);
 
 int exec_IncDec               (struct TreeNode *);
 int CMP_node_logicValue       (ProgramNode *, struct TreeNode *);
-void exec_FunctionCall        (struct TreeNode *);
+int exec_FunctionCall         (struct TreeNode *);
+int exec_functionScope        (struct TreeNode *);
+int exec_statement            (struct TreeNode *);
+int exec_scope                (struct TreeNode *);
 void exec_Expression          (struct TreeNode *);
 void exec_DclN                (ProgramNode *, struct TreeNode *);
 void exec_Asgn                (ProgramNode *, struct TreeNode *);
@@ -17,8 +20,5 @@ int exec_Operation            (struct TreeNode *);
 void exec_while               (struct TreeNode *);
 void exec_ifElse              (struct TreeNode *);
 void exec_if                  (struct TreeNode *);
-void exec_functionScope       (struct TreeNode *);
-void exec_scope               (struct TreeNode *);
-void exec_statement           (struct TreeNode *);
 
 int exec_arrayDim             (ProgramNode *, struct TreeNode *);

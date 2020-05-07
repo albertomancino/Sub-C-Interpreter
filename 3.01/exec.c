@@ -105,7 +105,7 @@ struct TreeNode * IdentifierResolverTreeNode (struct ProgramNode * prog, char * 
 
 /////////////////////////// FUNCTION CALL   ////////////////////////////////////
 
-void exec_FunctionCall(struct TreeNode * function_call){
+int exec_FunctionCall(struct TreeNode * function_call){
 
   printf("------------ EXEC FUNCTION ------------\n");
 
@@ -117,20 +117,19 @@ void exec_FunctionCall(struct TreeNode * function_call){
   // create a the new function scope stack
   struct ScopeStack * new_stack = ScopeStack_Set();
 
-  // Setting global scope at the bottom of the function scope stack
-  // Global scope is active by default
-  ScopeStack_Push(new_stack, MainNode -> global_scope_stack -> top -> thisScope, 1);
-
   // Retrieving function declaration node
   int index = FunNodeList_Search (MainNode, function_call -> node.Expr -> exprVal.stringExpr);
   struct FunNode * functionNode = FunNodeList_Get (MainNode, index);
 
   // Function scope node
   struct TreeNode * function_scope = create_ScopeNode();
-  /*
+
   // Copying symbol table from function declaration node
   SymbolTableCopy(functionNode -> function_scope -> node.ST, function_scope -> node.ST);
-  */
+
+  // Setting global scope at the bottom of the function scope stack
+  // Global scope is active by default
+  ScopeStack_Push(new_stack, MainNode -> global_scope_stack -> top -> thisScope, 1);
 
   // Adding symbol table to scope stack
   ScopeStack_Push(new_stack, function_scope, 1);
@@ -162,11 +161,18 @@ void exec_FunctionCall(struct TreeNode * function_call){
       printf("argument = %s\n", NodeTypeString(argument));
       printf("parameter = %s\n", ExprTypeString(parameter));
 
-      exec_DclN(MainNode, argument);
+      //exec_DclN(MainNode, argument);
 
+      // assign parameter value
       if (argument -> node.DclN -> type == INT_ || argument -> node.DclN -> type == CHAR_){
         struct TreeNode * identifier = create_ExprNode(ID, 0, TreeNode_Identifier(argument), NULL, NULL, 0);
-        struct TreeNode * assignment = create_AssignmentNode(MainNode, identifier, parameter);
+        // value must be taken from the function call stack
+        MainNode -> actual_stack = previous_stack;
+        int value = Expr_toInt(MainNode, parameter);
+        MainNode -> actual_stack = new_stack;
+        struct TreeNode * valueNode = create_ExprNode(NUM, value, NULL, NULL, NULL, 0);
+
+        struct TreeNode * assignment = create_AssignmentNode(MainNode, identifier, valueNode);
         exec_Asgn(MainNode, assignment);
       }
     }
@@ -183,6 +189,9 @@ void exec_FunctionCall(struct TreeNode * function_call){
 
    // freeing function call scope memory
 
+
+   // value returned by function
+   return 101;
 }
 
 ///////////////////////////  POST INCREMENT DECREMENT   ////////////////////////
@@ -830,7 +839,7 @@ void exec_if (struct TreeNode * node){
 
 ///////////////////////////  SCOPE   ///////////////////////////////////////////
 
-void exec_functionScope (struct TreeNode * node){
+int exec_functionScope (struct TreeNode * node){
 
   Check_NodeType(Scope, node, "exec_scope");
   // assign parameters
@@ -845,9 +854,11 @@ void exec_functionScope (struct TreeNode * node){
 
     exec_statement(statement);
   }
+
+  return 1;
 }
 
-void exec_scope (struct TreeNode * node){
+int exec_scope (struct TreeNode * node){
 
   Check_NodeType(Scope, node, "exec_scope");
 
@@ -859,11 +870,13 @@ void exec_scope (struct TreeNode * node){
 
     exec_statement(statement);
   }
+
+  return 1;
 }
 
 ///////////////////////////  STATEMENTS   //////////////////////////////////////
 
-void exec_statement (struct TreeNode * node){
+int exec_statement (struct TreeNode * node){
 
   switch (node -> nodeType) {
     case DclN:    /* DO NOTHING */
@@ -901,6 +914,8 @@ void exec_statement (struct TreeNode * node){
     default:      printf("%s exec_statement - unexpected statment. Type found: %s\n", ErrorMsg(), NodeTypeString(node)); exit(EXIT_FAILURE);
     break;
   }
+
+  return 1;
 }
 
 

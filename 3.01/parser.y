@@ -148,7 +148,7 @@ function_declaration
 
 arguments_declaration
 : OPEN_ROUND arguments_declaration_list CLOSED_ROUND                            {if(P_DEBUGGING==1) printf("BISON: arguments_declaration1 found\n");       if(TREE_BUILDING) $$ = $2}
-| OPEN_ROUND CLOSED_ROUND                                                       {if(P_DEBUGGING==1) printf("BISON: arguments_declaration1 found\n");       if(TREE_BUILDING) $$ = create_Arg_ListNode(NULL, NULL);}
+| OPEN_ROUND CLOSED_ROUND                                                       {if(P_DEBUGGING==1) printf("BISON: arguments_declaration2 found\n");       if(TREE_BUILDING) $$ = create_Arg_ListNode(NULL, NULL);}
 ;
 
 arguments_declaration_list
@@ -366,9 +366,7 @@ struct TreeNode * create_Arg_ListNode(struct TreeNode *arg_list, struct TreeNode
       return newTreeNode;
     }
     // in case of 0 arguments
-    else{
-      return newTreeNode;
-    }
+    else return newTreeNode;
   }
   else{
     TreeNodeList_Add(arg_list->child_list, arg);
@@ -421,6 +419,10 @@ struct TreeNode * create_Expr_ListNode(struct TreeNode * expr_list, struct TreeN
   }
 }
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 ////////////////////  function_call PRODUCTION  ////////////////////////////////
 
 struct TreeNode * create_Function_CallNode(ProgramNode * prog, char * function_id, struct TreeNode * expr_list){
@@ -431,6 +433,11 @@ struct TreeNode * create_Function_CallNode(ProgramNode * prog, char * function_i
   Check_FunctionCallConcistency(prog, node);
   return node;
 }
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 ////////////////////  comparison PRODUCTION  ///////////////////////////////////
 
@@ -493,13 +500,11 @@ void create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parame
     if (i == 0) parameter = parameters -> child_list -> first;
     else parameter = parameter -> next;
 
-
     if (parameter -> node.DclN -> arrayDim != NULL){ if (!IsCostant(parameter -> node.DclN -> arrayDim)) parameter -> node.DclN -> ignore = 1;}
     else if (parameter -> node.DclN -> arrayDim == NULL && (parameter -> node.DclN -> type == INT_V_ || parameter -> node.DclN -> type == CHAR_V_)){
       parameter -> node.DclN -> arrayDim = create_ExprNode(NUM, 0, NULL, NULL, NULL, 0);
       parameter -> node.DclN -> ignore = 1;
     }
-
 
     exec_DclN(MainNode, parameter);
   }
@@ -1993,6 +1998,13 @@ void CheckParameterAssignment(struct TreeNode * declaration, struct TreeNode * e
     exit(EXIT_FAILURE);
   }
 
+  if (declaration_type == CHAR_){
+    if( expression -> node.Expr -> known){
+      if (expression -> node.Expr -> exprVal.intExpr < -128 || expression -> node.Expr -> exprVal.intExpr > 127 ){
+        printf("%s  implicit conversion from 'int' to 'char' changes value from %d to %d.\n", ErrorMsg(), expression -> node.Expr -> exprVal.intExpr, (char)expression -> node.Expr -> exprVal.intExpr);
+      }
+    }
+  }
 }
 
 //////////////////  execution CONTROL  /////////////////////////////////////////

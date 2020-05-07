@@ -1,4 +1,4 @@
-int fun(int a){
+char fun(char a){
 
   return 0;
 }
