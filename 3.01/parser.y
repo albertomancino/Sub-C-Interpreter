@@ -474,7 +474,6 @@ void create_MainFunction(ProgramNode * prog, struct TreeNode * arguments){
   }
 }
 
-
 ////////////////////  function node PRODUCTION  ////////////////////////////////
 
 void create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parameters){
@@ -506,7 +505,6 @@ void create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parame
   }
 
 }
-
 
 ////////////////////  if PRODUCTION  ///////////////////////////////////////////
 
@@ -859,6 +857,7 @@ struct TreeNode * create_Declaration_AssignmentNode(struct TreeNode * declaratio
 
         // declaration must be always executed, in order to add variables to the symbol table
         exec_DclN(MainNode, declaration);
+
         // creating the assignment node
         struct TreeNode * assignmentNode = create_AssignmentNode(MainNode, identifierNode, expr);
 
@@ -997,8 +996,6 @@ struct TreeNode * create_Declaration_AssignmentNode(struct TreeNode * declaratio
         }
 
     return newTreeNode;
-
-
   }
   // subsequent assignment
   else if (declaration -> nodeType == DclAsgn){
@@ -1011,7 +1008,7 @@ struct TreeNode * create_Declaration_AssignmentNode(struct TreeNode * declaratio
     return declaration;
   }
   else{
-    printf("%s create_Declaration_AssignmentNode - incorrect call. Declaration TreeNode type expected. Type found: %u.\n", ErrorMsg(), declaration -> nodeType);
+    printf("%s create_Declaration_AssignmentNode - incorrect call. Declaration TreeNode type expected. Type found: %s.\n", ErrorMsg(), NodeTypeString(declaration));
     exit(EXIT_FAILURE);
   }
 }
@@ -1050,7 +1047,7 @@ struct TreeNode * create_AssignmentNode(struct ProgramNode * prog, struct TreeNo
   }
   // incorrect call
   else{
-    printf("%s - create_AssignmentNode: incorrect call\n", ErrorMsg());
+    printf("%s - create_AssignmentNode: incorrect call.\n", ErrorMsg());
     exit(EXIT_FAILURE);
   }
 

@@ -105,7 +105,7 @@ struct TreeNode * IdentifierResolverTreeNode (struct ProgramNode * prog, char * 
 
 /////////////////////////// FUNCTION CALL   ////////////////////////////////////
 
-int exec_FunctionCall(struct TreeNode * function_call){
+void exec_FunctionCall(struct TreeNode * function_call){
 
   printf("------------ EXEC FUNCTION ------------\n");
 
@@ -127,14 +127,50 @@ int exec_FunctionCall(struct TreeNode * function_call){
 
   // Function scope node
   struct TreeNode * function_scope = create_ScopeNode();
+  /*
   // Copying symbol table from function declaration node
   SymbolTableCopy(functionNode -> function_scope -> node.ST, function_scope -> node.ST);
+  */
 
   // Adding symbol table to scope stack
   ScopeStack_Push(new_stack, function_scope, 1);
 
   // Setting the function scope stack as actual scope stack
   MainNode -> actual_stack = new_stack;
+
+  // Parameters assignment
+  // Check if there are parameters
+  if (function_call -> child_list -> elements != 0){
+
+    struct TreeNode * parameters = function_call -> child_list -> first;
+    struct TreeNode * arguments = functionNode -> function_scope -> child_list -> first;
+
+    struct TreeNode * parameter;
+    struct TreeNode * argument;
+
+    printf("arguments: %s\n", NodeTypeString(arguments));
+    printf("elementi %d\n", arguments -> child_list -> elements);
+
+    for (int i = 0; i < arguments -> child_list -> elements; i++){
+
+      if (i == 0) argument = arguments -> child_list -> first;
+      else  argument = argument -> next;
+
+      if (i == 0) parameter = parameters -> child_list -> first;
+      else  parameter = parameter -> next;
+
+      printf("argument = %s\n", NodeTypeString(argument));
+      printf("parameter = %s\n", ExprTypeString(parameter));
+
+      exec_DclN(MainNode, argument);
+
+      if (argument -> node.DclN -> type == INT_ || argument -> node.DclN -> type == CHAR_){
+        struct TreeNode * identifier = create_ExprNode(ID, 0, TreeNode_Identifier(argument), NULL, NULL, 0);
+        struct TreeNode * assignment = create_AssignmentNode(MainNode, identifier, parameter);
+        exec_Asgn(MainNode, assignment);
+      }
+    }
+  }
 
   // function statements exec
   exec_functionScope(functionNode -> function_scope);

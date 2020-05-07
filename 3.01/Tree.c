@@ -919,6 +919,7 @@ void SymbolTableCopy (struct SymbolTable * SymbolTab, struct SymbolTable * newSy
     printf("Variabile di tipo %s\n", IdentifierTypeString(variable -> type));
 
     if (variable -> type == INT_) SymbolTable_Add(newSymbolTab, variable -> identifier, INT_, 0, 0);
+
   }
 }
 
@@ -1675,7 +1676,7 @@ char * ExprTypeString(struct TreeNode * node){
 
   }
   else{
-    printf("%s ExprTypeString - incorrect call. Expr TrenNode type expected. Type found: %u.\n", ErrorMsg(), node -> nodeType);
+    printf("%s ExprTypeString - incorrect call. Expr TrenNode type expected. Type found: %s.\n", ErrorMsg(), NodeTypeString(node));
     exit(EXIT_FAILURE);
   }
 }
