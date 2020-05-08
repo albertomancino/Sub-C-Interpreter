@@ -22,7 +22,18 @@ V IF ELSE
 - Multi declaration non funziona bene perchè non dichiara l'ultima variabile!
 - Bisogna aggiustare la dichiarazione dei parametri nelle funzioni: manca il controllo se un parametro con lo stesso nome è stato già dichiarato
 - Liberare la memoria dopo la chiamata di una funzione
+- Aggiungere il caso di dimensione variabile in una dichiarazione di funzione
 
+
+
+
+ARRAY ARGOMENTO DI UNA FUNZIONE
+
+Non è possibile passare un array per valore. Questo va in contrasto con lo sviluppo dell'interprete.
+Quindi tratto le situazioni in questo modo:
+
+- int fun(int a[]) : il vettore assume la dimensione del vettore che viene passato. Viene copiato il puntatore.
+- char fun(int a[10]) : il vettore mantiene la dimensione dichiarata. Viene copiato il puntatore ed è compito del programmatore non passare un puntatore di dimensione minore e accedere ad altre aree di memoria. In pratica questa dimensione è solo un "suggerimento".
 
 
 ARRAY SENZA DIMENSIONE SPECIFICATA

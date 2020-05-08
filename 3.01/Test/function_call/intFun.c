@@ -47,6 +47,5 @@ int main(){
   fun((c[4]=10));
   fun((d[9]= 10));
 
-  --ST
   return 0;
 }

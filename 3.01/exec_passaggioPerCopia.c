@@ -158,8 +158,8 @@ int exec_FunctionCall(struct TreeNode * function_call){
       if (i == 0) parameter = parameters -> child_list -> first;
       else  parameter = parameter -> next;
 
-      printf("argument = %s\n", NodeTypeString(argument));  // FUNZIONE
-      printf("parameter = %s\n", ExprTypeString(parameter));  // QUELLO CHE PASSO
+      printf("argument = %s\n", NodeTypeString(argument));
+      printf("parameter = %s\n", ExprTypeString(parameter));
 
       // assign parameter value
       if (argument -> node.DclN -> type == INT_ || argument -> node.DclN -> type == CHAR_){
@@ -182,59 +182,70 @@ int exec_FunctionCall(struct TreeNode * function_call){
           // value must be taken from the function call stack
           MainNode -> actual_stack = previous_stack;
           enum Type parameter_type = Retrieve_VarType(MainNode, TreeNode_Identifier(parameter));
-          struct SymbolTable_Node * parameter_node = SymbolTable_RetrieveVar(MainNode, TreeNode_Identifier(parameter));
-          int parameter_dimension = Retrieve_ArrayDim(MainNode, TreeNode_Identifier(parameter));
 
+          // PASSAGIO PER COPIA NON CONSENTITO
+          /*
           if (parameter_type == INT_V_ || parameter_type == CHAR_V_){
 
-            if (argument -> node.DclN -> type == parameter_type){
+            int parameter_dimension = Retrieve_ArrayDim(MainNode, TreeNode_Identifier(parameter));
+            int argument_dimension = Expr_toInt(MainNode, argument -> node.DclN -> arrayDim);
 
+            // undeclared array dimension
+            // array dimension must be updated
+            if (argument -> node.DclN -> ignore){
               MainNode -> actual_stack = new_stack;
+
               struct SymbolTable_Node * argument_node = SymbolTable_RetrieveVar(MainNode, TreeNode_Identifier(argument));
+              argument_node -> arrayDim = parameter_dimension;
+              argument_node -> ignore = 0;
+              MainNode -> actual_stack = previous_stack;
 
-              int argument_dimension = Expr_toInt(MainNode, argument -> node.DclN -> arrayDim);
-
-              // undeclared array dimension
-              // array dimension must be updated
-              if (argument -> node.DclN -> ignore){
-
-                MainNode -> actual_stack = new_stack;
-
-                argument_node -> arrayDim = parameter_dimension;
-                argument_node -> ignore = 0;
-                MainNode -> actual_stack = previous_stack;
-
-                argument_dimension = parameter_dimension;
-              }
-
-              if (parameter_type == INT_V_) argument_node -> varPtr.intPtr = parameter_node -> varPtr.intPtr;
-              if (parameter_type == CHAR_V_) argument_node -> varPtr.charPtr = parameter_node -> varPtr.charPtr;
-
+              argument_dimension = parameter_dimension;
             }
-            else{
-              printf("%s incompatible pointer types passing \'%s\' to parameter of type \'%s\'.\n", ErrorMsg(),IdentifierTypeString(parameter_type),IdentifierTypeString(argument -> node.DclN -> type));
-              exit(EXIT_FAILURE);
+
+            // must not exceed parameter or argument array dimension
+            int min_dim;
+            if (parameter_dimension >= argument_dimension) min_dim = argument_dimension;
+            else min_dim = parameter_dimension;
+
+            // for each element of the array that as to be evaluated
+            for (int i = 0; i < min_dim; i++){
+
+              // value must be taken from the function call stack
+              MainNode -> actual_stack = previous_stack;
+
+              struct TreeNode * index_node = create_ExprNode(NUM, i, NULL, NULL, NULL, 0);
+              struct TreeNode * identifier = create_ExprNode(VEC, 0, TreeNode_Identifier(argument), index_node, NULL, 0);
+              struct TreeNode * parameter_element = create_ExprNode(VEC, 0, TreeNode_Identifier(parameter), index_node, NULL, 0);
+
+              int value = Expr_toInt(MainNode, parameter_element);
+
+              // assignment must be done in the function scope
+              MainNode -> actual_stack = new_stack;
+              struct TreeNode * valueNode = create_ExprNode(NUM, value, NULL, NULL, NULL, 0);
+
+              struct TreeNode * assignment = create_AssignmentNode(MainNode, identifier, valueNode);
+              exec_Asgn(MainNode, assignment);
             }
           }
           else {
             printf("%s exec_FunctionCall - argument must be an array identifier.\n", ErrorMsg());
             exit(EXIT_FAILURE);
           }
-        }
-        else if (parameter -> node.Expr -> exprType == STR){
-          if (argument -> node.DclN -> type == CHAR_V_){
+          */
+          
+          if (parameter_type == INT_V_ || parameter_type == CHAR_V_){
 
-            int parameter_dimension = strlen(parameter -> node.Expr -> exprVal.stringExpr) + 1;
+            if (argument -> node.DclN -> type == parameter_type){
 
-            MainNode -> actual_stack = new_stack;
             struct SymbolTable_Node * argument_node = SymbolTable_RetrieveVar(MainNode, TreeNode_Identifier(argument));
 
+            int parameter_dimension = Retrieve_ArrayDim(MainNode, TreeNode_Identifier(parameter));
             int argument_dimension = Expr_toInt(MainNode, argument -> node.DclN -> arrayDim);
 
             // undeclared array dimension
             // array dimension must be updated
             if (argument -> node.DclN -> ignore){
-
               MainNode -> actual_stack = new_stack;
 
               argument_node -> arrayDim = parameter_dimension;
@@ -242,40 +253,32 @@ int exec_FunctionCall(struct TreeNode * function_call){
               MainNode -> actual_stack = previous_stack;
 
               argument_dimension = parameter_dimension;
-              argument_node -> varPtr.charPtr = (char*)malloc(argument_dimension*sizeof(char));
-              // out of memory error
-              if (argument_node -> varPtr.charPtr == NULL){
-                printf("%s SymbolTable_Set - out of memory.\n", ErrorMsg());
-                exit(EXIT_FAILURE);
-              }
             }
 
             MainNode -> actual_stack = new_stack;
+            struct SymbolTable_Node * parameter_node = SymbolTable_RetrieveVar(MainNode, TreeNode_Identifier(parameter));
 
-            for (int i = 0; i < parameter_dimension; i++){
-
-              struct TreeNode * index_node = create_ExprNode(NUM, i, NULL, NULL, NULL, 0);
-              struct TreeNode * identifier = create_ExprNode(VEC, 0, TreeNode_Identifier(argument), index_node, NULL, 0);
-
-              char value = parameter -> node.Expr -> exprVal.stringExpr[i];
-              printf("%c\n", value);
-              struct TreeNode * valueNode = create_ExprNode(NUM, value, NULL, NULL, NULL, 0);
-
-              struct TreeNode * assignment = create_AssignmentNode(MainNode, identifier, valueNode);
-              exec_Asgn(MainNode, assignment);
-
+            }
+            else {
+              printf("%s exec_FunctionCall - argument must be an array identifier.\n", ErrorMsg());
+              exit(EXIT_FAILURE);
             }
           }
           else{
-            printf("%s exec_FunctionCall - char pointer expected.\n", ErrorMsg());
+            printf("%s incompatible pointer types passing \'%s\' to parameter of type \'%s\'\n", ErrorMsg(),IdentifierTypeString(parameter_type),IdentifierTypeString(argument -> node.DclN -> type));
             exit(EXIT_FAILURE);
           }
+        }
+        else if (parameter -> node.Expr -> exprType == STR){
+
+          int argument_dimension = strlen(parameter -> node.Expr -> exprVal.stringExpr);
+
+
         }
       }
     }
   }
 
-  MainNode -> actual_stack = new_stack;
   // function statements exec
   exec_functionScope(functionNode -> function_scope);
 

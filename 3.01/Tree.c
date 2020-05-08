@@ -631,7 +631,6 @@ void SymbolTable_Print(struct SymbolTable * table){
 
     if (i == 0) newSTN = table -> first;
     else newSTN = newSTN -> next;
-
     printf("Variable %d \n\tidentifier: %s\n\ttype: %s \n",i+1,newSTN -> identifier, VarTypeString(newSTN -> type));
     if (newSTN -> type == INT_V_ || newSTN -> type == CHAR_V_){
       printf("\tdimension: %d", newSTN -> arrayDim);
@@ -910,16 +909,24 @@ int IgnoreFlag(char * identifier){
 };
 void SymbolTableCopy (struct SymbolTable * SymbolTab, struct SymbolTable * newSymbolTab){
 
+  struct SymbolTable_Node * variable;
+
   for (int i = 0; i < SymbolTab -> elements; i++){
 
-    struct SymbolTable_Node * variable;
     if (i == 0) variable = SymbolTab -> first;
     else variable = variable -> next;
 
     printf("Variabile di tipo %s\n", IdentifierTypeString(variable -> type));
+    printf("Ignore: %d\n", variable -> ignore);
 
-    if (variable -> type == INT_) SymbolTable_Add(newSymbolTab, variable -> identifier, INT_, 0, 0);
+    if (variable -> type == INT_)       SymbolTable_Add(newSymbolTab, variable -> identifier, INT_, 0, 0);
     else if (variable -> type == CHAR_) SymbolTable_Add(newSymbolTab, variable -> identifier, CHAR_, 0, 0);
+    else if (variable -> type == INT_V_ || variable -> type == CHAR_V_){
+        // temporary array declaration
+      if (variable -> ignore) SymbolTable_Add(newSymbolTab, variable -> identifier, variable -> type, 0 , 1);
+        // defined array declaration
+      else SymbolTable_Add(newSymbolTab, variable -> identifier, variable -> type, variable -> arrayDim , 0);
+    }
   }
 }
 

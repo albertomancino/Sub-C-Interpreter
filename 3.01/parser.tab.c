@@ -3425,39 +3425,6 @@ void Check_ArrayConcistency(ProgramNode * prog, struct TreeNode * array){
   }
 }
 
-void Check_FunctionCallConcistency (ProgramNode * prog, struct TreeNode * function_call){
-
-  Check_NodeType(Expr, function_call, "Check_FunctionCallConcistency");
-  Check_ExprType(FC, function_call, "Check_FunctionCallConcistency");
-
-  char * function_id = function_call -> node.Expr -> exprVal.stringExpr;
-
-  // check if function was declared
-  if(CheckFunAlreadyExist(prog, function_id)){
-
-    if (function_call -> child_list -> elements > 0){
-
-      struct TreeNode * arguments = function_call -> child_list -> first;
-      struct TreeNode * argument = arguments -> child_list -> first;
-      // check arguments
-      for (int i = 0; i < arguments -> child_list -> elements; i++){
-
-        if (i != 0) argument = argument -> next;
-        // pensaci un attimo: se è stato creato il nodo expr, non è di per se già controllato in fase di creazione?
-        Check_ExprConcistency(prog, argument);
-      }
-    }
-
-    Check_FunctionParameters(function_call);
-  }
-  // undeclared function error
-  else{
-    printf("%s call of undeclared function \'%s\'\n", ErrorMsg(), function_id);
-    exit(EXIT_FAILURE);
-  }
-
-}
-
 void Check_OperationConcistency (ProgramNode * prog, struct TreeNode * operation_node){
 
   if (operation_node -> nodeType == Expr){
@@ -3972,6 +3939,39 @@ void Check_ExprType (enum exprType type, struct TreeNode * node, char * function
     exit(EXIT_FAILURE);
   }
 }
+
+void Check_FunctionCallConcistency (ProgramNode * prog, struct TreeNode * function_call){
+
+  Check_NodeType(Expr, function_call, "Check_FunctionCallConcistency");
+  Check_ExprType(FC, function_call, "Check_FunctionCallConcistency");
+
+  char * function_id = function_call -> node.Expr -> exprVal.stringExpr;
+
+  // check if function was declared
+  if(CheckFunAlreadyExist(prog, function_id)){
+
+    if (function_call -> child_list -> elements > 0){
+
+      struct TreeNode * arguments = function_call -> child_list -> first;
+      struct TreeNode * argument = arguments -> child_list -> first;
+      // check arguments
+      for (int i = 0; i < arguments -> child_list -> elements; i++){
+
+        if (i != 0) argument = argument -> next;
+        // pensaci un attimo: se è stato creato il nodo expr, non è di per se già controllato in fase di creazione?
+        Check_ExprConcistency(prog, argument);
+      }
+    }
+
+    Check_FunctionParameters(function_call);
+  }
+  // undeclared function error
+  else{
+    printf("%s call of undeclared function \'%s\'\n", ErrorMsg(), function_id);
+    exit(EXIT_FAILURE);
+  }
+
+}
 /*
 *   comparing function call node with the function declaration
 */
@@ -3994,10 +3994,12 @@ void Check_FunctionParameters(struct TreeNode * function_call){
   }
   else call_parameters_No = 0;
 
+  // error: too many arguments
   if (call_parameters_No > decl_parameters_No){
     printf("%s too many arguments to function call '%s', expected %d, have %d.\n", ErrorMsg(), identifier, decl_parameters_No, call_parameters_No);
     exit(EXIT_FAILURE);
   }
+  // error: too few arguments
   else if(call_parameters_No < decl_parameters_No){
     printf("%s too few arguments to function call '%s', expected %d, have %d.\n", ErrorMsg(), identifier, decl_parameters_No, call_parameters_No);
     exit(EXIT_FAILURE);
@@ -4006,6 +4008,7 @@ void Check_FunctionParameters(struct TreeNode * function_call){
     struct TreeNode * declaration;
     struct TreeNode * argument;
     for (int i = 0; i < decl_parameters_No; i++){
+
       if (i == 0) declaration = decl_parameters -> child_list -> first;
       else declaration = declaration -> next;
 
@@ -4048,6 +4051,16 @@ void CheckParameterAssignment(struct TreeNode * declaration, struct TreeNode * e
       }
     }
   }
+
+  if (declaration_type == INT_V_ || declaration_type == CHAR_V_){
+    // pointer error
+    if (declaration_type != expression_type){
+      printf("%s incompatible pointer types passing \'%s\' to parameter of type \'%s\'.\n", ErrorMsg(),IdentifierTypeString(expression_type),IdentifierTypeString(declaration_type));
+      exit(EXIT_FAILURE);
+    }
+  }
+
+
 }
 
 //////////////////  execution CONTROL  /////////////////////////////////////////
