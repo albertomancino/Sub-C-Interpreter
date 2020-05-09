@@ -1,0 +1,32 @@
+NODO SCOPE: quando crearlo?
+
+Consideriamo la stuttura del nodo scope.
+È un generico TreeNode con type 12 che corrisponde al tipo 'Scope'.
+
+L'intenzione è quella di garantire che variabili presenti in scope differenti
+non siano visibili tra loro.
+
+Non sono visibili:
+- variabili definite in funzioni differenti (anche se una funzione è chiamata dal main)
+- variabili definite all'interno di parentesi graffe che sono state aperte e chiuso (Scope terminato)
+
+
+Il nodo scope è dunque un nodo di questo tipo:
+
+struct TreeNode{
+
+  enum nodeType = Scope;
+  node = struct SymbolTable * ST; // questa è una scrittura sintetica
+
+  struct TreeNode * next;
+  struct TreeNodeList * child_list;
+};
+
+Dunque il nodo scope contiene la SYMBOL TABLE per quello specifico scope.
+Non ci sono nodi figli di un scope.
+
+I RIFERIMENTI AGLI SCOPE sono conservati nella ScopeStack.
+
+Tale pila è formata da strutture che non fanno altro che far riferimento tramite indirizzo ai nodi scope.
+In questo modo è più immediato accedere alle symbol table.
+Viene mantenuto un riferimento al primo elemento della pila, ossia lo scope globale. In questo modo è più semplice l'accesso a variabili globali.
