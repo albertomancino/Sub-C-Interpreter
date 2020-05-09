@@ -24,6 +24,11 @@ OBIETTIVO
 
 
 
+
+PRINTF E STRING FORMAT
+
+%e escluso perchè lavora su variabili long
+
 ARRAY ARGOMENTO DI UNA FUNZIONE
 
 Non è possibile passare un array per valore. Questo va in contrasto con lo sviluppo dell'interprete.

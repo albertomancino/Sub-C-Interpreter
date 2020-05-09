@@ -2067,22 +2067,20 @@ void Check_PrintfCallConcistency(struct TreeNode * function_call){
 
         if (string[i] == '%'){
           char string_format = string[i+1];
-          if (string_format == 'd'){
+          if (string_format == 'd' || string_format == 'c' || string_format == 'i'){
             string_format_no++;
 
             printf("arguments : %d\nstring format no: %d\n", arguments -> child_list -> elements, string_format_no + 1);
 
             if ( string_format_no + 1 > arguments -> child_list -> elements) printf("%s: more \'%%\' conversions than data arguments.\n", WarnMsg());
-            else Check_FormatString('d', ExprList_Expression (arguments, string_format_no+1));
+            else Check_FormatString(string_format, ExprList_Expression (arguments, string_format_no+1));
           }
         }
       }
 
-      // error data argument not used
-      if (string_format_no + 1 < arguments -> child_list -> elements){
-        printf("%s data argument not used by format string.\n", ErrorMsg());
-        exit(EXIT_FAILURE);
-      }
+      // warning data argument not used
+      if (string_format_no + 1 < arguments -> child_list -> elements)
+        printf("%s data argument not used by format string.\n", WarnMsg());
     }
   }
 }
@@ -2091,9 +2089,15 @@ void Check_FormatString(char string_form, struct TreeNode * expression){
 
   enum Type expr_type = expressionType(expression);
 
-  if (string_form == 'd'){
+  if (string_form == 'd' || string_form == 'i'){
     if (expr_type == INT_V_ || expr_type == CHAR_V_){
       printf("%s format specifies type 'int' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
+      exit(EXIT_FAILURE);
+    }
+  }
+  else if (string_form == 'c'){
+    if (expr_type == INT_V_ || expr_type == CHAR_V_){
+      printf("%s format specifies type 'char' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
       exit(EXIT_FAILURE);
     }
   }
