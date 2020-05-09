@@ -114,6 +114,7 @@ struct SymbolTable_Node * SymbolTable_Get(struct SymbolTable *, int);
 int SymbolTable_Search(struct SymbolTable *, char *);
 int SymbolTable_Put(struct SymbolTable *, struct SymbolTable_Node *, int);
 struct SymbolTable_Node * SymbolTable_RetrieveVar (struct ProgramNode *, char *);
+struct SymbolTable_Node * SymbolTable_IterativeRetrieveVar (char *);
 int Retrieve_VarValue (struct ProgramNode *, char *, int);
 enum Type Retrieve_VarType(struct ProgramNode * , char *);
 int Retrieve_ArrayDim(struct ProgramNode *, char *);

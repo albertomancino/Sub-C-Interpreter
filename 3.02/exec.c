@@ -112,82 +112,124 @@ int exec_FunctionCall(struct TreeNode * function_call){
   Check_NodeType(Expr, function_call, "exec_FunctionCall");
   Check_ExprType(FC, function_call, "exec_FunctionCall");
 
-  // track the actual scope stack
-  struct ScopeStack * previous_stack = MainNode -> actual_stack;
-  // create a the new function scope stack
-  struct ScopeStack * new_stack = ScopeStack_Set();
+  if (!strcmp(function_call -> node.Expr -> exprVal.stringExpr, "printf")){
+    return 202;
+  }
+  else{
 
-  // Retrieving function declaration node
-  int index = FunNodeList_Search (MainNode, function_call -> node.Expr -> exprVal.stringExpr);
-  struct FunNode * functionNode = FunNodeList_Get (MainNode, index);
+    // track the actual scope stack
+    struct ScopeStack * previous_stack = MainNode -> actual_stack;
+    // create a the new function scope stack
+    struct ScopeStack * new_stack = ScopeStack_Set();
 
-  // Function scope node
-  struct TreeNode * function_scope = create_ScopeNode();
+    // Retrieving function declaration node
+    int index = FunNodeList_Search (MainNode, function_call -> node.Expr -> exprVal.stringExpr);
+    struct FunNode * functionNode = FunNodeList_Get (MainNode, index);
 
-  // Setting global scope at the bottom of the function scope stack
-  // Global scope is active by default
-  ScopeStack_Push(new_stack, MainNode -> global_scope_stack -> top -> thisScope, 1);
+    // Function scope node
+    struct TreeNode * function_scope = create_ScopeNode();
 
-  // Adding symbol table to scope stack
-  ScopeStack_Push(new_stack, function_scope, 1);
+    // Setting global scope at the bottom of the function scope stack
+    // Global scope is active by default
+    ScopeStack_Push(new_stack, MainNode -> global_scope_stack -> top -> thisScope, 1);
 
-  // Setting the function scope stack as actual scope stack
-  MainNode -> actual_stack = new_stack;
+    // Adding symbol table to scope stack
+    ScopeStack_Push(new_stack, function_scope, 1);
 
-  // Copying symbol table from function declaration node
-  SymbolTableCopy(functionNode -> function_scope -> node.ST, function_scope -> node.ST);
+    // Setting the function scope stack as actual scope stack
+    MainNode -> actual_stack = new_stack;
 
-  // Parameters assignment
-  // Check if there are parameters
-  if (function_call -> child_list -> elements != 0){
+    // Copying symbol table from function declaration node
+    SymbolTableCopy(functionNode -> function_scope -> node.ST, function_scope -> node.ST);
 
-    struct TreeNode * parameters = function_call -> child_list -> first;
-    struct TreeNode * arguments = functionNode -> function_scope -> child_list -> first;
+    // Parameters assignment
+    // Check if there are parameters
+    if (function_call -> child_list -> elements != 0){
 
-    struct TreeNode * parameter;
-    struct TreeNode * argument;
+      struct TreeNode * parameters = function_call -> child_list -> first;
+      struct TreeNode * arguments = functionNode -> function_scope -> child_list -> first;
 
-    printf("arguments: %s\n", NodeTypeString(arguments));
-    printf("elementi %d\n", arguments -> child_list -> elements);
+      struct TreeNode * parameter;
+      struct TreeNode * argument;
 
-    for (int i = 0; i < arguments -> child_list -> elements; i++){
+      printf("arguments: %s\n", NodeTypeString(arguments));
+      printf("elementi %d\n", arguments -> child_list -> elements);
 
-      if (i == 0) argument = arguments -> child_list -> first;
-      else  argument = argument -> next;
+      for (int i = 0; i < arguments -> child_list -> elements; i++){
 
-      if (i == 0) parameter = parameters -> child_list -> first;
-      else  parameter = parameter -> next;
+        if (i == 0) argument = arguments -> child_list -> first;
+        else  argument = argument -> next;
 
-      printf("argument = %s\n", NodeTypeString(argument));  // FUNZIONE
-      printf("parameter = %s\n", ExprTypeString(parameter));  // QUELLO CHE PASSO
+        if (i == 0) parameter = parameters -> child_list -> first;
+        else  parameter = parameter -> next;
 
-      // assign parameter value
-      if (argument -> node.DclN -> type == INT_ || argument -> node.DclN -> type == CHAR_){
+        printf("argument = %s\n", NodeTypeString(argument));  // FUNZIONE
+        printf("parameter = %s\n", ExprTypeString(parameter));  // QUELLO CHE PASSO
 
-        struct TreeNode * identifier = create_ExprNode(ID, 0, TreeNode_Identifier(argument), NULL, NULL, 0);
-        // value must be taken from the function call stack
-        MainNode -> actual_stack = previous_stack;
-        int value = Expr_toInt(MainNode, parameter);
+        // assign parameter value
+        if (argument -> node.DclN -> type == INT_ || argument -> node.DclN -> type == CHAR_){
 
-        // assignment must be done in the function scope
-        MainNode -> actual_stack = new_stack;
-        struct TreeNode * valueNode = create_ExprNode(NUM, value, NULL, NULL, NULL, 0);
-
-        struct TreeNode * assignment = create_AssignmentNode(MainNode, identifier, valueNode);
-        exec_Asgn(MainNode, assignment);
-      }
-      if (argument -> node.DclN -> type == INT_V_ || argument -> node.DclN -> type == CHAR_V_){
-        if (parameter -> node.Expr -> exprType == ID){
-
+          struct TreeNode * identifier = create_ExprNode(ID, 0, TreeNode_Identifier(argument), NULL, NULL, 0);
           // value must be taken from the function call stack
           MainNode -> actual_stack = previous_stack;
-          enum Type parameter_type = Retrieve_VarType(MainNode, TreeNode_Identifier(parameter));
-          struct SymbolTable_Node * parameter_node = SymbolTable_RetrieveVar(MainNode, TreeNode_Identifier(parameter));
-          int parameter_dimension = Retrieve_ArrayDim(MainNode, TreeNode_Identifier(parameter));
+          int value = Expr_toInt(MainNode, parameter);
 
-          if (parameter_type == INT_V_ || parameter_type == CHAR_V_){
+          // assignment must be done in the function scope
+          MainNode -> actual_stack = new_stack;
+          struct TreeNode * valueNode = create_ExprNode(NUM, value, NULL, NULL, NULL, 0);
 
-            if (argument -> node.DclN -> type == parameter_type){
+          struct TreeNode * assignment = create_AssignmentNode(MainNode, identifier, valueNode);
+          exec_Asgn(MainNode, assignment);
+        }
+        if (argument -> node.DclN -> type == INT_V_ || argument -> node.DclN -> type == CHAR_V_){
+          if (parameter -> node.Expr -> exprType == ID){
+
+            // value must be taken from the function call stack
+            MainNode -> actual_stack = previous_stack;
+            enum Type parameter_type = Retrieve_VarType(MainNode, TreeNode_Identifier(parameter));
+            struct SymbolTable_Node * parameter_node = SymbolTable_RetrieveVar(MainNode, TreeNode_Identifier(parameter));
+            int parameter_dimension = Retrieve_ArrayDim(MainNode, TreeNode_Identifier(parameter));
+
+            if (parameter_type == INT_V_ || parameter_type == CHAR_V_){
+
+              if (argument -> node.DclN -> type == parameter_type){
+
+                MainNode -> actual_stack = new_stack;
+                struct SymbolTable_Node * argument_node = SymbolTable_RetrieveVar(MainNode, TreeNode_Identifier(argument));
+
+                int argument_dimension = Expr_toInt(MainNode, argument -> node.DclN -> arrayDim);
+
+                // undeclared array dimension
+                // array dimension must be updated
+                if (argument -> node.DclN -> ignore){
+
+                  MainNode -> actual_stack = new_stack;
+
+                  argument_node -> arrayDim = parameter_dimension;
+                  argument_node -> ignore = 0;
+                  MainNode -> actual_stack = previous_stack;
+
+                  argument_dimension = parameter_dimension;
+                }
+
+                if (parameter_type == INT_V_) argument_node -> varPtr.intPtr = parameter_node -> varPtr.intPtr;
+                if (parameter_type == CHAR_V_) argument_node -> varPtr.charPtr = parameter_node -> varPtr.charPtr;
+
+              }
+              else{
+                printf("%s incompatible pointer types passing \'%s\' to parameter of type \'%s\'.\n", ErrorMsg(),IdentifierTypeString(parameter_type),IdentifierTypeString(argument -> node.DclN -> type));
+                exit(EXIT_FAILURE);
+              }
+            }
+            else {
+              printf("%s exec_FunctionCall - argument must be an array identifier.\n", ErrorMsg());
+              exit(EXIT_FAILURE);
+            }
+          }
+          else if (parameter -> node.Expr -> exprType == STR){
+            if (argument -> node.DclN -> type == CHAR_V_){
+
+              int parameter_dimension = strlen(parameter -> node.Expr -> exprVal.stringExpr) + 1;
 
               MainNode -> actual_stack = new_stack;
               struct SymbolTable_Node * argument_node = SymbolTable_RetrieveVar(MainNode, TreeNode_Identifier(argument));
@@ -205,98 +247,62 @@ int exec_FunctionCall(struct TreeNode * function_call){
                 MainNode -> actual_stack = previous_stack;
 
                 argument_dimension = parameter_dimension;
+                argument_node -> varPtr.charPtr = (char*)malloc(argument_dimension*sizeof(char));
+                // out of memory error
+                if (argument_node -> varPtr.charPtr == NULL){
+                  printf("%s SymbolTable_Set - out of memory.\n", ErrorMsg());
+                  exit(EXIT_FAILURE);
+                }
               }
 
-              if (parameter_type == INT_V_) argument_node -> varPtr.intPtr = parameter_node -> varPtr.intPtr;
-              if (parameter_type == CHAR_V_) argument_node -> varPtr.charPtr = parameter_node -> varPtr.charPtr;
+              // todo rimuovere
+              // STRING BY VALUE
+              /*
+              MainNode -> actual_stack = new_stack;
+
+              for (int i = 0; i < parameter_dimension; i++){
+
+                struct TreeNode * index_node = create_ExprNode(NUM, i, NULL, NULL, NULL, 0);
+                struct TreeNode * identifier = create_ExprNode(VEC, 0, TreeNode_Identifier(argument), index_node, NULL, 0);
+
+                char value = parameter -> node.Expr -> exprVal.stringExpr[i];
+                printf("%c\n", value);
+                struct TreeNode * valueNode = create_ExprNode(NUM, value, NULL, NULL, NULL, 0);
+
+                struct TreeNode * assignment = create_AssignmentNode(MainNode, identifier, valueNode);
+                exec_Asgn(MainNode, assignment);
+
+              }
+              */
+
+              argument_node -> varPtr.charPtr = parameter -> node.Expr -> exprVal.stringExpr;
 
             }
             else{
-              printf("%s incompatible pointer types passing \'%s\' to parameter of type \'%s\'.\n", ErrorMsg(),IdentifierTypeString(parameter_type),IdentifierTypeString(argument -> node.DclN -> type));
+              printf("%s exec_FunctionCall - char pointer expected.\n", ErrorMsg());
               exit(EXIT_FAILURE);
             }
-          }
-          else {
-            printf("%s exec_FunctionCall - argument must be an array identifier.\n", ErrorMsg());
-            exit(EXIT_FAILURE);
-          }
-        }
-        else if (parameter -> node.Expr -> exprType == STR){
-          if (argument -> node.DclN -> type == CHAR_V_){
-
-            int parameter_dimension = strlen(parameter -> node.Expr -> exprVal.stringExpr) + 1;
-
-            MainNode -> actual_stack = new_stack;
-            struct SymbolTable_Node * argument_node = SymbolTable_RetrieveVar(MainNode, TreeNode_Identifier(argument));
-
-            int argument_dimension = Expr_toInt(MainNode, argument -> node.DclN -> arrayDim);
-
-            // undeclared array dimension
-            // array dimension must be updated
-            if (argument -> node.DclN -> ignore){
-
-              MainNode -> actual_stack = new_stack;
-
-              argument_node -> arrayDim = parameter_dimension;
-              argument_node -> ignore = 0;
-              MainNode -> actual_stack = previous_stack;
-
-              argument_dimension = parameter_dimension;
-              argument_node -> varPtr.charPtr = (char*)malloc(argument_dimension*sizeof(char));
-              // out of memory error
-              if (argument_node -> varPtr.charPtr == NULL){
-                printf("%s SymbolTable_Set - out of memory.\n", ErrorMsg());
-                exit(EXIT_FAILURE);
-              }
-            }
-
-            // todo rimuovere 
-            // STRING BY VALUE
-            /*
-            MainNode -> actual_stack = new_stack;
-
-            for (int i = 0; i < parameter_dimension; i++){
-
-              struct TreeNode * index_node = create_ExprNode(NUM, i, NULL, NULL, NULL, 0);
-              struct TreeNode * identifier = create_ExprNode(VEC, 0, TreeNode_Identifier(argument), index_node, NULL, 0);
-
-              char value = parameter -> node.Expr -> exprVal.stringExpr[i];
-              printf("%c\n", value);
-              struct TreeNode * valueNode = create_ExprNode(NUM, value, NULL, NULL, NULL, 0);
-
-              struct TreeNode * assignment = create_AssignmentNode(MainNode, identifier, valueNode);
-              exec_Asgn(MainNode, assignment);
-
-            }
-            */
-
-            argument_node -> varPtr.charPtr = parameter -> node.Expr -> exprVal.stringExpr;
-
-          }
-          else{
-            printf("%s exec_FunctionCall - char pointer expected.\n", ErrorMsg());
-            exit(EXIT_FAILURE);
           }
         }
       }
     }
+
+    MainNode -> actual_stack = new_stack;
+    // function statements exec
+    exec_functionScope(functionNode -> function_scope);
+
+    //SymbolTable_Print(function_scope -> node.ST);
+    PrintActualST(MainNode);
+
+    // restoring previous scope stack
+     MainNode -> actual_stack = previous_stack;
+
+     // freeing function call scope memory
+
+
+     // value returned by function
+     return 101;
   }
-
-  MainNode -> actual_stack = new_stack;
-  // function statements exec
-  exec_functionScope(functionNode -> function_scope);
-
-  //SymbolTable_Print(function_scope -> node.ST);
-  PrintActualST(MainNode);
-
-  // restoring previous scope stack
-   MainNode -> actual_stack = previous_stack;
-
-   // freeing function call scope memory
-
-
-   // value returned by function
-   return 101;
 }
 
 ///////////////////////////  POST INCREMENT DECREMENT   ////////////////////////

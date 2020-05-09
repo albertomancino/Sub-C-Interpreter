@@ -1,8 +1,6 @@
 int test(){
 
-  char aa[]= "ciao";
-  printf(aa);
-  printf("ciao\n");
+  printf("%d\n", 1);
 
   return 0;
 }
@@ -11,7 +9,6 @@ int test(){
 int main(){
 
   test();
-
 
   return 0;
 }

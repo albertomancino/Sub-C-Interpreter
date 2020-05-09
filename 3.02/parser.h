@@ -78,6 +78,7 @@ struct TreeNode * create_WhileNode                    (struct TreeNode *, struct
 struct TreeNode * create_Condition                    (struct TreeNode *);
 struct TreeNode * create_WhileDeclaration             ();
 struct TreeNode * TreeNodeInitialization              ();
+struct TreeNode * ExprList_Expression                 (struct TreeNode *, int);
 void create_FunctionNode                              (struct TreeNode *, struct TreeNode *);
 void create_GlobalDeclarationNode                     (ProgramNode *, struct TreeNode *);
 void create_MainFunction                              (struct ProgramNode *, struct TreeNode *);
@@ -96,6 +97,7 @@ void Check_NodeType                                   (enum nodeType, struct Tre
 void Check_ExprType                                   (enum exprType, struct TreeNode *, char *);
 void Check_FunctionParameters                         (struct TreeNode *);
 void CheckParameterAssignment                         (struct TreeNode * , struct TreeNode * );
+void Check_FormatString                               (char, struct TreeNode *);
 int Check_Main                                        ();
 char Check_activation                                 ();
 void Scope_Activation                                 ();

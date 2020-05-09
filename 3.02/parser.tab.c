@@ -4084,6 +4084,7 @@ void Check_PrintfCallConcistency(struct TreeNode * function_call){
     struct TreeNode * firstArgument = arguments -> child_list -> first;
 
     if (firstArgument -> node.Expr -> exprType != STR){
+
       enum Type expression_type = expressionType(firstArgument);
 
       if (expression_type == INT_ || expression_type == CHAR_){
@@ -4094,8 +4095,75 @@ void Check_PrintfCallConcistency(struct TreeNode * function_call){
         printf("%s incompatible pointer types passing \'%s\' to parameter of type \'char pointer\'.\n", ErrorMsg(), IdentifierTypeString(expression_type));
         exit(EXIT_FAILURE);
       }
-      else if (expression_type == CHAR_V_) printf("%s format string is not a string literal (potentially insecure).\n", WarnMsg());
+      else if (expression_type == CHAR_V_)  printf("%s format string is not a string literal (potentially insecure).\n", WarnMsg());
     }
+    else{
+       int string_lenght = strlen(firstArgument -> node.Expr -> exprVal.stringExpr);
+       char * string = firstArgument -> node.Expr -> exprVal.stringExpr;
+
+       printf("STRINGA %s\n", string);
+       PrintActualST(MainNode);
+
+       // check format strings
+       int string_format_no = 0;
+       enum Type string_format_type;
+       //expressionType(struct TreeNode * expression)
+
+      for (int i = 0; i < string_lenght; i++){
+
+        if (string[i] == '%'){
+          char string_format = string[i+1];
+          if (string_format == 'd'){
+            string_format_no++;
+
+            printf("arguments : %d\nstring format no: %d\n", arguments -> child_list -> elements, string_format_no + 1);
+
+            if ( string_format_no + 1 > arguments -> child_list -> elements) printf("%s: more \'%%\' conversions than data arguments.\n", WarnMsg());
+            else Check_FormatString('d', ExprList_Expression (arguments, string_format_no+1));
+          }
+        }
+      }
+      if (string_format_no + 1 < arguments -> child_list -> elements){
+        printf("%s data argument not used by format string.\n", ErrorMsg());
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+}
+
+void Check_FormatString(char string_form, struct TreeNode * expression){
+
+  enum Type expr_type = expressionType(expression);
+
+  if (string_form == 'd'){
+    if (expr_type == INT_V_ || expr_type == CHAR_V_){
+      printf("%s format specifies type 'int' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
+      exit(EXIT_FAILURE);
+    }
+  }
+}
+
+struct TreeNode * ExprList_Expression(struct TreeNode * exprList, int index){
+
+  Check_NodeType(ExprLst, exprList, "ExprList_Expression");
+
+  if (index > exprList -> child_list -> elements){
+    printf("%s ExprList_Expression - index after expression list end.\n", ErrorMsg());
+    exit(EXIT_FAILURE);
+  }
+  else if (index < 1){
+    printf("%s ExprList_Expression - index before expression list beginning.\n", ErrorMsg());
+    exit(EXIT_FAILURE);
+  }
+  else{
+    struct TreeNode * expression;
+
+    for (int i = 0; i < index; i++){
+
+      if (i == 0) expression = exprList -> child_list -> first;
+      else expression = expression -> next;
+    }
+    return expression;
   }
 }
 
