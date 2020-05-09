@@ -1359,6 +1359,11 @@ ProgramNode* ProgramNode_Set (){
 // returns 1 if a function with the same identifier was already declared, otherwise 0
 int CheckFunAlreadyExist (ProgramNode* prog, char* identifier){
 
+  // printf - scanf name check
+  if (!strcmp(identifier, "printf") || !strcmp(identifier, "scanf")){
+    printf("%s incompatible redeclaration of library function \'%s\'.\n", ErrorMsg(), identifier);
+    exit(EXIT_FAILURE);
+  }
   FunNodeList * list = prog -> function_list;
 
   if (list -> elements == 0) {

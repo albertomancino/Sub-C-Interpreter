@@ -138,12 +138,9 @@ function
 | function_declaration CLOSED_BRACKET                                           {if(P_DEBUGGING==1) printf("BISON: Function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
 ;
 
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function_declaration
 : declaration arguments_declaration OPEN_BRACKET                                {if(P_DEBUGGING==1) printf("BISON: Function declaration found\n");         if(TREE_BUILDING) create_FunctionNode($1,$2);}
 ;
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 arguments_declaration
@@ -429,9 +426,17 @@ struct TreeNode * create_Function_CallNode(ProgramNode * prog, char * function_i
 
   if (expr_list != NULL) Check_NodeType(ExprLst, expr_list, "create_Function_CallNode");
 
-  struct TreeNode * node = create_ExprNode(FC, 0, function_id, expr_list, NULL, 0);
-  Check_FunctionCallConcistency(prog, node);
-  return node;
+  if (!strcmp(function_id, "printf")){
+    struct TreeNode * node = create_ExprNode(FC, 0, "printf", expr_list, NULL, 0);
+    Check_PrintfCallConcistency(node);
+    return node;
+  }
+  else{
+
+    struct TreeNode * node = create_ExprNode(FC, 0, function_id, expr_list, NULL, 0);
+    Check_FunctionCallConcistency(prog, node);
+    return node;
+  }
 }
 
 
@@ -508,7 +513,6 @@ void create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parame
 
     exec_DclN(MainNode, parameter);
   }
-
 }
 
 ////////////////////  if PRODUCTION  ///////////////////////////////////////////
@@ -2018,6 +2022,35 @@ void CheckParameterAssignment(struct TreeNode * declaration, struct TreeNode * e
   }
 
 
+}
+
+void Check_PrintfCallConcistency(struct TreeNode * function_call){
+
+  // check number of parameters
+  if (function_call -> child_list -> elements == 0){
+    printf("%s too few arguments to function call, expected at least 1, have 0.\n", ErrorMsg());
+    exit(EXIT_FAILURE);
+  }
+  else{
+
+    // first argument must be a string
+    struct TreeNode * arguments = function_call -> child_list -> first;
+    struct TreeNode * firstArgument = arguments -> child_list -> first;
+
+    if (firstArgument -> node.Expr -> exprType != STR){
+      enum Type expression_type = expressionType(firstArgument);
+
+      if (expression_type == INT_ || expression_type == CHAR_){
+        printf("%s incompatible integer to pointer conversion passing \'%s\' to parameter of type \'char pointer\'.\n", ErrorMsg(), IdentifierTypeString(expression_type));
+        exit(EXIT_FAILURE);
+      }
+      else if (expression_type == INT_V_){
+        printf("%s incompatible pointer types passing \'%s\' to parameter of type \'char pointer\'.\n", ErrorMsg(), IdentifierTypeString(expression_type));
+        exit(EXIT_FAILURE);
+      }
+      else if (expression_type == CHAR_V_) printf("%s format string is not a string literal (potentially insecure).\n", WarnMsg());
+    }
+  }
 }
 
 //////////////////  execution CONTROL  /////////////////////////////////////////

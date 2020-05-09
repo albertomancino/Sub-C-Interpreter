@@ -1,9 +1,8 @@
 OBIETTIVO
 
-V IF ELSE
+- printf scanf
 - IDEONA (per ora non pare essere necessaria): le expr possono "portarsi dietro" il proprio tipo. Ad esempio ( 1 + ( 2 + 3 )) so che è un int perchè (2+3) è int e 1+(2+3) è int + int. Potrebbe essere inutile dato che i tipi sono solo char e int. Potrebbe essere utile intercettare le STRINGHE.
 - Ricordarsi che è valido come assignment anche l'espressione (a)=10;
-V Aggiungere il modo per passare un array ad una funzione come argomento
 - Attenzione a liberare la memoria, soprattutto quando si hanno nodi rimossi oppure quando termina uno scope
 - PROVA TUTTO
 - Controllare per bene la nuova expression PA
@@ -12,7 +11,6 @@ V Aggiungere il modo per passare un array ad una funzione come argomento
 - analizzare le precedenze, soprattutto tra comparison a AND/OR. Es: x > 10 && x < 50;  come lo prende così? con le parentesei è tutto più chiaro ovviamente
 - ATTENZIONE pare ci sia un eccesso di strcpy quando basterebbe il puntatore.
 - Forse il global scope stack non è così utile, perchè tanto quando una funzione finisce il proprio scope rimane il global scope
-V Forse non serve neanche il function_scope, basta crearlo e metterlo nella function scope stack: ho deciso di lasciarlo perchè spesso è un comodo riferimento
 - Assicurarsi che tutto sia consistente, sia possibile. Pensa alla svista della dimensione dei vettori che non veniva controllata.
 - Nel C99 è possibile fare in questo modo int funzione(int dimension, int vec[dimension]), per farlo è necessario dichiarare dimension prima che venga creato il nodo vec. Si può fare ma bisogna modificare le produzioni
 - Grande dilemma dei controlli: se ho creato un nodo expr, non è stato già controllato che fosse precedentemente dichiarato? BISOGNA FAR CONTROLLI E PULIZIA
@@ -22,7 +20,7 @@ V Forse non serve neanche il function_scope, basta crearlo e metterlo nella func
 - Bisogna aggiustare la dichiarazione dei parametri nelle funzioni: manca il controllo se un parametro con lo stesso nome è stato già dichiarato
 - Liberare la memoria dopo la chiamata di una funzione
 - Aggiungere il caso di dimensione variabile in una dichiarazione di funzione
-
+- Il main non deve essere un token bisogna aggiustare
 
 
 

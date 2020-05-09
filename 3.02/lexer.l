@@ -75,7 +75,6 @@ char        {if(L_DEBUGGING==1) printf("%d FLEX: CHAR TYPE found\n",yylineno);  
 "--SD"      {PrintScopeStackDimension();}
 "--SEP"     {printf("--------------------------------------------------------------------------------\n");}
 
-
 %%
 
 void copyID(){
