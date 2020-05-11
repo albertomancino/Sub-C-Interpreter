@@ -1,5 +1,3 @@
-//#include <stdio.h>
-
 int infFun(){
 
   return 0;
@@ -38,7 +36,7 @@ int test(){
   printf("%x\n", a++);
   printf("%x\n", a--);
   //printf("%x\n", a=1);
-  printf("%b\n", 1);
+
 
   return 0;
 }

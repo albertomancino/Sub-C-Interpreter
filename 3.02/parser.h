@@ -97,7 +97,8 @@ void Check_NodeType                                   (enum nodeType, struct Tre
 void Check_ExprType                                   (enum exprType, struct TreeNode *, char *);
 void Check_FunctionParameters                         (struct TreeNode *);
 void CheckParameterAssignment                         (struct TreeNode * , struct TreeNode * );
-void Check_FormatString                               (char, struct TreeNode *);
+void Check_Printf_String                              (char *,  struct TreeNode *);
+void Check_FormatString_argument                      (char, struct TreeNode *);
 int Check_Main                                        ();
 char Check_activation                                 ();
 void Scope_Activation                                 ();

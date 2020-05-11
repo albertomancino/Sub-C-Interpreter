@@ -4066,8 +4066,6 @@ void CheckParameterAssignment(struct TreeNode * declaration, struct TreeNode * e
       exit(EXIT_FAILURE);
     }
   }
-
-
 }
 
 void Check_PrintfCallConcistency(struct TreeNode * function_call){
@@ -4097,48 +4095,50 @@ void Check_PrintfCallConcistency(struct TreeNode * function_call){
       }
       else if (expression_type == CHAR_V_)  printf("%s format string is not a string literal (potentially insecure).\n", WarnMsg());
     }
+    // if is a string, check format strings
     else{
-       int string_lenght = strlen(firstArgument -> node.Expr -> exprVal.stringExpr);
-       char * string = firstArgument -> node.Expr -> exprVal.stringExpr;
-
-       printf("STRINGA %s\n", string);
-       PrintActualST(MainNode);
-
-       // check format strings
-       int string_format_no = 0;
-       enum Type string_format_type;
-       //expressionType(struct TreeNode * expression)
-
-      for (int i = 0; i < string_lenght; i++){
-
-        if (string[i] == '%'){
-          char string_format = string[i+1];
-          if (isStringFormat(string_format)){
-
-            if (string_format != '%') string_format_no++;
-
-            printf("arguments : %d\nstring format no: %d\n", arguments -> child_list -> elements, string_format_no + 1);
-
-            if ( string_format_no + 1 > arguments -> child_list -> elements) printf("%s: more \'%%\' conversions than data arguments.\n", WarnMsg());
-            else Check_FormatString(string_format, ExprList_Expression (arguments, string_format_no+1));
-
-            i++;
-          }
-          else{
-            printf("%s invalid conversion specifier '%c'\n", ErrorMsg(), string_format);
-            exit(EXIT_FAILURE);
-          }
-        }
-      }
-
-      // warning data argument not used
-      if (string_format_no + 1 < arguments -> child_list -> elements)
-        printf("%s data argument not used by format string.\n", WarnMsg());
+        char * string = firstArgument -> node.Expr -> exprVal.stringExpr;
+        Check_Printf_String(string, arguments);
     }
   }
 }
 
-void Check_FormatString(char string_form, struct TreeNode * expression){
+void Check_Printf_String(char * string, struct TreeNode * arguments){
+
+  Check_NodeType(ExprLst, arguments, "Check_Printf_String");
+
+  int string_lenght = strlen(string);
+
+  // check format strings
+   int string_format_no = 0;
+   enum Type string_format_type;
+
+  for (int i = 0; i < string_lenght; i++){
+    // string format check
+    if (string[i] == '%'){
+      char string_format = string[i+1];
+      if (isStringFormat(string_format)){
+
+        if (string_format != '%') string_format_no++;
+
+        if ( string_format_no + 1 > arguments -> child_list -> elements) printf("%s: more \'%%\' conversions than data arguments.\n", WarnMsg());
+        else Check_FormatString_argument(string_format, ExprList_Expression (arguments, string_format_no+1));
+
+        i++;
+      }
+      else{
+        printf("%s invalid conversion specifier '%c'\n", ErrorMsg(), string_format);
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+
+  // warning data argument not used
+  if (string_format_no + 1 < arguments -> child_list -> elements)
+    printf("%s data argument not used by format string.\n", WarnMsg());
+}
+
+void Check_FormatString_argument(char string_form, struct TreeNode * expression){
 
   enum Type expr_type = expressionType(expression);
 

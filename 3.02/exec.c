@@ -113,6 +113,69 @@ int exec_FunctionCall(struct TreeNode * function_call){
   Check_ExprType(FC, function_call, "exec_FunctionCall");
 
   if (!strcmp(function_call -> node.Expr -> exprVal.stringExpr, "printf")){
+
+    struct TreeNode * arguments = function_call -> child_list -> first;
+    struct TreeNode * firstArgument = arguments -> child_list -> first;
+    char * string;
+
+    if (firstArgument -> node.Expr -> exprType == ID){
+      if (expressionType(firstArgument) == CHAR_V_){
+        struct SymbolTable_Node * stringNode = SymbolTable_IterativeRetrieveVar(firstArgument -> node.Expr -> exprVal.stringExpr);
+        string = stringNode -> varPtr.charPtr;
+        Check_Printf_String(string, arguments);
+      }
+      else{
+        printf("%s exec_FunctionCall - unexpected variable. Char pointer expected.\n", ErrorMsg());
+        exit(EXIT_FAILURE);
+      }
+    }
+    else if (firstArgument -> node.Expr -> exprType == STR)
+      string = firstArgument -> node.Expr -> exprVal.stringExpr;
+
+    struct TreeNode * argument = firstArgument -> next;
+
+    for (int i = 0; i < strlen(string); i++){
+
+      if (string[i] == '%'){
+        if (string[i+1] == 'd'){
+          printf("%d", Expr_toInt(MainNode, argument));
+          argument = argument -> next;
+        }
+        else if (string[i+1] == 'i'){
+          printf("%i", Expr_toInt(MainNode, argument));
+          argument = argument -> next;
+        }
+        else if (string[i+1] == 'c'){
+          printf("%c", Expr_toInt(MainNode, argument));
+          argument = argument -> next;
+        }
+        else if (string[i+1] == 'o'){
+          printf("%o", Expr_toInt(MainNode, argument));
+          argument = argument -> next;
+        }
+        else if (string[i+1] == 'i'){
+          printf("%u", Expr_toInt(MainNode, argument));
+          argument = argument -> next;
+        }
+        else if (string[i+1] == 'x'){
+          printf("%x", Expr_toInt(MainNode, argument));
+          argument = argument -> next;
+        }
+        else if (string[i+1] == 'X'){
+          printf("%X", Expr_toInt(MainNode, argument));
+          argument = argument -> next;
+        }
+        else if (string[i+1] == '%'){
+          printf("%%");
+        }
+
+        i++;
+      }
+      else{
+        printf("%c", string[i]);
+      }
+    }
+    printf("\n");
     return 202;
   }
   else{

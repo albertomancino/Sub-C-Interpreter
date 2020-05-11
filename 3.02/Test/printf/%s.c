@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 int infFun(){
 
   return 0;
