@@ -410,6 +410,31 @@ enum Type expressionType(struct TreeNode * expression){
 
   return return_type;
 }
+
+int isStringFormat(char symbol){
+  switch (symbol) {
+    case 'd': return 1;
+    break;
+    case 'i': return 1;
+    break;
+    case 'c': return 1;
+    break;
+    case 'o': return 1;
+    break;
+    case 's': return 1;
+    break;
+    case 'x': return 1;
+    break;
+    case 'X': return 1;
+    break;
+    case 'u': return 1;
+    break;
+    case '%': return 1;
+    break;
+    default: return 0;
+    break;
+  }
+}
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////  SYMBOL TABLE FUNCTIONS  ////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

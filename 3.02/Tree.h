@@ -94,6 +94,7 @@ int isOperation(struct TreeNode *);
 int isAssignable(struct TreeNode *);
 int Multiple_Modifications(struct TreeNode *, char*);
 enum Type expressionType(struct TreeNode *);
+int isStringFormat(char);
 
 
 // todo RIMUOVERE

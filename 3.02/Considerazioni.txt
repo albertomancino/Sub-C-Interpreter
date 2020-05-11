@@ -27,7 +27,10 @@ OBIETTIVO
 
 PRINTF E STRING FORMAT
 
-%e escluso perchè lavora su variabili long
+%e %E %f %g %G esclusi perchè lavorano su variabili double
+
+%n è da rivedere perchè funziona con i puntatori ad interi.
+
 
 ARRAY ARGOMENTO DI UNA FUNZIONE
 

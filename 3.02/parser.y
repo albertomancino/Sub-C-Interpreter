@@ -2067,13 +2067,20 @@ void Check_PrintfCallConcistency(struct TreeNode * function_call){
 
         if (string[i] == '%'){
           char string_format = string[i+1];
-          if (string_format == 'd' || string_format == 'c' || string_format == 'i'){
-            string_format_no++;
+          if (isStringFormat(string_format)){
+
+            if (string_format != '%') string_format_no++;
 
             printf("arguments : %d\nstring format no: %d\n", arguments -> child_list -> elements, string_format_no + 1);
 
             if ( string_format_no + 1 > arguments -> child_list -> elements) printf("%s: more \'%%\' conversions than data arguments.\n", WarnMsg());
             else Check_FormatString(string_format, ExprList_Expression (arguments, string_format_no+1));
+
+            i++;
+          }
+          else{
+            printf("%s invalid conversion specifier '%c'\n", ErrorMsg(), string_format);
+            exit(EXIT_FAILURE);
           }
         }
       }
@@ -2098,6 +2105,18 @@ void Check_FormatString(char string_form, struct TreeNode * expression){
   else if (string_form == 'c'){
     if (expr_type == INT_V_ || expr_type == CHAR_V_){
       printf("%s format specifies type 'char' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
+      exit(EXIT_FAILURE);
+    }
+  }
+  else if (string_form == 'o' || string_form == 'u'){
+    if (expr_type == INT_V_ || expr_type == CHAR_V_){
+      printf("%s format specifies type 'unsigned int' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
+      exit(EXIT_FAILURE);
+    }
+  }
+  else if (string_form == 's'){
+    if (expr_type == INT_ || expr_type == CHAR_ || expr_type == INT_V_){
+      printf("%s format specifies type 'char pointer' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
       exit(EXIT_FAILURE);
     }
   }
