@@ -2080,10 +2080,7 @@ void Check_Printf_String(char * string, struct TreeNode * arguments){
 
         i++;
       }
-      else{
-        printf("%s invalid conversion specifier '%c'\n", ErrorMsg(), string_format);
-        exit(EXIT_FAILURE);
-      }
+      else printf("%s invalid conversion specifier '%c'.\n", WarnMsg(), string_format);
     }
   }
 

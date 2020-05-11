@@ -133,50 +133,126 @@ int exec_FunctionCall(struct TreeNode * function_call){
       string = firstArgument -> node.Expr -> exprVal.stringExpr;
 
     struct TreeNode * argument = firstArgument -> next;
+    int printed = 0;
 
     for (int i = 0; i < strlen(string); i++){
-
+      // string format
       if (string[i] == '%'){
         if (string[i+1] == 'd'){
-          printf("%d", Expr_toInt(MainNode, argument));
+          printed += printf("%d", Expr_toInt(MainNode, argument));
           argument = argument -> next;
         }
         else if (string[i+1] == 'i'){
-          printf("%i", Expr_toInt(MainNode, argument));
+          printed += printf("%i", Expr_toInt(MainNode, argument));
           argument = argument -> next;
         }
         else if (string[i+1] == 'c'){
-          printf("%c", Expr_toInt(MainNode, argument));
+          printed += printf("%c", Expr_toInt(MainNode, argument));
           argument = argument -> next;
         }
         else if (string[i+1] == 'o'){
-          printf("%o", Expr_toInt(MainNode, argument));
+          printed += printf("%o", Expr_toInt(MainNode, argument));
           argument = argument -> next;
         }
         else if (string[i+1] == 'i'){
-          printf("%u", Expr_toInt(MainNode, argument));
+          printed += printf("%u", Expr_toInt(MainNode, argument));
           argument = argument -> next;
         }
         else if (string[i+1] == 'x'){
-          printf("%x", Expr_toInt(MainNode, argument));
+          printed += printf("%x", Expr_toInt(MainNode, argument));
           argument = argument -> next;
         }
         else if (string[i+1] == 'X'){
-          printf("%X", Expr_toInt(MainNode, argument));
+          printed += printf("%X", Expr_toInt(MainNode, argument));
           argument = argument -> next;
         }
         else if (string[i+1] == '%'){
-          printf("%%");
+          printed += printf("%%");
         }
 
         i++;
       }
+      // escape sequence
+      else if (string[i] == '\\'){
+        if (string[i+1] == 'a'){
+          printed += printf("\a");
+          i++;
+        }
+        else if (string[i+1] == 'b'){
+          printed += printf("\b");
+          i++;
+        }
+        else if (string[i+1] == 'e'){
+          printed += printf("\e");
+          i++;
+        }
+        else if (string[i+1] == 'f'){
+          printed += printf("\f");
+          i++;
+        }
+        else if (string[i+1] == 'n'){
+          printed += printf("\n");
+          i++;
+        }
+        else if (string[i+1] == 'r'){
+          printed += printf("\r");
+          i++;
+        }
+        else if (string[i+1] == 't'){
+          printed += printf("\t");
+          i++;
+        }
+        else if (string[i+1] == 'v'){
+          printed += printf("\v");
+          i++;
+        }
+        else if (string[i+1] == '\\'){
+          printed += printf("\\");
+          i++;
+        }
+        else if (string[i+1] == '\''){
+          printed += printf("\'");
+          i++;
+        }
+        else if (string[i+1] == '\"'){
+          printed += printf("\"");
+          i++;
+        }
+        else if (string[i+1] == '\?'){
+          printed += printf("\?");
+          i++;
+        }
+        else if (string[i+1] > 47 && string[i+1] < 56){
+          int skip = 1;
+          if (string[i+2] > 47 && string[i+2] < 56){
+            if (string[i+3] > 47 && string[i+3] < 56){
+
+              char octal = (((string[i+1] - 48)*64)+((string[i+2] - 48)*8)+(string[i+3] - 48));
+              printed += printf("%c", octal);
+              skip = 3;
+            }
+            else{
+              char octal = (((string[i+1] - 48)*8)+(string[i+2] - 48));
+              printed += printf("%c\n", octal);
+              skip = 2;
+            }
+          }
+          else{
+            char octal = (string[i+1] - 48);
+            printed += printf("%c\n", octal);
+          }
+
+          i = i + skip;
+        }
+        else printf("%s unknown escape sequence '\\%c'\n", WarnMsg(),string[i+1]);
+      }
+      // simple character
       else{
-        printf("%c", string[i]);
+        printed += printf("%c", string[i]);
       }
     }
-    printf("\n");
-    return 202;
+
+    return printed;
   }
   else{
 
