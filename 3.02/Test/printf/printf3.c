@@ -5,12 +5,18 @@ int test(){
   printf("\11\n");
   printf("\123\n");
   printf("\139\n");
-  printf("%b\n");
 
-  int x = printf("%b\n");
+  int x;
   x = 100;
   x = printf("Ciao zoccolette %d \123 %d\n", x, 123);
   printf("%d\n", x);
+
+  x = printf("%s\n", "Ehi comodino!");
+  printf("x = %d\n", x);
+
+  char string[] = "We pistola";
+  x = printf("%s\n", string);
+  printf("x = %d\n", x);
 
   return 0;
 }

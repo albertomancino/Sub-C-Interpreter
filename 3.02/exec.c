@@ -166,10 +166,21 @@ int exec_FunctionCall(struct TreeNode * function_call){
           printed += printf("%X", Expr_toInt(MainNode, argument));
           argument = argument -> next;
         }
+        else if (string[i+1] == 's'){
+          if (argument -> node.Expr -> exprType == STR){
+            printed += printf("%s", argument -> node.Expr -> exprVal.stringExpr);
+            argument = argument -> next;
+          }
+          else if (argument -> node.Expr -> exprType == ID){
+            struct SymbolTable_Node * stringNode = SymbolTable_IterativeRetrieveVar(argument -> node.Expr -> exprVal.stringExpr);
+            char * string = stringNode -> varPtr.charPtr;
+            printed += printf("%s", string);
+            argument = argument -> next;
+          }
+        }
         else if (string[i+1] == '%'){
           printed += printf("%%");
         }
-
         i++;
       }
       // escape sequence
