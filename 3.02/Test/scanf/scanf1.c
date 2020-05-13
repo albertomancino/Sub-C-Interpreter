@@ -1,6 +1,5 @@
 int test(){
 
-  amore mio bellissimo
 
 
 
