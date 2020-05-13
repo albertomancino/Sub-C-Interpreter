@@ -15,27 +15,34 @@ int test(){
   char c = 'a';
   char d[10] = {'H','e','l','l','o'};
 
-  printf("%u\n", 1);
-  printf("%u\n", -1);
-  printf("%u\n", a);
-  //printf("%u\n", b);  // error
-  printf("%u\n", b[1]);
-  //printf("%u\n", "Hello world");  //error
-  printf("%u\n", c);
-  //printf("%u\n", d);  // error
-  printf("%u\n", infFun());
-  printf("%u\n", charFun());
-  printf("%u\n", 1+1);
-  printf("%u\n", 1-1);
-  printf("%u\n", 1*1);
-  printf("%u\n", 1/1);
-  printf("%u\n", 1%1);
-  printf("%u\n", (1%1));
-  printf("%u\n",  ++a);
-  printf("%u\n", --a);
-  printf("%u\n", a++);
-  printf("%u\n", a--);
-  //printf("%u\n", a=1);
+  printf("\n");
+  printf("Costant positive integer: %u\n", 1);
+  printf("Costant negative integer: %u\n", -1);
+  printf("Int variable: %u\n", a);
+  printf("Char variable: %u\n", c);
+  printf("Int array element: %u\n", b[1]);
+  printf("Char array element: %u\n", d[1]);
+  printf("Int array pointer: %u\n", b);  // warning
+  printf("Char array pointer: %u\n", d);    // warning
+  printf("String: %u\n", "Hello world");    //warning
+  printf("Int function call: %u\n", infFun());
+  printf("Char function call: %u\n", charFun());
+  printf("Costant sum: %u\n", 1+1);
+  printf("Costant diffrence: %u\n", 1-1);
+  printf("Costant multiplication: %u\n", 1*1);
+  printf("Costant division: %u\n", 1/1);
+  printf("Costant modulo: %u\n", 1%1);
+  printf("Costant operation inside parenthesis: %u\n", (1%1));
+  printf("Int variable pre-increment: %u\n",  ++a);
+  printf("Int variable pre-decrement: %u\n", --a);
+  printf("Int variable post-increment: %u\n", a++);
+  printf("Int variable post-decrement: %u\n", a--);
+  printf("Int variable memory address: %u\n", &a);          // warning
+  printf("Char variable memory address: %u\n", &c);         // warning
+  printf("Int array memory address: %u\n", &b);             // warning
+  printf("Char array memory address: %u\n", &d);            // warning
+  printf("Int array element memory address: %u\n", &b[3]);  // warning
+  printf("Char array element memory address: %u\n", &d[3]); // warning
 
 
   return 0;

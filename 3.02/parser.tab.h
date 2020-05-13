@@ -60,18 +60,19 @@
      WHILE = 276,
      INC = 277,
      DEC = 278,
-     COMMA = 279,
-     DF = 280,
-     ET = 281,
-     LT = 282,
-     GT = 283,
-     OR = 284,
-     AND = 285,
-     MINUS = 286,
-     PLUS = 287,
-     MODULO = 288,
-     DIVIDE = 289,
-     STAR = 290
+     AMP = 279,
+     COMMA = 280,
+     DF = 281,
+     ET = 282,
+     LT = 283,
+     GT = 284,
+     OR = 285,
+     AND = 286,
+     MINUS = 287,
+     PLUS = 288,
+     MODULO = 289,
+     DIVIDE = 290,
+     STAR = 291
    };
 #endif
 /* Tokens.  */
@@ -96,18 +97,19 @@
 #define WHILE 276
 #define INC 277
 #define DEC 278
-#define COMMA 279
-#define DF 280
-#define ET 281
-#define LT 282
-#define GT 283
-#define OR 284
-#define AND 285
-#define MINUS 286
-#define PLUS 287
-#define MODULO 288
-#define DIVIDE 289
-#define STAR 290
+#define AMP 279
+#define COMMA 280
+#define DF 281
+#define ET 282
+#define LT 283
+#define GT 284
+#define OR 285
+#define AND 286
+#define MINUS 287
+#define PLUS 288
+#define MODULO 289
+#define DIVIDE 290
+#define STAR 291
 
 
 
@@ -122,7 +124,7 @@ typedef union YYSTYPE
     struct TreeNode *node;
 }
 /* Line 1529 of yacc.c.  */
-#line 126 "parser.tab.h"
+#line 128 "parser.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

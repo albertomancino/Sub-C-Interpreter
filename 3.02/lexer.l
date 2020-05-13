@@ -65,6 +65,7 @@ char        {if(L_DEBUGGING==1) printf("%d FLEX: CHAR TYPE found\n",yylineno);  
 "||"        {if(L_DEBUGGING==1) printf("%d FLEX: LOGIC OR found\n",yylineno);                 return OR;}
 "++"        {if(L_DEBUGGING==1) printf("%d FLEX: INCREMENT found\n",yylineno);                return INC;}
 "--"        {if(L_DEBUGGING==1) printf("%d FLEX: DECREMENT OR found\n",yylineno);             return DEC;}
+"&"         {if(L_DEBUGGING==1) printf("%d FLEX: AMPERSAND found\n",yylineno);                return AMP;}
 {string}    {if(L_DEBUGGING==1) printf("%d FLEX: STRING found with value %s\n",yylineno,yytext);  copyString(); return STRING;}
 {escape}    {if(L_DEBUGGING==1) printf("%d FLEX: ESCAPE found with value %s\n",yylineno, yytext); copyEscape(); return CH;}
 {character} {if(L_DEBUGGING==1) printf("%d FLEX: CHAR found with value %s\n",yylineno, yytext);  copyChar();   return CH;}
@@ -74,6 +75,7 @@ char        {if(L_DEBUGGING==1) printf("%d FLEX: CHAR TYPE found\n",yylineno);  
 "--PT"      {if(L_DEBUGGING==1) printf("%d FLEX: TREE print request found\n",yylineno); PrintTree(MainNode);}
 "--SD"      {PrintScopeStackDimension();}
 "--SEP"     {printf("--------------------------------------------------------------------------------\n");}
+
 
 %%
 

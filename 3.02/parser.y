@@ -55,6 +55,7 @@ struct TreeNode * NullTreeNode;
 %token WHILE
 %token INC
 %token DEC
+%token AMP
 %left COMMA
 %left GT LT ET DF
 %left AND OR
@@ -294,6 +295,7 @@ expr
 | pre_incdec                                                                    {if(P_DEBUGGING==1) printf("BISON: pre increment_decrement -> expr\n");    if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node pre-increment/decrement type created\n");}
 | post_incdec                                                                   {if(P_DEBUGGING==1) printf("BISON: post increment_decrement -> expr\n");   if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node post-increment/decrement type created\n");}
 | OPEN_ROUND assignment CLOSED_ROUND                                            {if(P_DEBUGGING==1) printf("BISON: parentheses assignment -> expr\n");     if(TREE_BUILDING) $$ = create_ExprNode(PA, 0, NULL, $2, NULL, 0);          if(TREE_DEBUGGING) printf("TREE: Expr node parentheses assignment type created\n");}
+| AMP variable                                                                  {if(P_DEBUGGING==1) printf("BISON: variable address -> expr\n");           if(TREE_BUILDING) $$ = create_ExprNode(ADD, 0, NULL, $2, NULL, 0);         if(TREE_DEBUGGING) printf("TREE: Expr node variable address type created\n");}
 ;
 
 pre_incdec
@@ -1069,60 +1071,55 @@ struct TreeNode * create_AssignmentNode(struct ProgramNode * prog, struct TreeNo
 */
 struct TreeNode * create_DeclarationNode(enum Type type, struct TreeNode * var){
 
-  if (var -> nodeType == Expr){
+  Check_NodeType(Expr, var, "create_DeclarationNode");
 
-    // generic Tree Node memory space allocation
-    struct TreeNode * newTreeNode = TreeNodeInitialization ();
-    // setting node type
-    newTreeNode -> nodeType = DclN;
-    // checking if the declaration is consistent
-    Check_DeclConcistency(var);
-    // memory space allocation for specific Declaration node
-    struct DeclarationNode * newDeclaration;
-    newDeclaration = (struct DeclarationNode *)malloc(sizeof(struct DeclarationNode));
-    // variable identifier
-    newDeclaration -> identifier = TreeNode_Identifier(var);
-    // setting var type and array dimension
-    if (var -> node.Expr -> exprType == ID){
+  // generic Tree Node memory space allocation
+  struct TreeNode * newTreeNode = TreeNodeInitialization ();
+  // setting node type
+  newTreeNode -> nodeType = DclN;
+  // checking if the declaration is consistent
+  Check_DeclConcistency(var);
+  // memory space allocation for specific Declaration node
+  struct DeclarationNode * newDeclaration;
+  newDeclaration = (struct DeclarationNode *)malloc(sizeof(struct DeclarationNode));
+  // variable identifier
+  newDeclaration -> identifier = TreeNode_Identifier(var);
+  // setting var type and array dimension
+  if (var -> node.Expr -> exprType == ID){
+    // variable type
+    newDeclaration -> type = type;
+    // array dimension
+    newDeclaration -> arrayDim = NULL;
+  }
+  else if (var -> node.Expr -> exprType == VEC){
+    if(type == INT_){
       // variable type
-      newDeclaration -> type = type;
+      newDeclaration -> type = INT_V_;
       // array dimension
-      newDeclaration -> arrayDim = NULL;
+      newDeclaration -> arrayDim = var -> child_list -> first;
     }
-    else if (var -> node.Expr -> exprType == VEC){
-      if(type == INT_){
-        // variable type
-        newDeclaration -> type = INT_V_;
-        // array dimension
-        newDeclaration -> arrayDim = var -> child_list -> first;
-      }
-      else if(type == CHAR_){
-        // variable type
-        newDeclaration -> type = CHAR_V_;
-        // array dimension
-        newDeclaration -> arrayDim = var -> child_list -> first;
-      }
-      else{
-        printf("%s create_DeclarationNode - unexpected variable type.\n", ErrorMsg());
-        exit(EXIT_FAILURE);
-      }
+    else if(type == CHAR_){
+      // variable type
+      newDeclaration -> type = CHAR_V_;
+      // array dimension
+      newDeclaration -> arrayDim = var -> child_list -> first;
     }
-    // setting ignore flag, 0 by default
-    newDeclaration -> ignore = 0;
-
-    // linking declaration struct to tree node
-    newTreeNode -> node.DclN = newDeclaration;
-    // freeing memory
-    free(var -> node.Expr);
-    free(var);
-
-    return newTreeNode;
-
+    else{
+      printf("%s create_DeclarationNode - unexpected variable type.\n", ErrorMsg());
+      exit(EXIT_FAILURE);
+    }
   }
-  else{
-    printf("%s create_DeclarationNode - incorrect call. Expr Tree Node expected. Type found: %u\n", ErrorMsg(), var -> nodeType);
-    exit(EXIT_FAILURE);
-  }
+  // setting ignore flag, 0 by default
+  newDeclaration -> ignore = 0;
+
+  // linking declaration struct to tree node
+  newTreeNode -> node.DclN = newDeclaration;
+  // freeing memory
+  free(var -> node.Expr);
+  free(var);
+
+  return newTreeNode;
+
 }
 
 ////////////////////  return PRODUCTION  ///////////////////////////////////////
@@ -1250,6 +1247,10 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
       case DP:  TreeNodeList_Add(newTreeNode -> child_list, first);
                 break;
       case PA:  TreeNodeList_Add(newTreeNode -> child_list, first);
+                break;
+      case ADD: Check_VariableAddress(first);
+                TreeNodeList_Add(newTreeNode -> child_list, first);
+                printf("Sto creando l'indirizzo di %s.\n", TreeNode_Identifier(first));
                 break;
       }
 
@@ -2094,27 +2095,32 @@ void Check_FormatString_argument(char string_form, struct TreeNode * expression)
   enum Type expr_type = expressionType(expression);
 
   if (string_form == 'd' || string_form == 'i'){
-    if (expr_type == INT_V_ || expr_type == CHAR_V_){
-      printf("%s format specifies type 'int' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
-      exit(EXIT_FAILURE);
+    if (expr_type != INT_ && expr_type != CHAR_){
+      printf("%s format specifies type 'int' but the argument has type '%s'.\n", WarnMsg(), IdentifierTypeString(expr_type));
     }
   }
   else if (string_form == 'c'){
-    if (expr_type == INT_V_ || expr_type == CHAR_V_){
-      printf("%s format specifies type 'char' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
-      exit(EXIT_FAILURE);
+    if (expr_type != INT_ && expr_type != CHAR_){
+      printf("%s format specifies type 'char' but the argument has type '%s'.\n", WarnMsg(), IdentifierTypeString(expr_type));
     }
   }
   else if (string_form == 'o' || string_form == 'u'){
-    if (expr_type == INT_V_ || expr_type == CHAR_V_){
-      printf("%s format specifies type 'unsigned int' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
-      exit(EXIT_FAILURE);
+    if (expr_type != INT_ && expr_type != CHAR_){
+      printf("%s format specifies type 'unsigned int' but the argument has type '%s'.\n", WarnMsg(), IdentifierTypeString(expr_type));
     }
   }
   else if (string_form == 's'){
-    if (expr_type == INT_ || expr_type == CHAR_ || expr_type == INT_V_){
-      printf("%s format specifies type 'char pointer' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
-      exit(EXIT_FAILURE);
+    if (expr_type != CHAR_V_){
+      if (expr_type == INT_V_ || expr_type == INT_P_ || expr_type == CHAR_P_) printf("%s format specifies type 'char pointer' but the argument has type '%s'.\n", WarnMsg(), IdentifierTypeString(expr_type));
+      else{
+        printf("%s format specifies type 'char pointer' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+  if (string_form == 'x' || string_form == 'X'){
+    if (expr_type != INT_ && expr_type != CHAR_){
+      printf("%s format specifies type 'unsigned int' but the argument has type '%s'.\n", WarnMsg(), IdentifierTypeString(expr_type));
     }
   }
 }
@@ -2140,6 +2146,26 @@ struct TreeNode * ExprList_Expression(struct TreeNode * exprList, int index){
       else expression = expression -> next;
     }
     return expression;
+  }
+}
+
+void Check_VariableAddress(struct TreeNode * variable){
+
+  if (variable != NULL){
+
+    // check if the variable is an array without expressed dimension
+    if (variable -> node.Expr -> exprType == VEC && variable -> child_list -> elements == 0){
+      printf("%s expected expression.\n", ErrorMsg());
+      exit(EXIT_FAILURE);
+    }
+    // check if the variable was declared
+    if (variable -> node.Expr -> exprType == ID) Check_IdentifierConcistency(MainNode, variable);
+    if (variable -> node.Expr -> exprType == VEC) Check_ArrayConcistency(MainNode, variable);
+
+  }
+  else{
+    printf("%s variable not found.\n", ErrorMsg());
+    exit(EXIT_FAILURE);
   }
 }
 

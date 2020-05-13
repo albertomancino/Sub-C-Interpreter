@@ -8,7 +8,9 @@ enum Type{
   INT_,
   CHAR_,
   INT_V_,
-  CHAR_V_
+  CHAR_V_,
+  INT_P_,
+  CHAR_P_
 };
 
 union VarVal{
@@ -117,6 +119,7 @@ int SymbolTable_Put(struct SymbolTable *, struct SymbolTable_Node *, int);
 struct SymbolTable_Node * SymbolTable_RetrieveVar (struct ProgramNode *, char *);
 struct SymbolTable_Node * SymbolTable_IterativeRetrieveVar (char *);
 int Retrieve_VarValue (struct ProgramNode *, char *, int);
+int Retrieve_VarPointer (char *, int);
 enum Type Retrieve_VarType(struct ProgramNode * , char *);
 int Retrieve_ArrayDim(struct ProgramNode *, char *);
 int Check_VarWasDeclared (struct ProgramNode *, char *, int);

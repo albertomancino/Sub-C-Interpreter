@@ -106,8 +106,8 @@ struct TreeNode * IdentifierResolverTreeNode (struct ProgramNode * prog, char * 
 /////////////////////////// FUNCTION CALL   ////////////////////////////////////
 
 int exec_FunctionCall(struct TreeNode * function_call){
-
-  printf("------------ EXEC FUNCTION ------------\n");
+  //todo remove
+  //printf("------------ EXEC FUNCTION ------------\n");
 
   Check_NodeType(Expr, function_call, "exec_FunctionCall");
   Check_ExprType(FC, function_call, "exec_FunctionCall");
@@ -117,6 +117,7 @@ int exec_FunctionCall(struct TreeNode * function_call){
     struct TreeNode * arguments = function_call -> child_list -> first;
     struct TreeNode * firstArgument = arguments -> child_list -> first;
     char * string;
+    int remaining_arguments = arguments -> child_list -> elements - 1;
 
     if (firstArgument -> node.Expr -> exprType == ID){
       if (expressionType(firstArgument) == CHAR_V_){
@@ -132,55 +133,105 @@ int exec_FunctionCall(struct TreeNode * function_call){
     else if (firstArgument -> node.Expr -> exprType == STR)
       string = firstArgument -> node.Expr -> exprVal.stringExpr;
 
-    struct TreeNode * argument = firstArgument -> next;
+    struct TreeNode * argument;
+    if (remaining_arguments > 0){
+      argument = firstArgument -> next;
+    }
     int printed = 0;
 
     for (int i = 0; i < strlen(string); i++){
       // string format
       if (string[i] == '%'){
         if (string[i+1] == 'd'){
-          printed += printf("%d", Expr_toInt(MainNode, argument));
-          argument = argument -> next;
+          if (remaining_arguments > 0) printed += printf("%d", Expr_toInt(MainNode, argument));
+          else printed = printf("%d");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
         }
         else if (string[i+1] == 'i'){
-          printed += printf("%i", Expr_toInt(MainNode, argument));
-          argument = argument -> next;
+          if (remaining_arguments > 0) printed += printf("%i", Expr_toInt(MainNode, argument));
+          else printed = printf("%i");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
         }
         else if (string[i+1] == 'c'){
-          printed += printf("%c", Expr_toInt(MainNode, argument));
-          argument = argument -> next;
+          if (remaining_arguments > 0) printed += printf("%c", Expr_toInt(MainNode, argument));
+          else printed = printf("%c");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
         }
         else if (string[i+1] == 'o'){
-          printed += printf("%o", Expr_toInt(MainNode, argument));
-          argument = argument -> next;
+          if (remaining_arguments > 0) printed += printf("%o", Expr_toInt(MainNode, argument));
+          else printed = printf("%o");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
         }
-        else if (string[i+1] == 'i'){
-          printed += printf("%u", Expr_toInt(MainNode, argument));
-          argument = argument -> next;
+        else if (string[i+1] == 'u'){
+          if (remaining_arguments > 0) printed += printf("%u", Expr_toInt(MainNode, argument));
+          else printed = printf("%u");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
         }
         else if (string[i+1] == 'x'){
-          printed += printf("%x", Expr_toInt(MainNode, argument));
-          argument = argument -> next;
+          if (remaining_arguments > 0) printed += printf("%x", Expr_toInt(MainNode, argument));
+          else printed = printf("%x");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
         }
         else if (string[i+1] == 'X'){
-          printed += printf("%X", Expr_toInt(MainNode, argument));
-          argument = argument -> next;
+          if (remaining_arguments > 0) printed += printf("%X", Expr_toInt(MainNode, argument));
+          else printed = printf("%X");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
         }
         else if (string[i+1] == 's'){
-          if (argument -> node.Expr -> exprType == STR){
-            printed += printf("%s", argument -> node.Expr -> exprVal.stringExpr);
-            argument = argument -> next;
+          if (remaining_arguments > 0) {
+
+            if (argument -> node.Expr -> exprType == STR){
+              printed += printf("%s", argument -> node.Expr -> exprVal.stringExpr);
+              remaining_arguments --;
+              if (remaining_arguments > 0)  argument = argument -> next;
+            }
+            else if (argument -> node.Expr -> exprType == ID){
+              struct SymbolTable_Node * stringNode = SymbolTable_IterativeRetrieveVar(argument -> node.Expr -> exprVal.stringExpr);
+              char * string;
+              if (stringNode -> type == INT_V_) string = (char*)stringNode -> varPtr.intPtr;
+              else if (stringNode -> type == CHAR_V_) string = stringNode -> varPtr.charPtr;
+
+              printed += printf("%s", string);
+              remaining_arguments --;
+              if (remaining_arguments > 0)  argument = argument -> next;
+            }
+            else if (argument -> node.Expr -> exprType == ADD){
+
+              struct SymbolTable_Node * stringNode = SymbolTable_IterativeRetrieveVar(TreeNode_Identifier(argument));
+
+              char * string;
+
+              if (argument -> child_list -> first -> node.Expr -> exprType == ID){
+                if (stringNode -> type == INT_V_) string = (char*)stringNode -> varPtr.intPtr;
+                else if (stringNode -> type == CHAR_V_) string = stringNode -> varPtr.charPtr;
+                else if (stringNode -> type == INT_)    string = (char*)&(stringNode -> varVal.intVal);
+                else if (stringNode -> type == CHAR_)   string = &(stringNode -> varVal.charVal);
+              }
+              else if (argument -> child_list -> first -> node.Expr -> exprType == VEC){
+
+                int index = Retrieve_ArrayIndex(MainNode, argument -> child_list -> first);
+                if (stringNode -> type == INT_V_) string = (char*)&(stringNode -> varPtr.intPtr)[index];
+                else if (stringNode -> type == CHAR_V_) string = &(stringNode -> varPtr.charPtr)[index];
+              }
+
+              printed += printf("%s", string);
+              remaining_arguments --;
+              if (remaining_arguments > 0)  argument = argument -> next;
+            }
           }
-          else if (argument -> node.Expr -> exprType == ID){
-            struct SymbolTable_Node * stringNode = SymbolTable_IterativeRetrieveVar(argument -> node.Expr -> exprVal.stringExpr);
-            char * string = stringNode -> varPtr.charPtr;
-            printed += printf("%s", string);
-            argument = argument -> next;
-          }
+          else printed = printf("%s");
         }
         else if (string[i+1] == '%'){
           printed += printf("%%");
         }
+        else printed += printf("%c", string[i+1]);
         i++;
       }
       // escape sequence
@@ -244,13 +295,13 @@ int exec_FunctionCall(struct TreeNode * function_call){
             }
             else{
               char octal = (((string[i+1] - 48)*8)+(string[i+2] - 48));
-              printed += printf("%c\n", octal);
+              printed += printf("%c", octal);
               skip = 2;
             }
           }
           else{
             char octal = (string[i+1] - 48);
-            printed += printf("%c\n", octal);
+            printed += printf("%c", octal);
           }
 
           i = i + skip;
@@ -440,9 +491,6 @@ int exec_FunctionCall(struct TreeNode * function_call){
     MainNode -> actual_stack = new_stack;
     // function statements exec
     exec_functionScope(functionNode -> function_scope);
-
-    //SymbolTable_Print(function_scope -> node.ST);
-    PrintActualST(MainNode);
 
     // restoring previous scope stack
      MainNode -> actual_stack = previous_stack;
@@ -856,10 +904,11 @@ void exec_Expression (struct TreeNode * node){
                 break;
       case PA:  exec_Asgn(MainNode, node -> child_list -> first);
                 break;
-      defalut:
-      break;
-
-    }
+      case ADD: printf("%s expression result unused.\n", WarnMsg());
+                break;
+      default:
+                break;
+      }
   }
   else{
     printf("%s exec_Expression - expr node type expected.\n", ErrorMsg());

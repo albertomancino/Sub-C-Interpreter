@@ -22,14 +22,14 @@ ProgramNode * MainNode;
 
 char * ErrorMsg (){
 
-  char * error = (char*)malloc(sizeof("\aline:10000000000\x1b[31merror:\x1b[0m ") + sizeof(char)*100);
-  sprintf (error, "%cline %d: %serror:%s",7,yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
+  char * error = (char*)malloc(sizeof("\n\aline:10000000000\x1b[31merror:\x1b[0m ") + sizeof(char)*100);
+  sprintf (error, "\n%cline %d: %serror:%s",7,yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
   return error;
 }
 char * WarnMsg (){
 
-  char * error = (char*)malloc(sizeof("line:10000000000\x1b[31merror:\x1b[0m ") + sizeof(char)*100);
-  sprintf (error, "line %d: %swarning:%s",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
+  char * error = (char*)malloc(sizeof("\nline:10000000000\x1b[31merror:\x1b[0m ") + sizeof(char)*100);
+  sprintf (error, "\nline %d: %swarning:%s",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
   MainNode -> warnings++;
   return error;
 }
@@ -94,7 +94,7 @@ char * TreeNode_Identifier(struct TreeNode * node){
        return node -> node.Expr -> exprVal.stringExpr;
     else if (expression_type == PI || expression_type == PD || expression_type == IP || expression_type == DP)
        return TreeNode_Identifier(node -> child_list -> first);
-    else if (expression_type == PA) {return TreeNode_Identifier(node -> child_list -> first);}
+    else if (expression_type == PA || expression_type == ADD) return TreeNode_Identifier(node -> child_list -> first);
     else{
       printf("%s TreeNode_Identifier - this expression tree node \'%s\' has not an identifier\n", ErrorMsg(), ExprTypeString(node));
       return NULL;
@@ -129,67 +129,76 @@ int Retrieve_ArrayIndex(ProgramNode * prog, struct TreeNode * node){
 */
 int Expr_toInt(ProgramNode * prog, struct TreeNode * node){
 
-  if (node -> nodeType != Expr){
-    printf("%s Expr_toInt - incorrect call. Expr TreeNode was expected. Node type %u \n", ErrorMsg(), node -> nodeType);
-    exit(EXIT_FAILURE);
+  Check_NodeType(Expr, node, "Expr_toInt");
+
+  int value;
+  int index;
+  enum exprType type = node -> node.Expr -> exprType;
+  enum Type var_type;
+  // if value is already known
+  if(node -> node.Expr -> known == 1){
+  value = node -> node.Expr -> exprVal.intExpr;
   }
   else{
-     int value;
-     int index;
-    enum exprType type = node -> node.Expr -> exprType;
-
-    // if value is already known
-    if(node -> node.Expr -> known == 1){
-      value = node -> node.Expr -> exprVal.intExpr;
-    }
-    else{
-      switch (type) {
-        case NUM: value = node -> node.Expr -> exprVal.intExpr;
-                  break;
-        case ID:  value = Retrieve_VarValue(prog, node -> node.Expr -> exprVal.stringExpr, 0);
-                  break;
-        case VEC: index = Retrieve_ArrayIndex(prog, node);
-                  value = Retrieve_VarValue(prog, node -> node.Expr -> exprVal.stringExpr, index);
-                  break;
-        case STR: printf("%s Expr_toInt - incorrect call. A string can't be converted into an integer.\n", ErrorMsg());
+    switch (type) {
+      case NUM: value = node -> node.Expr -> exprVal.intExpr;
+                break;
+      case ID:  var_type = Retrieve_VarType(MainNode, TreeNode_Identifier(node));
+                if (var_type == INT_ || var_type == CHAR_) value = Retrieve_VarValue(prog, TreeNode_Identifier(node), 0);
+                else if (var_type == INT_V_ || var_type == CHAR_V_) value = Retrieve_VarPointer(TreeNode_Identifier(node), 0);
+                break;
+      case VEC: index = Retrieve_ArrayIndex(prog, node);
+                value = Retrieve_VarValue(prog, node -> node.Expr -> exprVal.stringExpr, index);
+                break;
+      case STR: value = (int)node -> node.Expr -> exprVal.stringExpr;
+                break;
+      case C:   value = node -> node.Expr -> exprVal.charExpr;
+                break;
+      case FC:  value = exec_FunctionCall(node);
+                break;
+      case SUM: value = exec_Operation(node);
+                break;
+      case DIF: value = exec_Operation(node);
+                break;
+      case TIM: value = exec_Operation(node);
+                break;
+      case DIV: value = exec_Operation(node);
+                break;
+      case MOD: value = exec_Operation(node);
+                break;
+      case RND: value = exec_Operation(node);
+                break;
+      case CMP: value = exec_CMP(node);
+                break;
+      case PI:  value = exec_IncDec(node);
+                break;
+      case PD:  value = exec_IncDec(node);
+                break;
+      case IP:  value = exec_IncDec(node);
+                break;
+      case DP:  value = exec_IncDec(node);
+                break;
+      case PA:  exec_Asgn(MainNode, node -> child_list -> first);
+                value = Expr_toInt(MainNode, node -> child_list -> first -> child_list -> first);
+                break;
+      case ADD: if (node -> child_list -> first -> node.Expr -> exprType == ID){
+                  value = Retrieve_VarPointer(TreeNode_Identifier(node -> child_list -> first), 0);
+                }
+                else if (node -> child_list -> first -> node.Expr -> exprType == VEC){
+                  index = Retrieve_ArrayIndex(prog, node -> child_list -> first);
+                  value = Retrieve_VarPointer(TreeNode_Identifier(node -> child_list -> first), index);
+                }
+                else{
+                  printf("%s Expr_toInt - unexpected expr type. Type found %s.\n", ErrorMsg(), ExprTypeString(node -> child_list -> first -> node.Expr -> exprType));
                   exit(EXIT_FAILURE);
-                  break;
-        case C:   value = node -> node.Expr -> exprVal.charExpr;
-                  break;
-        case FC:  value = exec_FunctionCall(node);
-                  break;
-        case SUM: value = exec_Operation(node);
-                  break;
-        case DIF: value = exec_Operation(node);
-                  break;
-        case TIM: value = exec_Operation(node);
-                  break;
-        case DIV: value = exec_Operation(node);
-                  break;
-        case MOD: value = exec_Operation(node);
-                  break;
-        case RND: value = exec_Operation(node);
-                  break;
-        case CMP: value = exec_CMP(node);
-                  break;
-        case PI:  value = exec_IncDec(node);
-                  break;
-        case PD:  value = exec_IncDec(node);
-                  break;
-        case IP:  value = exec_IncDec(node);
-                  break;
-        case DP:  value = exec_IncDec(node);
-                  break;
-        case PA:  exec_Asgn(MainNode, node -> child_list -> first);
-                  value = Expr_toInt(MainNode, node -> child_list -> first -> child_list -> first);
-                  break;
-        default:  printf("%s Expr_toInt - incorrect call. Unexpected Expr.\n", ErrorMsg());
-                  exit(EXIT_FAILURE);
-                  break;
-      }
+                }
+                break;
+      default:  printf("%s Expr_toInt - incorrect call. Unexpected Expr. %d\n", ErrorMsg(),type);
+                exit(EXIT_FAILURE);
+                break;
     }
-    return value;
   }
+  return value;
 }
 /*
 * Given an expression returns 1 if its value is costant, 0 if is variable
@@ -407,7 +416,12 @@ enum Type expressionType(struct TreeNode * expression){
   else if (expression_type == PI || expression_type == PD || expression_type == IP || expression_type == DP)
                                                             return_type = expressionType(expression -> child_list -> first);
   else if (expression_type == PA)                           return_type = expressionType(expression -> child_list -> first -> child_list -> first);
+  else if (expression_type == ADD){
 
+    return_type = expressionType(expression -> child_list -> first);
+    if (return_type == INT_ || return_type == INT_V_) return_type = INT_P_;
+    else if (return_type == CHAR_ || return_type == CHAR_V_) return_type = CHAR_P_;
+  }
   return return_type;
 }
 
@@ -841,6 +855,52 @@ int Retrieve_VarValue (struct ProgramNode * prog, char * identifier, int index){
     exit(EXIT_FAILURE);
   }
 }
+int Retrieve_VarPointer (char * identifier, int index){
+  // symbol table node with the given identifier
+  struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar(identifier);
+
+  if (ST_Node == NULL){
+    printf("%s Retrieve_VarValue - variable '%s' not found.\n", ErrorMsg(), identifier);
+    exit(EXIT_FAILURE);
+  }
+  else if(ST_Node -> type == INT_)  return (int)&(ST_Node -> varVal.intVal);
+  else if(ST_Node -> type == CHAR_) return (int)&(ST_Node -> varVal.charVal);
+  else if(ST_Node -> type == INT_V_){
+
+    int array_dim = Retrieve_ArrayDim(MainNode, identifier);
+    // out of bounds array error
+    if (index > array_dim - 1){
+      printf("%s array index %d is past the end of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
+      exit(EXIT_FAILURE);
+    }
+    else if (index < 0){
+      printf("%s array index %d is before the beginning of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
+      exit(EXIT_FAILURE);
+    }
+
+    return (int)&(ST_Node -> varPtr.intPtr[index]);
+  }
+  else if(ST_Node -> type == CHAR_V_){
+
+    int array_dim = Retrieve_ArrayDim(MainNode, identifier);
+
+    // out of bounds array error
+    if (index > array_dim - 1){
+      printf("%s array index %d is past the end of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
+      exit(EXIT_FAILURE);
+    }
+    else if (index < 0){
+      printf("%s array index %d is before the beginning of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
+      exit(EXIT_FAILURE);
+    }
+
+    return (int)&(ST_Node -> varPtr.charPtr[index]);
+  }
+  else{
+    printf("%s Retrieve_VarValue - unexpected variable type. Type found: %u\n", ErrorMsg(), ST_Node -> type);
+    exit(EXIT_FAILURE);
+  }
+}
 enum Type Retrieve_VarType(struct ProgramNode * prog, char * identifier){
 
   // symbol table node with the given identifier
@@ -854,8 +914,8 @@ enum Type Retrieve_VarType(struct ProgramNode * prog, char * identifier){
 int Retrieve_ArrayDim(struct ProgramNode * prog, char * identifier){
 
   struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar (identifier);
-  if (ST_Node -> type == INT_ || ST_Node -> type == INT_){
-    printf("%s Retrieve_ArrayDim - An error occurred retrieving array dimension. The variable is not an array.\n", ErrorMsg());
+  if (ST_Node -> type == INT_ || ST_Node -> type == CHAR_){
+    printf("%s subscripted value is not an array.\n", ErrorMsg());
     exit(EXIT_FAILURE);
   }
   return ST_Node -> arrayDim;
@@ -941,9 +1001,6 @@ void SymbolTableCopy (struct SymbolTable * SymbolTab, struct SymbolTable * newSy
 
     if (i == 0) variable = SymbolTab -> first;
     else variable = variable -> next;
-
-    printf("Variabile di tipo %s\n", IdentifierTypeString(variable -> type));
-    printf("Ignore: %d\n", variable -> ignore);
 
     if (variable -> type == INT_)       SymbolTable_Add(newSymbolTab, variable -> identifier, INT_, 0, 0);
     else if (variable -> type == CHAR_) SymbolTable_Add(newSymbolTab, variable -> identifier, CHAR_, 0, 0);
@@ -1710,6 +1767,10 @@ char * ExprTypeString(struct TreeNode * node){
               break;
       case PA:   return "parentheses assignment";
               break;
+      case ADD:  return "address pointer";
+              break;
+      default:   return "uknown";
+              break;
     }
 
   }
@@ -1805,6 +1866,8 @@ char * IdentifierTypeString (enum Type type){
   else if (type == CHAR_ )    return "char";
   else if (type == INT_V_ )   return "int pointer";
   else if (type == CHAR_V_ )  return "char pointer";
+  else if (type == INT_P_ )   return "int pointer";
+  else if (type == CHAR_P_ )  return "char pointer";
   else                        return "unknown";
 }
 void PrintScopeStackDimension(){

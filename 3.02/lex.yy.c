@@ -376,8 +376,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 47
-#define YY_END_OF_BUFFER 48
+#define YY_NUM_RULES 48
+#define YY_END_OF_BUFFER 49
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -387,16 +387,16 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[101] =
     {   0,
-        0,    0,    2,    2,   48,   47,   12,   47,   47,   29,
-       47,   47,   19,   20,   11,   26,   18,   27,   28,   15,
+        0,    0,    2,    2,   49,   48,   12,   48,   48,   29,
+       38,   48,   19,   20,   11,   26,   18,   27,   28,   15,
        17,   31,   25,   30,   16,   21,   22,   16,   16,   16,
-       16,   16,   16,   23,   47,   24,    2,    4,    3,   12,
-       33,    0,   38,    0,   34,    0,   40,    0,   36,   37,
+       16,   16,   16,   23,   48,   24,    2,    4,    3,   12,
+       33,    0,   39,    0,   34,    0,   41,    0,   36,   37,
         1,    0,   15,   32,   16,   16,   16,    8,   16,   16,
        16,   16,   35,    2,    3,    3,    5,    0,    0,    0,
-        0,    0,    0,    0,   41,   16,   16,   13,   16,   16,
-       16,   39,    0,    0,   44,   45,    0,   42,   14,    9,
-        6,   16,   16,    0,   46,   16,   10,   43,    7,    0
+        0,    0,    0,    0,   42,   16,   16,   13,   16,   16,
+       16,   40,    0,    0,   45,   46,    0,   43,   14,    9,
+        6,   16,   16,    0,   47,   16,   10,   44,    7,    0
 
     } ;
 
@@ -531,11 +531,11 @@ static yyconst flex_int16_t yy_chk[218] =
     } ;
 
 /* Table of booleans, true if rule could match eol. */
-static yyconst flex_int32_t yy_rule_can_match_eol[48] =
+static yyconst flex_int32_t yy_rule_can_match_eol[49] =
     {   0,
 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 
-    1, 1, 0, 0, 0, 0, 0, 0,     };
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
+    0, 1, 1, 0, 0, 0, 0, 0, 0,     };
 
 static yy_state_type yy_last_accepting_state;
 static char *yy_last_accepting_cpos;
@@ -1033,59 +1033,64 @@ YY_RULE_SETUP
 {if(L_DEBUGGING==1) printf("%d FLEX: DECREMENT OR found\n",yylineno);             return DEC;}
 	YY_BREAK
 case 38:
-/* rule 38 can match eol */
 YY_RULE_SETUP
 #line 68 "lexer.l"
-{if(L_DEBUGGING==1) printf("%d FLEX: STRING found with value %s\n",yylineno,yytext);  copyString(); return STRING;}
+{if(L_DEBUGGING==1) printf("%d FLEX: AMPERSAND found\n",yylineno);                return AMP;}
 	YY_BREAK
 case 39:
+/* rule 39 can match eol */
 YY_RULE_SETUP
 #line 69 "lexer.l"
-{if(L_DEBUGGING==1) printf("%d FLEX: ESCAPE found with value %s\n",yylineno, yytext); copyEscape(); return CH;}
+{if(L_DEBUGGING==1) printf("%d FLEX: STRING found with value %s\n",yylineno,yytext);  copyString(); return STRING;}
 	YY_BREAK
 case 40:
-/* rule 40 can match eol */
 YY_RULE_SETUP
 #line 70 "lexer.l"
-{if(L_DEBUGGING==1) printf("%d FLEX: CHAR found with value %s\n",yylineno, yytext);  copyChar();   return CH;}
+{if(L_DEBUGGING==1) printf("%d FLEX: ESCAPE found with value %s\n",yylineno, yytext); copyEscape(); return CH;}
 	YY_BREAK
 case 41:
 /* rule 41 can match eol */
 YY_RULE_SETUP
 #line 71 "lexer.l"
-{/*InLine Comment*/}
+{if(L_DEBUGGING==1) printf("%d FLEX: CHAR found with value %s\n",yylineno, yytext);  copyChar();   return CH;}
 	YY_BREAK
 case 42:
+/* rule 42 can match eol */
 YY_RULE_SETUP
 #line 72 "lexer.l"
-{if(L_DEBUGGING==1) printf("%d FLEX: SYMBOL TABLE print request found\n",yylineno); PrintActualST(MainNode);}
+{/*InLine Comment*/}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
 #line 73 "lexer.l"
-{if(L_DEBUGGING==1) printf("%d FLEX: LINE print request found\n",yylineno); printf("line: %d\n", yylineno);}
+{if(L_DEBUGGING==1) printf("%d FLEX: SYMBOL TABLE print request found\n",yylineno); PrintActualST(MainNode);}
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
 #line 74 "lexer.l"
-{if(L_DEBUGGING==1) printf("%d FLEX: TREE print request found\n",yylineno); PrintTree(MainNode);}
+{if(L_DEBUGGING==1) printf("%d FLEX: LINE print request found\n",yylineno); printf("line: %d\n", yylineno);}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
 #line 75 "lexer.l"
-{PrintScopeStackDimension();}
+{if(L_DEBUGGING==1) printf("%d FLEX: TREE print request found\n",yylineno); PrintTree(MainNode);}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
 #line 76 "lexer.l"
-{printf("--------------------------------------------------------------------------------\n");}
+{PrintScopeStackDimension();}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 78 "lexer.l"
+#line 77 "lexer.l"
+{printf("--------------------------------------------------------------------------------\n");}
+	YY_BREAK
+case 48:
+YY_RULE_SETUP
+#line 80 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 1089 "lex.yy.c"
+#line 1094 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(comment):
 	yyterminate();
@@ -2095,7 +2100,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 78 "lexer.l"
+#line 80 "lexer.l"
 
 
 

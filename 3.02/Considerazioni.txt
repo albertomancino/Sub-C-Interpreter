@@ -21,7 +21,8 @@ OBIETTIVO
 - Liberare la memoria dopo la chiamata di una funzione
 - Aggiungere il caso di dimensione variabile in una dichiarazione di funzione
 - Il main non deve essere un token bisogna aggiustare
-
+- Bisogna spostare tutti i controlli nella creazione delle espressioni! Non è possibile che si possa fare questo: int x; x[10]; solo perchè essendo un expr non utilizzato non viene controllato.
+- Expression result unused viene lanciato come warning solo quando viene eseguito. Si può spostare in fase di creazione del nodo statement non in esecuzione.
 
 
 

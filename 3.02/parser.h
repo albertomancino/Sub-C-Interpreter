@@ -39,7 +39,8 @@ enum exprType {
   PD,             // 14 Pre Decrement
   IP,             // 15 Post Decrement
   DP,             // 16 Post Decrement
-  PA              // 17 Parathesis Assignment
+  PA,             // 17 Parathesis Assignment
+  ADD             // 18 Address
 };
 
 enum cmpType{
@@ -99,6 +100,7 @@ void Check_FunctionParameters                         (struct TreeNode *);
 void CheckParameterAssignment                         (struct TreeNode * , struct TreeNode * );
 void Check_Printf_String                              (char *,  struct TreeNode *);
 void Check_FormatString_argument                      (char, struct TreeNode *);
+void Check_VariableAddress                            (struct TreeNode *);
 int Check_Main                                        ();
 char Check_activation                                 ();
 void Scope_Activation                                 ();
