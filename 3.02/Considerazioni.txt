@@ -23,7 +23,8 @@ OBIETTIVO
 - Il main non deve essere un token bisogna aggiustare
 - Bisogna spostare tutti i controlli nella creazione delle espressioni! Non è possibile che si possa fare questo: int x; x[10]; solo perchè essendo un expr non utilizzato non viene controllato.
 - Expression result unused viene lanciato come warning solo quando viene eseguito. Si può spostare in fase di creazione del nodo statement non in esecuzione.
-
+- Attenzione l'if all'interno delle funzioni non viene eseguito correttamente. Il motivo è che bisogna correggere quando e come deve avvenire l'esecuzione dell'ìf e dell'else.
+- Gestire anche l'indirizzo &string come parametro di una funzione printf. ESEMPIO: printf(&a);
 
 
 PRINTF E STRING FORMAT
@@ -31,6 +32,9 @@ PRINTF E STRING FORMAT
 %e %E %f %g %G esclusi perchè lavorano su variabili double
 
 %n è da rivedere perchè funziona con i puntatori ad interi.
+
+Un metodo valido sarebbe potuto essere quello di eseguire printf e scanf direttamente con la stringa che ricevo in input. Il problema è che essendo funzioni molto complesse perderei il controllo delle stesse.
+
 
 
 ARRAY ARGOMENTO DI UNA FUNZIONE

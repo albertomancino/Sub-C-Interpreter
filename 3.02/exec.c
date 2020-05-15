@@ -316,6 +316,111 @@ int exec_FunctionCall(struct TreeNode * function_call){
 
     return printed;
   }
+  if (!strcmp(function_call -> node.Expr -> exprVal.stringExpr, "scanf")){
+
+    struct TreeNode * arguments = function_call -> child_list -> first;
+    struct TreeNode * firstArgument = arguments -> child_list -> first;
+    char * string;
+    int remaining_arguments = arguments -> child_list -> elements - 1;
+
+    if (firstArgument -> node.Expr -> exprType == ID){
+      if (expressionType(firstArgument) == CHAR_V_){
+        struct SymbolTable_Node * stringNode = SymbolTable_IterativeRetrieveVar(firstArgument -> node.Expr -> exprVal.stringExpr);
+        string = stringNode -> varPtr.charPtr;
+        Check_Scanf_String(string, arguments);
+      }
+      else{
+        printf("%s exec_FunctionCall - unexpected variable. Char pointer expected.\n", ErrorMsg());
+        exit(EXIT_FAILURE);
+      }
+    }
+    else if (firstArgument -> node.Expr -> exprType == STR)
+      string = firstArgument -> node.Expr -> exprVal.stringExpr;
+
+    struct TreeNode * argument;
+    if (remaining_arguments > 0){
+      argument = firstArgument -> next;
+    }
+    int scanned = 0;
+
+    for (int i = 0; i < strlen(string); i++){
+
+      if (string[i] == '%'){
+
+        void * pointer = TreeNode_Var_Pointer(argument);
+
+        if (string[i+1] == 'd'){
+
+          if (remaining_arguments > 0) scanned += scanf("%d", (int*)pointer);
+          else scanned = scanf("%d");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
+          i++;
+        }
+        if (string[i+1] == 'i'){
+
+          if (remaining_arguments > 0) scanned += scanf("%i", (int*)pointer);
+          else scanned = scanf("%i");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
+          i++;
+        }
+        if (string[i+1] == 'c'){
+
+          if (remaining_arguments > 0) scanned += scanf("%c", (char*)pointer);
+          else scanned = scanf("%c");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
+          i++;
+        }
+        if (string[i+1] == 'o'){
+
+          if (remaining_arguments > 0) scanned += scanf("%o", (int*)pointer);
+          else scanned = scanf("%o");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
+          i++;
+        }
+        if (string[i+1] == 'u'){
+
+          if (remaining_arguments > 0) scanned += scanf("%u", (int*)pointer);
+          else scanned = scanf("%u");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
+          i++;
+        }
+        if (string[i+1] == 's'){
+
+          if (remaining_arguments > 0) scanned += scanf("%s", (char*)pointer);
+          else scanned = scanf("%s");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
+          i++;
+        }
+        if (string[i+1] == 'x'){
+
+          if (remaining_arguments > 0) scanned += scanf("%x", (int*)pointer);
+          else scanned = scanf("%x");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
+          i++;
+        }
+        if (string[i+1] == 'X'){
+
+          if (remaining_arguments > 0) scanned += scanf("%X", (int*)pointer);
+          else scanned = scanf("%X");
+          remaining_arguments --;
+          if (remaining_arguments > 0)  argument = argument -> next;
+          i++;
+        }
+      }
+    }
+    PrintActualST(MainNode);
+  }
+
+
+
+
   else{
 
     // track the actual scope stack
@@ -1088,26 +1193,24 @@ void exec_while (struct TreeNode * node){
 
 void exec_ifElse (struct TreeNode * node){
 
-  if (node -> nodeType == IfElse){
-    //printf("Questo if else ha %d figli.\n", node -> child_list -> elements);
-    //printf("%s\n", NodeTypeString(node -> child_list -> first -> next));
-    //printf("%s\n", NodeTypeString(node -> child_list -> last));
-    //printf("%d\n", node -> child_list -> first -> node.flag);
+  Check_NodeType(IfElse, node, "exec_ifElse");
 
-    // if the if condition was false and an else statement is present
-    if (node -> child_list -> first -> node.flag == 0 && node -> child_list -> last -> nodeType == Else){
-        //printf("QUI DENTRO\n" );
-      // exec statements in the else scope
-      {
-        // execution of the statement in the if scope
-        exec_scope(node -> child_list -> last -> child_list -> first);
-        printf("%s %d ELSE eseguito! %s\n", ANSI_BOLD_YELLOW, yylineno, ANSI_COLOR_RESET);
-      }
+  printf("exec_ifElse\n");
+
+  printf("Questo if else ha %d figli.\n", node -> child_list -> elements);
+  printf("%s\n", NodeTypeString(node -> child_list -> first -> child_list -> first));
+  //printf("%s\n", NodeTypeString(node -> child_list -> last));
+  printf("%d\n", node -> child_list -> first -> node.flag);
+
+  // if the if condition was false and an else statement is present
+  if (node -> child_list -> first -> node.flag == 0 && node -> child_list -> last -> nodeType == Else){
+    printf("QUI DENTRO\n" );
+    // exec statements in the else scope
+    {
+      // execution of the statement in the if scope
+      exec_scope(node -> child_list -> last -> child_list -> first);
+      printf("%s %d ELSE eseguito! %s\n", ANSI_BOLD_YELLOW, yylineno, ANSI_COLOR_RESET);
     }
-  }
-  else{
-    printf("%s exec_ifElse - unexpected Tree Node type. Expected IfElse, found %s.\n", ErrorMsg(), NodeTypeString(node));
-    exit(EXIT_FAILURE);
   }
 }
 
@@ -1154,14 +1257,12 @@ int exec_functionScope (struct TreeNode * node){
   Check_NodeType(Scope, node, "exec_scope");
   // assign parameters
 
-
   struct TreeNode * statement;
   // exec statements - first statement must not be executed
   for (int i = 1; i < node -> child_list -> elements; i++){
 
     if (i == 1) statement = node -> child_list -> first -> next;
     else statement = statement -> next;
-
     exec_statement(statement);
   }
 
@@ -1209,11 +1310,11 @@ int exec_statement (struct TreeNode * node){
     break;
     case Scope:   /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_scope(node);
     break;
-    case If:      exec_ifElse(node);
+    case If:      printf("STO ESEGUENDO: %s\n", NodeTypeString(node)); exec_ifElse(node);
     break;
     case Else:    /* todo */
     break;
-    case IfElse: exec_ifElse(node);
+    case IfElse: printf("STO ESEGUENDO: %s\n", NodeTypeString(node)); exec_ifElse(node);
     break;
     case While:   /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_while(node);
     break;

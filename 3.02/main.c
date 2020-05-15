@@ -6,6 +6,7 @@
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 #define GREEN   "\033[32m"      /* Green */
 #define RESET   "\033[0m"
+FILE *yyin;
 
 
 // avoiding compiler warning
@@ -17,7 +18,14 @@ int main (int argc, char *argv[]){
   MainNode = ProgramNode_Set();
 
   int parsing = 0;
+
+  printf("%s\n", argv[1]);
+
+  yyin = fopen(argv[1], "r");
+
   parsing = yyparse();
+
+  fclose(yyin);
 
 
   if (!parsing){

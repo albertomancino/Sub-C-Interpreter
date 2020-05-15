@@ -116,7 +116,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 33 "parser.y"
+#line 34 "parser.y"
 {
     long intValue;
     char * string;

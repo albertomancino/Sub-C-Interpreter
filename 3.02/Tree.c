@@ -145,7 +145,7 @@ int Expr_toInt(ProgramNode * prog, struct TreeNode * node){
                 break;
       case ID:  var_type = Retrieve_VarType(MainNode, TreeNode_Identifier(node));
                 if (var_type == INT_ || var_type == CHAR_) value = Retrieve_VarValue(prog, TreeNode_Identifier(node), 0);
-                else if (var_type == INT_V_ || var_type == CHAR_V_) value = Retrieve_VarPointer(TreeNode_Identifier(node), 0);
+                else if (var_type == INT_V_ || var_type == CHAR_V_) value = (int)Retrieve_VarPointer(TreeNode_Identifier(node), 0);
                 break;
       case VEC: index = Retrieve_ArrayIndex(prog, node);
                 value = Retrieve_VarValue(prog, node -> node.Expr -> exprVal.stringExpr, index);
@@ -182,11 +182,11 @@ int Expr_toInt(ProgramNode * prog, struct TreeNode * node){
                 value = Expr_toInt(MainNode, node -> child_list -> first -> child_list -> first);
                 break;
       case ADD: if (node -> child_list -> first -> node.Expr -> exprType == ID){
-                  value = Retrieve_VarPointer(TreeNode_Identifier(node -> child_list -> first), 0);
+                  value = (int)Retrieve_VarPointer(TreeNode_Identifier(node -> child_list -> first), 0);
                 }
                 else if (node -> child_list -> first -> node.Expr -> exprType == VEC){
                   index = Retrieve_ArrayIndex(prog, node -> child_list -> first);
-                  value = Retrieve_VarPointer(TreeNode_Identifier(node -> child_list -> first), index);
+                  value = (int)Retrieve_VarPointer(TreeNode_Identifier(node -> child_list -> first), index);
                 }
                 else{
                   printf("%s Expr_toInt - unexpected expr type. Type found %s.\n", ErrorMsg(), ExprTypeString(node -> child_list -> first -> node.Expr -> exprType));
@@ -448,6 +448,19 @@ int isStringFormat(char symbol){
     default: return 0;
     break;
   }
+}
+
+void * TreeNode_Var_Pointer(struct TreeNode * expression){
+
+  Check_NodeType(Expr, expression, "TreeNode_Var_Pointer");
+
+  if (expression -> node.Expr -> exprType == ID) return Retrieve_VarPointer(TreeNode_Identifier(expression), 0);
+  else if (expression -> node.Expr -> exprType == VEC){
+    int index = Retrieve_ArrayIndex(MainNode, expression);
+    return Retrieve_VarPointer(TreeNode_Identifier(expression), index);
+  }
+  else if (expression -> node.Expr -> exprType == ADD) return TreeNode_Var_Pointer(expression -> child_list -> first);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -855,7 +868,7 @@ int Retrieve_VarValue (struct ProgramNode * prog, char * identifier, int index){
     exit(EXIT_FAILURE);
   }
 }
-int Retrieve_VarPointer (char * identifier, int index){
+void * Retrieve_VarPointer (char * identifier, int index){
   // symbol table node with the given identifier
   struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar(identifier);
 
@@ -863,8 +876,8 @@ int Retrieve_VarPointer (char * identifier, int index){
     printf("%s Retrieve_VarValue - variable '%s' not found.\n", ErrorMsg(), identifier);
     exit(EXIT_FAILURE);
   }
-  else if(ST_Node -> type == INT_)  return (int)&(ST_Node -> varVal.intVal);
-  else if(ST_Node -> type == CHAR_) return (int)&(ST_Node -> varVal.charVal);
+  else if(ST_Node -> type == INT_)  return &(ST_Node -> varVal.intVal);
+  else if(ST_Node -> type == CHAR_) return &(ST_Node -> varVal.charVal);
   else if(ST_Node -> type == INT_V_){
 
     int array_dim = Retrieve_ArrayDim(MainNode, identifier);
@@ -878,7 +891,7 @@ int Retrieve_VarPointer (char * identifier, int index){
       exit(EXIT_FAILURE);
     }
 
-    return (int)&(ST_Node -> varPtr.intPtr[index]);
+    return &(ST_Node -> varPtr.intPtr[index]);
   }
   else if(ST_Node -> type == CHAR_V_){
 
@@ -894,7 +907,7 @@ int Retrieve_VarPointer (char * identifier, int index){
       exit(EXIT_FAILURE);
     }
 
-    return (int)&(ST_Node -> varPtr.charPtr[index]);
+    return &(ST_Node -> varPtr.charPtr[index]);
   }
   else{
     printf("%s Retrieve_VarValue - unexpected variable type. Type found: %u\n", ErrorMsg(), ST_Node -> type);
@@ -1864,8 +1877,8 @@ char * IdentifierTypeString (enum Type type){
 
   if      (type == INT_)      return "int";
   else if (type == CHAR_ )    return "char";
-  else if (type == INT_V_ )   return "int pointer";
-  else if (type == CHAR_V_ )  return "char pointer";
+  else if (type == INT_V_ )   return "int array pointer";
+  else if (type == CHAR_V_ )  return "char array pointer";
   else if (type == INT_P_ )   return "int pointer";
   else if (type == CHAR_P_ )  return "char pointer";
   else                        return "unknown";

@@ -25,6 +25,7 @@ int yylineno;
 ProgramNode * MainNode;
 struct ErrorList * Errors;
 struct TreeNode * NullTreeNode;
+FILE *yyin;
 
 %}
 
@@ -36,6 +37,7 @@ struct TreeNode * NullTreeNode;
     char charValue;
     struct TreeNode *node;
 }
+
 
 %token INT
 %token CHAR
@@ -433,6 +435,11 @@ struct TreeNode * create_Function_CallNode(ProgramNode * prog, char * function_i
     Check_PrintfCallConcistency(node);
     return node;
   }
+  else if(!strcmp(function_id, "scanf")){
+    struct TreeNode * node = create_ExprNode(FC, 0, "scanf", expr_list, NULL, 0);
+    Check_ScanfCallConcistency(node);
+    return node;
+  }
   else{
 
     struct TreeNode * node = create_ExprNode(FC, 0, function_id, expr_list, NULL, 0);
@@ -531,8 +538,7 @@ struct TreeNode * create_IfElseNode(struct TreeNode * if_node, struct TreeNode *
 
   TreeNodeList_Add(newIfElseNode -> child_list, if_node);
 
-  //printf("IF NODE HA %d FIGLI.\n", if_node -> child_list -> elements);
-  // exec if statement
+  // exec if statement if the scope is active
    if(Check_activation()) {exec_if(if_node);}
 
   // if there's an else condition
@@ -1250,7 +1256,6 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
                 break;
       case ADD: Check_VariableAddress(first);
                 TreeNodeList_Add(newTreeNode -> child_list, first);
-                printf("Sto creando l'indirizzo di %s.\n", TreeNode_Identifier(first));
                 break;
       }
 
@@ -2025,6 +2030,9 @@ void CheckParameterAssignment(struct TreeNode * declaration, struct TreeNode * e
 
 void Check_PrintfCallConcistency(struct TreeNode * function_call){
 
+  Check_NodeType(Expr, function_call, "Check_PrintfCallConcistency");
+  Check_ExprType(FC, function_call, "Check_PrintfCallConcistency");
+
   // check number of parameters
   if (function_call -> child_list -> elements == 0){
     printf("%s too few arguments to function call, expected at least 1, have 0.\n", ErrorMsg());
@@ -2077,7 +2085,7 @@ void Check_Printf_String(char * string, struct TreeNode * arguments){
         if (string_format != '%') string_format_no++;
 
         if ( string_format_no + 1 > arguments -> child_list -> elements) printf("%s: more \'%%\' conversions than data arguments.\n", WarnMsg());
-        else Check_FormatString_argument(string_format, ExprList_Expression (arguments, string_format_no+1));
+        else Check_Printf_FormatString_argument(string_format, ExprList_Expression (arguments, string_format_no+1));
 
         i++;
       }
@@ -2090,7 +2098,74 @@ void Check_Printf_String(char * string, struct TreeNode * arguments){
     printf("%s data argument not used by format string.\n", WarnMsg());
 }
 
-void Check_FormatString_argument(char string_form, struct TreeNode * expression){
+void Check_ScanfCallConcistency(struct TreeNode * function_call){
+
+  Check_NodeType(Expr, function_call, "Check_ScanfCallConcistency");
+  Check_ExprType(FC, function_call, "Check_ScanfCallConcistency");
+
+  // check number of parameters
+  if (function_call -> child_list -> elements == 0){
+    printf("%s too few arguments to function call, expected at least 1, have 0.\n", ErrorMsg());
+    exit(EXIT_FAILURE);
+  }
+  else{
+
+    // first argument must be a string
+    struct TreeNode * arguments = function_call -> child_list -> first;
+    struct TreeNode * firstArgument = arguments -> child_list -> first;
+
+    if (firstArgument -> node.Expr -> exprType != STR){
+
+      enum Type expression_type = expressionType(firstArgument);
+      // todo qui si potrebbe tollerare anche un CHAR_P_
+      if (expression_type != CHAR_V_){
+        printf("%s incompatible integer to pointer conversion passing \'%s\' to parameter of type \'char pointer\'.\n", ErrorMsg(), IdentifierTypeString(expression_type));
+        exit(EXIT_FAILURE);
+      }
+    }
+    // if is a string, check format strings
+    else{
+        char * string = firstArgument -> node.Expr -> exprVal.stringExpr;
+        Check_Scanf_String(string, arguments);
+    }
+  }
+}
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void Check_Scanf_String (char * string, struct TreeNode * arguments){
+
+  Check_NodeType(ExprLst, arguments, "Check_Scanf_String");
+
+  int string_lenght = strlen(string);
+
+  // check format strings
+   int string_format_no = 0;
+   enum Type string_format_type;
+
+   for (int i = 0; i < string_lenght; i++){
+     // string format check
+     if (string[i] == '%'){
+
+       char string_format = string[i+1];
+       if (isStringFormat(string_format) && string_format != '%'){
+
+         string_format_no++;
+
+         if ( string_format_no + 1 > arguments -> child_list -> elements) printf("%s: more \'%%\' conversions than data arguments.\n", WarnMsg());
+         else Check_Scanf_FormatString_argument(string_format, ExprList_Expression (arguments, string_format_no+1));
+
+         i++;
+       }
+       else printf("%s invalid conversion specifier '%c'.\n", WarnMsg(), string_format);
+     }
+     else if (string[i] != ' ') printf("%s invalid conversion specifier '%c'.\n", WarnMsg(), string[i]);
+   }
+}
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void Check_Printf_FormatString_argument(char string_form, struct TreeNode * expression){
 
   enum Type expr_type = expressionType(expression);
 
@@ -2123,6 +2198,58 @@ void Check_FormatString_argument(char string_form, struct TreeNode * expression)
       printf("%s format specifies type 'unsigned int' but the argument has type '%s'.\n", WarnMsg(), IdentifierTypeString(expr_type));
     }
   }
+}
+
+
+void Check_Scanf_FormatString_argument (char string_form, struct TreeNode * expression){
+
+  enum Type expr_type = expressionType(expression);
+
+  if (expression -> node.Expr -> exprType == STR){
+    printf("%s a 'costant string' is not assignable.\n", ErrorMsg());
+    exit(EXIT_FAILURE);
+  }
+  if (string_form == 'd' || string_form == 'i'){
+    if (expr_type == INT_ || expr_type == CHAR_){
+      printf("%s format specifies type 'int pointer' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
+      exit(EXIT_FAILURE);
+    }
+    else if (expr_type == INT_V_ || expr_type == CHAR_V_ || expr_type == CHAR_P_)
+      printf("%s format specifies type 'int pointer' but the argument has type '%s'.\n", WarnMsg(), IdentifierTypeString(expr_type));
+  }
+  else if (string_form == 'c'){
+    if (expr_type == INT_ || expr_type == CHAR_){
+      printf("%s format specifies type 'char pointer' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
+      exit(EXIT_FAILURE);
+    }
+    else if (expr_type == INT_V_ || expr_type == CHAR_V_ || expr_type == INT_P_)
+      printf("%s format specifies type 'char pointer' but the argument has type '%s'.\n", WarnMsg(), IdentifierTypeString(expr_type));
+  }
+  else if (string_form == 'o' || string_form == 'u'){
+    if (expr_type == INT_ || expr_type == CHAR_){
+      printf("%s format specifies type 'unsigned int' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
+      exit(EXIT_FAILURE);
+    }
+    else if (expr_type == INT_V_ || expr_type == CHAR_V_ || expr_type == CHAR_P_)
+      printf("%s format specifies type 'unsigned int' but the argument has type '%s'.\n", WarnMsg(), IdentifierTypeString(expr_type));
+  }
+  else if (string_form == 's'){
+    if (expr_type == INT_ || expr_type == CHAR_){
+      printf("%s format specifies type 'char pointer' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
+      exit(EXIT_FAILURE);
+    }
+    else if (expr_type == INT_V_ || expr_type == CHAR_V_ || expr_type == INT_P_)
+      printf("%s format specifies type 'char pointer' but the argument has type '%s'.\n", WarnMsg(), IdentifierTypeString(expr_type));
+  }
+  if (string_form == 'x' || string_form == 'X'){
+    if (expr_type == INT_ || expr_type == CHAR_){
+      printf("%s format specifies type 'unsigned int' but the argument has type '%s'.\n", ErrorMsg(), IdentifierTypeString(expr_type));
+      exit(EXIT_FAILURE);
+    }
+    else if (expr_type == INT_V_ || expr_type == CHAR_V_ || expr_type == CHAR_P_)
+      printf("%s format specifies type 'unsigned int' but the argument has type '%s'.\n", WarnMsg(), IdentifierTypeString(expr_type));
+  }
+
 }
 
 struct TreeNode * ExprList_Expression(struct TreeNode * exprList, int index){

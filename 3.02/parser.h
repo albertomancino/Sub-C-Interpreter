@@ -89,6 +89,7 @@ void Check_IdentifierConcistency                      (ProgramNode *, struct Tre
 void Check_ArrayConcistency                           (ProgramNode *, struct TreeNode *);
 void Check_FunctionCallConcistency                    (ProgramNode *, struct TreeNode *);
 void Check_PrintfCallConcistency                      (struct TreeNode *);
+void Check_ScanfCallConcistency                       (struct TreeNode *);
 void Check_OperationConcistency                       (ProgramNode *, struct TreeNode *);
 void Check_ComparisonConcistency                      (ProgramNode *, struct TreeNode *);
 void Check_AsgnConcistency                            (struct ProgramNode *, struct TreeNode *, struct TreeNode *);
@@ -99,7 +100,9 @@ void Check_ExprType                                   (enum exprType, struct Tre
 void Check_FunctionParameters                         (struct TreeNode *);
 void CheckParameterAssignment                         (struct TreeNode * , struct TreeNode * );
 void Check_Printf_String                              (char *,  struct TreeNode *);
-void Check_FormatString_argument                      (char, struct TreeNode *);
+void Check_Scanf_String                               (char *, struct TreeNode *);
+void Check_Printf_FormatString_argument               (char, struct TreeNode *);
+void Check_Scanf_FormatString_argument                (char, struct TreeNode *);
 void Check_VariableAddress                            (struct TreeNode *);
 int Check_Main                                        ();
 char Check_activation                                 ();
