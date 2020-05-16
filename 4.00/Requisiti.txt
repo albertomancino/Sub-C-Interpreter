@@ -1,0 +1,29 @@
+REQUISITI
+
+
+Variabili e strutture da gestire:
+
+int, char, array monodimensionali V
+
+
+
+Costrutti e funzioni:
+
+• dichiarazionediunavariabile V DA MIGLIORARE SUL DOVE SI PUÒ DICHIARARE
+• assegnazionediunvaloreadunavariabile V
+• dichiarazioneconassegnazione V
+• dichiarazioneechiamataafunzione(noprototipi) V
+• diramazione:IF V
+• iterazione:WHILE V
+• input/output:scanf()/printf() V
+• valoreritornatodaunafunzione:return V
+
+
+
+Operatori
+
+• aritmetici: +, -, *, /, %
+
+• logiciediconfronto: <, >, ==,!=, &&, ||
+
+• unaridiincrementoedecremento: ++, --

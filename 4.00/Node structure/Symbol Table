@@ -1,0 +1,40 @@
+SYMBOL TABLE
+
+La SymbolTable è formata da dei SymbolTable_Node collegati tra loro a formare una lista.
+
+--- SymbolTable_Node ---
+
+struct SymbolTable_Node{
+
+  char name [1023];
+  enum Type Type;
+  union VarVal VarVal;
+
+  struct SymbolTable_Node * next;
+};
+
+--- SymbolTable ---
+
+struct SymbolTable{
+
+  int elements;
+  struct SymbolTable_Node * first;
+  struct SymbolTable_Node * last;
+};
+
+COSA va inserito all'interno della symbol table?
+- le variabili
+
+Le funzioni vanno inserite? NO, perchè le funzioni dichiarate sono consultabili
+interrogando il program node.
+
+Quando inserire una variabile?
+- Quando viene DICHIARATA
+
+
+Quando CREARE UNA SYMBOL TABLE?
+Ogni scope deve avere la sua symbol table.
+Non è necessario che ogni funzione abbia una propria symbol table ma è
+necessario che ogni funzione abbia il suo scope.
+Quando si vuole far riferimento a delle variabili bisogna farlo all'interno del
+proprio scope.
