@@ -98,7 +98,7 @@ int Multiple_Modifications(struct TreeNode *, char*);
 enum Type expressionType(struct TreeNode *);
 int isStringFormat(char);
 void * TreeNode_Var_Pointer(struct TreeNode *);
-
+int isArrayPointer (struct TreeNode *);
 
 // todo RIMUOVERE
 struct ErrorList * Error_Set();

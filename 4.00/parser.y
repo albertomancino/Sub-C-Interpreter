@@ -194,14 +194,10 @@ statement
 
 
 
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function_call
 : IDENTIFIER OPEN_ROUND expr_list CLOSED_ROUND                                  {if(P_DEBUGGING==1) printf("BISON: Function call1 found\n");               if(TREE_BUILDING) $$ = create_Function_CallNode(MainNode, $1, $3);         if(TREE_DEBUGGING) printf("TREE: Function call statement node created\n");}
 | IDENTIFIER OPEN_ROUND CLOSED_ROUND                                            {if(P_DEBUGGING==1) printf("BISON: Function call2 found\n");               if(TREE_BUILDING) $$ = create_Function_CallNode(MainNode, $1, NULL);       if(TREE_DEBUGGING) printf("TREE: Function call statement node created\n");}
 ;
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 
 if_else_statement
 : if_statement                                                                  {if(P_DEBUGGING==1) printf("BISON: If-else statement1 found\n");           if(TREE_BUILDING) $$ = create_IfElseNode($1, NULL);                        if(TREE_DEBUGGING) printf("TREE: If-else statement node created\n");}
@@ -281,7 +277,6 @@ expr_list
 
 return_statement
 : RETURN expr END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: return statement1 found\n");            if(TREE_BUILDING) $$ = create_ReturnNode($2);                              if(TREE_DEBUGGING) printf("TREE: Return node created\n");}
-| RETURN END_COMMA                                                              {if(P_DEBUGGING==1) printf("BISON: return statement2 found\n");            if(TREE_BUILDING) $$ = create_ReturnNode(NULL);                            if(TREE_DEBUGGING) printf("TREE: Return node created\n");}
 ;
 
 expr
@@ -289,7 +284,7 @@ expr
 | NUMBER                                                                        {if(P_DEBUGGING==1) printf("BISON: integer -> expr\n");                    if(TREE_BUILDING) $$ = create_ExprNode(NUM, $1, NULL, NULL, NULL, 0);      if(TREE_DEBUGGING) printf("TREE: Expr node integer type created\n");}
 | PLUS NUMBER                                                                   {if(P_DEBUGGING==1) printf("BISON: positive integer -> expr\n");           if(TREE_BUILDING) $$ = create_ExprNode(NUM, $2, NULL, NULL, NULL, 0);      if(TREE_DEBUGGING) printf("TREE: Expr node integer type created\n");}
 | MINUS NUMBER                                                                  {if(P_DEBUGGING==1) printf("BISON: negative integer -> expr\n");           if(TREE_BUILDING) $$ = create_ExprNode(NUM, -$2, NULL, NULL, NULL, 0);     if(TREE_DEBUGGING) printf("TREE: Expr node integer type created\n");}
-| variable                                                                      {if(P_DEBUGGING==1) printf("BISON: variable -> expr\n");                   if(TREE_BUILDING) if(Check_ArrayDimension($1)) $$ = $1;                    if(TREE_DEBUGGING) printf("TREE: Expr node variable type created\n");}
+| variable                                                                      {if(P_DEBUGGING==1) printf("BISON: variable -> expr\n");                   if(TREE_BUILDING) Check_VariableConcistency($1); $$ = $1;                  if(TREE_DEBUGGING) printf("TREE: Expr node variable type created\n");}
 | STRING                                                                        {if(P_DEBUGGING==1) printf("BISON: expr STRING -> expr\n");                if(TREE_BUILDING) $$ = create_ExprNode(STR, 0, $1, NULL, NULL, 0);         if(TREE_DEBUGGING) printf("TREE: Expr node string type created\n");}
 | CH                                                                            {if(P_DEBUGGING==1) printf("BISON: expr character -> expr\n");             if(TREE_BUILDING) $$ = create_ExprNode(C, 0, &$1, NULL, NULL, 0);          if(TREE_DEBUGGING) printf("TREE: Expr node char type created\n");}
 | function_call                                                                 {if(P_DEBUGGING==1) printf("BISON: expr function_call -> expr\n");         if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node function call type created\n");}
@@ -420,10 +415,6 @@ struct TreeNode * create_Expr_ListNode(struct TreeNode * expr_list, struct TreeN
   }
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 ////////////////////  function_call PRODUCTION  ////////////////////////////////
 
 struct TreeNode * create_Function_CallNode(ProgramNode * prog, char * function_id, struct TreeNode * expr_list){
@@ -447,11 +438,6 @@ struct TreeNode * create_Function_CallNode(ProgramNode * prog, char * function_i
     return node;
   }
 }
-
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 ////////////////////  comparison PRODUCTION  ///////////////////////////////////
 
@@ -528,26 +514,21 @@ void create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parame
 
 struct TreeNode * create_IfElseNode(struct TreeNode * if_node, struct TreeNode * else_node){
 
-
   Check_NodeType(If, if_node, "create_IfElseNode");
 
   // creating a generic Tree Node with memory allocation
   struct TreeNode * newIfElseNode = TreeNodeInitialization();
   // Tree Node Type
   newIfElseNode -> nodeType = IfElse;
-
+  // linking if node to if-else node
   TreeNodeList_Add(newIfElseNode -> child_list, if_node);
-
-  // exec if statement if the scope is active
-   if(Check_activation()) {exec_if(if_node);}
 
   // if there's an else condition
   if (else_node != NULL){
-    if (else_node -> nodeType == Else)  TreeNodeList_Add(newIfElseNode -> child_list, else_node);
-    else{
-      printf("%s create_IfElseNode - unexpected Tree Node type. Expected Else, found %s.\n", ErrorMsg(), NodeTypeString(else_node));
-      exit(EXIT_FAILURE);
-    }
+    // else_node must be an Else node
+    Check_NodeType(Else, else_node, "create_IfElseNode");
+    // linking else node to the if-else node
+    TreeNodeList_Add(newIfElseNode -> child_list, else_node);
   }
 
   return newIfElseNode;
@@ -589,7 +570,7 @@ struct TreeNode * create_IfNode (struct TreeNode * if_node, struct TreeNode * co
 
   // linking condition to the if node
   TreeNodeList_Add(if_node -> child_list, condition);
-  // if scope is ended
+  // if-scope is ended
   ScopeStack_Pop(MainNode -> actual_stack);
 
   return if_node;
@@ -644,11 +625,24 @@ struct TreeNode * create_Condition(struct TreeNode * expr){
 
   if ( expr -> nodeType == Expr){
 
-    if (expr -> node.Expr -> exprType == STR){
+    enum exprType type = expr -> node.Expr -> exprType;
+
+    if (type == STR){
       printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
       exit(EXIT_FAILURE);
     }
-    if(IsCostant(expr)){
+    else if (type == ADD){
+
+      if (expr -> child_list -> first -> node.Expr -> exprType == ID)
+        printf("%s address of \'%s\' will always evaluate to \'true\'.\n", WarnMsg(), TreeNode_Identifier(expr));
+      else if (expr -> child_list -> first -> node.Expr -> exprType == VEC)
+        printf("%s address of \'%s[%d]\' will always evaluate to \'true\'.\n", WarnMsg(), TreeNode_Identifier(expr), Retrieve_ArrayIndex(MainNode, expr -> child_list -> first));
+
+    }
+    else if (isArrayPointer(expr))
+      printf("%s address of array \'%s\' will always evaluate to \'true\'.\n", WarnMsg(), TreeNode_Identifier(expr));
+    else if(IsCostant(expr)){
+
       char value = CMP_node_logicValue(MainNode, expr);
       if (value == 1){
         printf("%s condition is always true.\n", WarnMsg());
@@ -659,15 +653,6 @@ struct TreeNode * create_Condition(struct TreeNode * expr){
     }
 
     condition = expr;
-  }
-  else if (expr -> nodeType == Asgn){
-
-    // transforming assignment in a parathesis assignment node
-    struct TreeNode * newExpr = create_ExprNode(PA, 0, NULL, expr, NULL, 0);
-    condition = create_Condition(newExpr);
-    // print warning
-    printf("%s using the result of an assignment as a condition without parentheses\n", WarnMsg());
-    printf("note: use '==' to turn this assignment into an equality comparison\n");
   }
   else{
     printf("%s create_Condition - unexpected Tree Node type. Expected Expr, found %s.\n", ErrorMsg(), NodeTypeString(expr));
@@ -1130,15 +1115,24 @@ struct TreeNode * create_DeclarationNode(enum Type type, struct TreeNode * var){
 
 ////////////////////  return PRODUCTION  ///////////////////////////////////////
 
-struct TreeNode * create_ReturnNode(struct TreeNode *expr){
+struct TreeNode * create_ReturnNode(struct TreeNode * expr){
 
   struct TreeNode * newTreeNode = TreeNodeInitialization (); // generic Tree Node memory space allocation
 
   // Linking specific node to generic Tree Node
   newTreeNode -> nodeType = Return;
+  // Linking returned expression to the return node
+  TreeNodeList_Add(newTreeNode -> child_list, expr);
 
-  if(expr != NULL){
-    TreeNodeList_Add(newTreeNode -> child_list, expr);}
+  int value;
+  if (IsCostant(expr)){
+    value = Expr_toInt(MainNode, expr);
+
+    FunNode * function_node = MainNode -> function_list -> last;
+    enum Type function_type = function_node -> funType;
+
+    if (function_type == CHAR_) Check_CharConcistency(value);
+  }
 
   return newTreeNode;
 }
@@ -1389,6 +1383,19 @@ void Check_ArrayConcistency(ProgramNode * prog, struct TreeNode * array){
       printf("%s array index %d is before the beginning of the array. Array contains %d elements.\n", ErrorMsg(),index, array_dim);
       exit(EXIT_FAILURE);
     }
+  }
+}
+
+void Check_VariableConcistency(struct TreeNode * node){
+
+  Check_NodeType(Expr, node, "Check_VariableConcistency");
+  char * identifier = TreeNode_Identifier(node);
+
+  if (node -> node.Expr -> exprType == ID) Check_IdentifierConcistency(MainNode, node);
+  else if (node -> node.Expr -> exprType == VEC) Check_ArrayConcistency(MainNode, node);
+  else {
+    printf("%s Check_VariableConcistency unexpected expression type. Type found %s.\n", ErrorMsg(), ExprTypeString(node));
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -2130,8 +2137,6 @@ void Check_ScanfCallConcistency(struct TreeNode * function_call){
     }
   }
 }
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void Check_Scanf_String (char * string, struct TreeNode * arguments){
 
@@ -2162,8 +2167,6 @@ void Check_Scanf_String (char * string, struct TreeNode * arguments){
      else if (string[i] != ' ') printf("%s invalid conversion specifier '%c'.\n", WarnMsg(), string[i]);
    }
 }
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void Check_Printf_FormatString_argument(char string_form, struct TreeNode * expression){
 

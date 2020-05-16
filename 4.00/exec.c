@@ -103,6 +103,15 @@ struct TreeNode * IdentifierResolverTreeNode (struct ProgramNode * prog, char * 
 ////////////////////////////// INTERPRETATION  /////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+/////////////////////////// RETURN   ///////////////////////////////////////////
+
+int exec_return(struct TreeNode * node){
+
+  Check_NodeType(Return, node, "exec_return");
+
+  return Expr_toInt(MainNode, node -> child_list -> first);
+}
+
 /////////////////////////// FUNCTION CALL   ////////////////////////////////////
 
 int exec_FunctionCall(struct TreeNode * function_call){
@@ -415,12 +424,9 @@ int exec_FunctionCall(struct TreeNode * function_call){
         }
       }
     }
-    PrintActualST(MainNode);
+
+    return scanned;
   }
-
-
-
-
   else{
 
     // track the actual scope stack
@@ -431,6 +437,7 @@ int exec_FunctionCall(struct TreeNode * function_call){
     // Retrieving function declaration node
     int index = FunNodeList_Search (MainNode, function_call -> node.Expr -> exprVal.stringExpr);
     struct FunNode * functionNode = FunNodeList_Get (MainNode, index);
+    enum Type function_type = functionNode -> funType;
 
     // Function scope node
     struct TreeNode * function_scope = create_ScopeNode();
@@ -594,17 +601,17 @@ int exec_FunctionCall(struct TreeNode * function_call){
     }
 
     MainNode -> actual_stack = new_stack;
+
+    int return_value;
     // function statements exec
-    exec_functionScope(functionNode -> function_scope);
+    return_value = exec_functionScope(functionNode -> function_scope);
 
     // restoring previous scope stack
      MainNode -> actual_stack = previous_stack;
 
-     // freeing function call scope memory
-
-
      // value returned by function
-     return 101;
+     if (function_type == INT_) return return_value;
+     else if (function_type == CHAR_) return (char)return_value;
   }
 }
 
@@ -951,8 +958,9 @@ int CMP_node_logicValue (ProgramNode * prog, struct TreeNode * node){
         logicValue = 1;
       }
     }
+    else if(type == ADD) logicValue = 1;
     else{
-      printf("%s unexpected node type. Type found %u\n", ErrorMsg(), type);
+      printf("%s unexpected expression type. Type found %u\n", ErrorMsg(), type);
       exit(EXIT_FAILURE);
     }
 
@@ -1195,59 +1203,35 @@ void exec_ifElse (struct TreeNode * node){
 
   Check_NodeType(IfElse, node, "exec_ifElse");
 
-  printf("exec_ifElse\n");
-
-  printf("Questo if else ha %d figli.\n", node -> child_list -> elements);
-  printf("%s\n", NodeTypeString(node -> child_list -> first -> child_list -> first));
-  //printf("%s\n", NodeTypeString(node -> child_list -> last));
-  printf("%d\n", node -> child_list -> first -> node.flag);
+  struct TreeNode * if_node = node -> child_list -> first;
+  // checking if condition and executing if scope if the condition is true
+  exec_if(if_node);
 
   // if the if condition was false and an else statement is present
-  if (node -> child_list -> first -> node.flag == 0 && node -> child_list -> last -> nodeType == Else){
-    printf("QUI DENTRO\n" );
-    // exec statements in the else scope
-    {
-      // execution of the statement in the if scope
-      exec_scope(node -> child_list -> last -> child_list -> first);
-      printf("%s %d ELSE eseguito! %s\n", ANSI_BOLD_YELLOW, yylineno, ANSI_COLOR_RESET);
-    }
-  }
+  if (if_node -> node.flag == 0 && node -> child_list -> last -> nodeType == Else)
+    // execution of the statement in the else scope
+    exec_scope(node -> child_list -> last -> child_list -> first);
 }
 
 void exec_if (struct TreeNode * node){
+  // argument node must be an if node
+  Check_NodeType(If, node, "exec_if");
 
-  if (node -> nodeType == If){
+  struct TreeNode * condition = node -> child_list -> first -> next;
+  // condition node must bu an expression node
+  Check_NodeType(Expr, condition, "exec_if");
 
-    struct TreeNode * condition = node -> child_list -> first -> next;
+  int condition_value = Expr_toInt(MainNode, condition);
 
-    if (condition -> nodeType == Expr){
-
-      int condition_value = Expr_toInt(MainNode, condition);
-
-      if (condition_value){
-        printf("%s %d IF eseguito! %s\n", ANSI_BOLD_YELLOW, yylineno, ANSI_COLOR_RESET);
-
-        // execution of the statement in the if scope
-        exec_scope(node -> child_list -> first);
-
-        node -> node.flag = 1;
-      }
-      else{
-        printf("%s %d IF non eseguito! %s\n", ANSI_BOLD_YELLOW, yylineno, ANSI_COLOR_RESET);
-        node -> node.flag = 0;
-      }
-
-    }
-    else{
-      printf("%s exec_if - unexpected condition Tree Node type. Type found %s.\n", ErrorMsg(), NodeTypeString(condition));
-      exit(EXIT_FAILURE);
-    }
+  // if condition is true
+  if (condition_value){
+    // execution of the statement in the if scope
+    exec_scope(node -> child_list -> first);
+    // if condition flag
+    node -> node.flag = 1;
   }
-  else{
-    printf("%s exec_if - unexpected Tree Node type. Expected If, found %s.\n", ErrorMsg(), NodeTypeString(node));
-    exit(EXIT_FAILURE);
-  }
-
+  // if condition is false
+  else node -> node.flag = 0;
 }
 
 ///////////////////////////  SCOPE   ///////////////////////////////////////////
@@ -1258,15 +1242,16 @@ int exec_functionScope (struct TreeNode * node){
   // assign parameters
 
   struct TreeNode * statement;
+  int value;
   // exec statements - first statement must not be executed
   for (int i = 1; i < node -> child_list -> elements; i++){
 
     if (i == 1) statement = node -> child_list -> first -> next;
     else statement = statement -> next;
-    exec_statement(statement);
+    value = exec_statement(statement);
   }
 
-  return 1;
+  return value;
 }
 
 int exec_scope (struct TreeNode * node){
@@ -1300,7 +1285,7 @@ int exec_statement (struct TreeNode * node){
     break;
     case Asgn:    /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_Asgn(MainNode, node);
     break;
-    case Return: /* todo */
+    case Return:  return exec_return(node);
     break;
     case ExprLst: printf("%s exec_statement - unexpected statment. Type found: %s\n", ErrorMsg(), NodeTypeString(node)); exit(EXIT_FAILURE);
     break;
@@ -1310,11 +1295,11 @@ int exec_statement (struct TreeNode * node){
     break;
     case Scope:   /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_scope(node);
     break;
-    case If:      printf("STO ESEGUENDO: %s\n", NodeTypeString(node)); exec_ifElse(node);
+    case If:      /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_ifElse(node);
     break;
     case Else:    /* todo */
     break;
-    case IfElse: printf("STO ESEGUENDO: %s\n", NodeTypeString(node)); exec_ifElse(node);
+    case IfElse: /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_ifElse(node);
     break;
     case While:   /*printf("STO ESEGUENDO: %s\n", NodeTypeString(node));*/ exec_while(node);
     break;

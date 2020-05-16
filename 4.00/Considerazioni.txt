@@ -1,6 +1,5 @@
 OBIETTIVO
 
-- printf scanf
 - IDEONA (per ora non pare essere necessaria): le expr possono "portarsi dietro" il proprio tipo. Ad esempio ( 1 + ( 2 + 3 )) so che è un int perchè (2+3) è int e 1+(2+3) è int + int. Potrebbe essere inutile dato che i tipi sono solo char e int. Potrebbe essere utile intercettare le STRINGHE.
 - Ricordarsi che è valido come assignment anche l'espressione (a)=10;
 - Attenzione a liberare la memoria, soprattutto quando si hanno nodi rimossi oppure quando termina uno scope
@@ -25,7 +24,7 @@ OBIETTIVO
 - Expression result unused viene lanciato come warning solo quando viene eseguito. Si può spostare in fase di creazione del nodo statement non in esecuzione.
 - Attenzione l'if all'interno delle funzioni non viene eseguito correttamente. Il motivo è che bisogna correggere quando e come deve avvenire l'esecuzione dell'ìf e dell'else.
 - Gestire anche l'indirizzo &string come parametro di una funzione printf. ESEMPIO: printf(&a);
-
+- Capire se tenere o no la integer to pointer converion. Per esempio if("Hello World") vale o no?
 
 PRINTF E STRING FORMAT
 

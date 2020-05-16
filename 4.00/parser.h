@@ -87,6 +87,7 @@ void Check_ExprConcistency                            (ProgramNode *, struct Tre
 void Check_CharConcistency                            (int);
 void Check_IdentifierConcistency                      (ProgramNode *, struct TreeNode *);
 void Check_ArrayConcistency                           (ProgramNode *, struct TreeNode *);
+void Check_VariableConcistency                        (struct TreeNode *);
 void Check_FunctionCallConcistency                    (ProgramNode *, struct TreeNode *);
 void Check_PrintfCallConcistency                      (struct TreeNode *);
 void Check_ScanfCallConcistency                       (struct TreeNode *);
@@ -158,7 +159,7 @@ struct TreeNode{
     struct exprNode * Expr;
     struct funCall * FunCall;
     struct SymbolTable * ST;
-           int flag;
+    int flag;
   } node;
 
   struct TreeNode * next;

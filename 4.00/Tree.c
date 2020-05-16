@@ -246,6 +246,8 @@ int IsCostant(struct TreeNode * node){
                 break;
       case PA:  return (IsCostant(node -> child_list -> first -> child_list -> last));
                 break;
+      case ADD: return 1;
+                break;
       default:
                 printf("%s IsCostant - unexpected exprType. Type found %u.\n", ErrorMsg(), type);
                 exit(EXIT_FAILURE);
@@ -461,6 +463,19 @@ void * TreeNode_Var_Pointer(struct TreeNode * expression){
   }
   else if (expression -> node.Expr -> exprType == ADD) return TreeNode_Var_Pointer(expression -> child_list -> first);
 
+}
+
+int isArrayPointer (struct TreeNode * expr){
+
+  if (expr -> nodeType == Expr){
+    if (expr -> node.Expr -> exprType == ID){
+      enum Type type = Retrieve_VarType(MainNode, TreeNode_Identifier(expr));
+      if (type == INT_V_ || type == CHAR_V_) return 1;
+      else return 0;
+    }
+    else return 0;
+  }
+  else return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1247,7 +1262,9 @@ void FunNodeList_Set (ProgramNode* prog){
   prog -> function_list  -> elements = 0;
 
 }
-// create a new FunNode and add it to the FunctionList
+/*
+* create a new FunNode based on the declaration and add it to the FunctionList
+*/
 void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
 
   // check argument type
@@ -1350,9 +1367,7 @@ int FunNodeList_Search (ProgramNode * prog, char * identifier){
 
   return flag;
   }
-  else {
-    return -1;
-  }
+  else return -1;
 }
 /*
 * Given an index return the index-th function node in the program node function list.

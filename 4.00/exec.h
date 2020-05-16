@@ -5,6 +5,7 @@ enum Type ExprNode_valueType  (ProgramNode *, struct TreeNode *);
 
 int exec_IncDec               (struct TreeNode *);
 int CMP_node_logicValue       (ProgramNode *, struct TreeNode *);
+int exec_return               (struct TreeNode *);
 int exec_FunctionCall         (struct TreeNode *);
 int exec_functionScope        (struct TreeNode *);
 int exec_statement            (struct TreeNode *);
