@@ -8,8 +8,6 @@ Assegnazione del risulato di una comparison è possibile.
 
 Se voglio accedere ad un elemento che supera la dimensione del vettore do errore. Il C invece da un warning e poi da l'abort trap. Non posso gestire l'abort perchè non gestisco una memoria.
 
-Devo gestire le chiamate di funzioniiii!!
-
 
 FUNZIONAMENTO:
 

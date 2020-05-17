@@ -1,7 +1,12 @@
+int test(){
+
+  y = 2;
+
+}
+
 int main(){
 
-  int x;
-  y = 2;
+  test();
 
   return 0;
 }

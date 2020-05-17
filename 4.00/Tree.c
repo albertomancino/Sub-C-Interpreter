@@ -284,70 +284,76 @@ int isOperation(struct TreeNode * node){
 */
 int isAssignable(struct TreeNode * node){
 
-  if(node -> nodeType == Expr){
+  Check_NodeType(Expr, node, "isAssignable");
 
-    if(node -> node.Expr -> exprType == ID || node -> node.Expr -> exprType == VEC){
+  if(node -> node.Expr -> exprType == ID || node -> node.Expr -> exprType == VEC){
 
-      char * identifier = TreeNode_Identifier(node);
+    char * identifier = TreeNode_Identifier(node);
 
-      // check if the variable was previously declared before be assigned
-      if (!Check_VarWasDeclared(MainNode, identifier, 1)){
+    enum Type variable_type = expressionType(node);
 
-        printf("%s use of undeclared identifier \'%s\'\n", ErrorMsg(), identifier);
+    if (variable_type == INT_ || variable_type == CHAR_) return 1;
+    else{
+      printf("%s \'%s\' is not assignable.\n", ErrorMsg(), IdentifierTypeString(variable_type));
+      exit(EXIT_FAILURE);
+    }
+
+    printf("********isAssignable*************\n");
+    /*
+    // check if the variable was previously declared before be assigned
+    if (!Check_VarWasDeclared(MainNode, identifier, 1)){
+
+      printf("%s use of undeclared identifier \'%s\'\n", ErrorMsg(), identifier);
+      exit(EXIT_FAILURE);
+    }
+
+    enum Type varType = Retrieve_VarType(MainNode, identifier);
+
+    // array identifier are not assignable
+    if (node -> node.Expr -> exprType == ID){
+      if(varType == INT_V_ || varType == CHAR_V_){
+
+        printf("%s array pointer is not assignable.\n", ErrorMsg());
         exit(EXIT_FAILURE);
+        return 0;
       }
+      else{
+      return 1;
+    }
+    }
+    else if (node -> node.Expr -> exprType == VEC){
 
-      enum Type varType = Retrieve_VarType(MainNode, identifier);
+      // array without dimension
+      if(node -> child_list -> elements == 0){
+        printf("%s array '%s' dimension expression missing.\n", ErrorMsg(), identifier);
+        exit(EXIT_FAILURE);
+        return 0;
+      }
+      else if (!IgnoreFlag(identifier)){
+        int index = Retrieve_ArrayIndex(MainNode, node);
+        int array_dim = Retrieve_ArrayDim(MainNode, identifier);
 
-      // array identifier are not assignable
-      if (node -> node.Expr -> exprType == ID){
-        if(varType == INT_V_ || varType == CHAR_V_){
-
-          printf("%s array pointer is not assignable.\n", ErrorMsg());
+        // out of bounds array error
+        if (index > array_dim - 1){
+          printf("%s array index %d is past the end of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
           exit(EXIT_FAILURE);
           return 0;
         }
-        else{
-        return 1;
-      }
-      }
-      else if (node -> node.Expr -> exprType == VEC){
-
-        // array without dimension
-        if(node -> child_list -> elements == 0){
-          printf("%s array '%s' dimension expression missing.\n", ErrorMsg(), identifier);
+        else if (index < 0){
+          printf("%s array index %d is before the beginning of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
           exit(EXIT_FAILURE);
           return 0;
         }
-        else if (!IgnoreFlag(identifier)){
-          int index = Retrieve_ArrayIndex(MainNode, node);
-          int array_dim = Retrieve_ArrayDim(MainNode, identifier);
-
-          // out of bounds array error
-          if (index > array_dim - 1){
-            printf("%s array index %d is past the end of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
-            exit(EXIT_FAILURE);
-            return 0;
-          }
-          else if (index < 0){
-            printf("%s array index %d is before the beginning of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
-            exit(EXIT_FAILURE);
-            return 0;
-          }
-          else return 1;
-        }
-        // ignore case
         else return 1;
       }
+      // ignore case
+      else return 1;
+
     }
-    else{
-      printf("%s %s expression is not assignable.\n", ErrorMsg(), ExprTypeString(node));
-      exit(EXIT_FAILURE);
-      return 0;
-    }
+    */
   }
   else{
-    printf("%s isAssignable - incorrect call. Expr node expected.\n", ErrorMsg());
+    printf("%s %s expression is not assignable.\n", ErrorMsg(), ExprTypeString(node));
     exit(EXIT_FAILURE);
     return 0;
   }

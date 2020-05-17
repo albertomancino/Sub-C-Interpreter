@@ -25,6 +25,8 @@ OBIETTIVO
 - Attenzione l'if all'interno delle funzioni non viene eseguito correttamente. Il motivo è che bisogna correggere quando e come deve avvenire l'esecuzione dell'ìf e dell'else.
 - Gestire anche l'indirizzo &string come parametro di una funzione printf. ESEMPIO: printf(&a);
 - Capire se tenere o no la integer to pointer converion. Per esempio if("Hello World") vale o no?
+- Out of bounds array in assignment dovrebbe essere in expression
+
 
 PRINTF E STRING FORMAT
 

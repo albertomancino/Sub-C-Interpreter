@@ -1371,6 +1371,11 @@ void Check_ArrayConcistency(ProgramNode * prog, struct TreeNode * array){
     exit(EXIT_FAILURE);
   }
   else{
+    // array dimension index missing
+    if (array -> child_list -> elements == 0){
+      printf("%s expexted expression.\n", ErrorMsg());
+      exit(EXIT_FAILURE);
+    }
     // check array index
     int index = Retrieve_ArrayIndex(prog, array);
     int array_dim = Retrieve_ArrayDim(prog, array_id);
@@ -1775,13 +1780,25 @@ void Check_ComparisonConcistency (ProgramNode * prog, struct TreeNode * comparis
 
 void Check_AsgnConcistency(ProgramNode * prog, struct TreeNode * leftOp, struct TreeNode * rightOp){
 
+  Check_NodeType(Expr, leftOp,  "Check_AsgnConcistency");
+  Check_NodeType(Expr, rightOp, "Check_AsgnConcistency");
+
+
   enum exprType leftOp_type = leftOp -> node.Expr -> exprType;
   enum exprType rightOp_type = rightOp -> node.Expr -> exprType;
 
   // Only valid variables and vectors elements are assignable
   if (isAssignable(leftOp)){
 
-    char * leftOp_identifier = TreeNode_Identifier(leftOp);
+    enum Type variable_type = expressionType(leftOp);
+    enum Type value_type = expressionType(rightOp);
+
+    // check if the value is an integer
+    if (value_type != INT_ && value_type != CHAR_)
+      printf("%s incompatible pointer to integer conversion assigning to '%s' from '%s'.\n", WarnMsg(), IdentifierTypeString(variable_type), IdentifierTypeString(value_type));
+
+    // todo valutare da rimuovere
+    /*
 
     if (rightOp_type == STR){
       printf("%s a string is not assignable\n", ErrorMsg());
@@ -1795,29 +1812,33 @@ void Check_AsgnConcistency(ProgramNode * prog, struct TreeNode * leftOp, struct 
       // check if rigth operator is not a vector identifier
       if (rightOp_varType == INT_V_ || rightOp_varType == CHAR_V_){
         int array_dim = Retrieve_ArrayDim(prog, rightOp_identifier);
-        if (rightOp_varType == INT_V_) printf("%s array type \'int[%d]\' is not assignable\n", ErrorMsg(), array_dim);
-        if (rightOp_varType == CHAR_V_) printf("%s array type \'char[%d]\' is not assignable\n", ErrorMsg(), array_dim);
+        if (rightOp_varType == INT_V_) printf("%s array type \'int[%d]\' is not assignable.\n", ErrorMsg(), array_dim);
+        if (rightOp_varType == CHAR_V_) printf("%s array type \'char[%d]\' is not assignable.\n", ErrorMsg(), array_dim);
         exit(EXIT_FAILURE);
       }
     }
     else if (rightOp_type == VEC){
 
-    char * rightOp_identifier = rightOp -> node.Expr -> exprVal.stringExpr;
-    int index = Retrieve_ArrayIndex(prog, rightOp);
-    int array_dim = Retrieve_ArrayDim(prog, rightOp_identifier);
+      char * rightOp_identifier = rightOp -> node.Expr -> exprVal.stringExpr;
+      int index = Retrieve_ArrayIndex(prog, rightOp);
+      int array_dim = Retrieve_ArrayDim(prog, rightOp_identifier);
 
-    if (!IgnoreFlag(rightOp_identifier)){
-      // out of bounds array error
-      if (index > array_dim-1){
-        printf("%s array index %d is past the end of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
-        exit(EXIT_FAILURE);
-      }
-      else if (index < 0){
-        printf("%s array index %d is before the beginning of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
-        exit(EXIT_FAILURE);
+      if (!IgnoreFlag(rightOp_identifier)){
+        // out of bounds array error
+        if (index > array_dim-1){
+          printf("%s array index %d is past the end of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
+          exit(EXIT_FAILURE);
+        }
+        else if (index < 0){
+          printf("%s array index %d is before the beginning of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
+          exit(EXIT_FAILURE);
+        }
       }
     }
-  }
+    */
+
+
+    char * leftOp_identifier = TreeNode_Identifier(leftOp);
 
     // Char assignment concistency
     if (IsCostant(rightOp)){
