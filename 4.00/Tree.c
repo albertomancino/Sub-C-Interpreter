@@ -417,7 +417,6 @@ enum Type expressionType(struct TreeNode * expression){
   else if (expression_type == CMP)                          return_type = INT_;
   else if (expression_type == PI || expression_type == PD || expression_type == IP || expression_type == DP)
                                                             return_type = expressionType(expression -> child_list -> first);
-  else if (expression_type == PA)                           return_type = expressionType(expression -> child_list -> first -> child_list -> first);
   else if (expression_type == ADD){
 
     return_type = expressionType(expression -> child_list -> first);

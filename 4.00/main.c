@@ -7,7 +7,6 @@
 #define GREEN   "\033[32m"                 /* Green */
 #define RED     "\x1b[31m"      /* Red */
 #define BOLD_YELLOW   "\033[1m\033[33m"
-
 #define RESET   "\033[0m"
 FILE *yyin;
 
@@ -38,7 +37,7 @@ int main (int argc, char *argv[]){
       exit(EXIT_FAILURE);
     }
 
-    //title();
+    title();
 
     MainNode = ProgramNode_Set();
 
@@ -65,9 +64,9 @@ void title(){
   printf("\n\n\n");
   printf("%s   _____         _              _____     _____         _                                 _\n  / ____|       | |            / ____|   |_   _|       | |                               | |\n | (___   _   _ | |__  ______ | |   ______ | |   _ __  | |_  ___  _ __  _ __   _ __  ___ | |_  ___  _ __\n  \\___ \\ | | | || '_ \\|______|| |  |______|| |  | '_ \\ | __|/ _ \\| '__|| '_ \\ | '__|/ _ \\| __|/ _ \\| '__|\n  ____) || |_| || |_) |       | |____     _| |_ | | | || |_|  __/| |   | |_) || |  |  __/| |_|  __/| |\n |_____/  \\__,_||_.__/         \\_____|   |_____||_| |_| \\__|\\___||_|   | .__/ |_|   \\___| \\__|\\___||_|\n                                                                       | |\n                                                                       |_|                               %s\n", BOLDWHITE, RESET);
 
-  printf("\n\n%sDesigned and made by%s: Alberto Carlo Maria Mancino\n", BOLD_YELLOW, RESET);
-  printf("%sSupervised by%s: Prof. Ing. Floriano Scioscia\n", BOLD_YELLOW, RESET);
-  printf("\n%sVersion No%s: 4.00\n",BOLDWHITE, RESET);
+  printf("\n\n %sDesigned and made by%s: Alberto Carlo Maria Mancino\n", BOLD_YELLOW, RESET);
+  printf(" %sSupervised by%s: Prof. Ing. Floriano Scioscia\n", BOLD_YELLOW, RESET);
+  printf("\n %sVersion No%s: 4.00\n",BOLDWHITE, RESET);
   printf("\n ------------------------------------------------------------------------------------------------------------- \n");
   printf(" ------------------------------------------------------------------------------------------------------------- \n\n\n");
 }

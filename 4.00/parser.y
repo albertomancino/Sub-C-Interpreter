@@ -248,7 +248,7 @@ multi_dec
 | declaration_and_assignment COMMA variable                                     {if(P_DEBUGGING==1) printf("BISON: Multi declaration2 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 1);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
 | multi_dec EQUAL expr                                                          {if(P_DEBUGGING==1) printf("BISON: Multi declaration3 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 0);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
 | multi_dec EQUAL array_inizializer                                             {if(P_DEBUGGING==1) printf("BISON: Multi declaration4 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 0);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
-| multi_dec COMMA variable                                                      {if(P_DEBUGGING==1) printf("BISON: Multi declaration5 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 1);                  if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
+| multi_dec COMMA variable                                                      {if(P_DEBUGGING==1) printf("BISON: Multi declaration5 found\n");           if(TREE_BUILDING) $$ = create_MultiDeclaration($1, $3, 1);                 if(TREE_DEBUGGING) printf("TREE: Multi declaration node created\n");}
 ;
 
 declaration_and_assignment
@@ -291,7 +291,6 @@ expr
 | operation                                                                     {if(P_DEBUGGING==1) printf("BISON: expr PLUS expr -> expr\n");             if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node operation type created\n");}
 | pre_incdec                                                                    {if(P_DEBUGGING==1) printf("BISON: pre increment_decrement -> expr\n");    if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node pre-increment/decrement type created\n");}
 | post_incdec                                                                   {if(P_DEBUGGING==1) printf("BISON: post increment_decrement -> expr\n");   if(TREE_BUILDING) $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node post-increment/decrement type created\n");}
-| OPEN_ROUND assignment CLOSED_ROUND                                            {if(P_DEBUGGING==1) printf("BISON: parentheses assignment -> expr\n");     if(TREE_BUILDING) $$ = create_ExprNode(PA, 0, NULL, $2, NULL, 0);          if(TREE_DEBUGGING) printf("TREE: Expr node parentheses assignment type created\n");}
 | AMP variable                                                                  {if(P_DEBUGGING==1) printf("BISON: variable address -> expr\n");           if(TREE_BUILDING) $$ = create_ExprNode(ADD, 0, NULL, $2, NULL, 0);         if(TREE_DEBUGGING) printf("TREE: Expr node variable address type created\n");}
 ;
 
@@ -1110,7 +1109,6 @@ struct TreeNode * create_DeclarationNode(enum Type type, struct TreeNode * var){
   free(var);
 
   return newTreeNode;
-
 }
 
 ////////////////////  return PRODUCTION  ///////////////////////////////////////
@@ -1192,15 +1190,18 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
       case VEC: NewExprNode -> exprVal.stringExpr = charExpr;
                 // check if vec has a dimension
                 if(first != NULL){
-                  // check if array dimension index is not a string
-                  if (first -> node.Expr -> exprType != STR ){
+                  enum Type dimension_type = expressionType(first);
+
+                  // check if array dimension index is not a pointer
+                  if (dimension_type == INT_ || dimension_type == CHAR_){
+                    // todo potrebbe essere da rimuovere
                     Check_ExprConcistency(MainNode, first);
                     // adding the array dimension index as tree node child
                     TreeNodeList_Add(newTreeNode -> child_list, first);
                   }
                   // display error message if the dimension index is a string
                   else{
-                    printf("%s array index must not be a string.\n", ErrorMsg());
+                    printf("%s size of array has non-integer type. Type found \'%s\'.\n", ErrorMsg(), IdentifierTypeString(dimension_type));
                     exit(EXIT_FAILURE);
                   }
                   // check if dimension is a variable
@@ -1882,8 +1883,8 @@ int Check_ArrayDimension(struct TreeNode * node){
   }
   else if (node -> nodeType == DclN){
     // array with no dimension specified
-    if (node -> node.DclN -> arrayDim == NULL && (node -> node.DclN -> type == INT_V_ || node -> node.DclN -> type == CHAR_V_)){
-      if (IgnoreFlag(node -> node.DclN -> identifier)) return 1;
+    if ((node -> node.DclN -> arrayDim == NULL) && (node -> node.DclN -> type == INT_V_ || node -> node.DclN -> type == CHAR_V_)){
+      if (node -> node.DclN -> ignore) return 1;
       else{
         printf("%s definition of '%s' variable with array type needs an explicit size or an initializer.\n", ErrorMsg(), TreeNode_Identifier(node));
         exit(EXIT_FAILURE);

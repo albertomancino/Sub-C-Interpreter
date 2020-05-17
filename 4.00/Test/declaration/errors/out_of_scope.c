@@ -19,7 +19,7 @@ int main(){
     int c;
   }
 
-  c = 5;  // c is declared in a scoper that has been removed from the stack
+  c = 5;  // c is declared in a scope that has been removed from the stack
 
   return 0;
 }
