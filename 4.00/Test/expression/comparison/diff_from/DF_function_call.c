@@ -1,97 +1,118 @@
-int fun0(){
+int int_fun(){
 
   return 0;
 }
 
-int fun1(){
+char char_fun(){
 
-  return 1;
+  return 'a';
+}
+
+int test(){
+
+  int int_var = 1;
+  char char_var = 1;
+  int int_array[3] = {1,2,3};
+  char char_array[3] = {1,2,3};
+
+  int value;
+
+  value = int_fun() != 10;
+  printf("OK. Int function call different from costant positive integer comparison. Value = %d.\n", value);
+
+  value = int_fun() != -1;
+  printf("OK. Int function call different from costant negative integer comparison. Value = %d.\n", value);
+
+  value = int_fun() != int_var;
+  printf("OK. Int function call different from variable integer comparison. Value = %d.\n", value);
+
+  value = int_fun() != char_var;
+  printf("OK. Int function call different from variable char comparison. Value = %d.\n", value);
+
+  value = int_fun() != int_array[1];
+  printf("OK. Int function call different from int array element comparison. Value = %d.\n", value);
+
+  value = int_fun() != char_array[1];
+  printf("OK. Int function call different from char array element comparison. Value = %d.\n", value);
+
+  value = int_fun() != 'a';
+  printf("OK. Int function call different from costant char comparison. Value = %d.\n", value);
+
+  value = int_fun() != int_fun();
+  printf("OK. Int function call different from int function call comparison. Value = %d.\n", value);
+
+  value = int_fun() != char_fun();
+  printf("OK. Int function call different from char function call comparison. Value = %d.\n", value);
+
+  value = int_fun() != (1+1*10/10%10);
+  printf("OK. Int function call different from costant operation comparison. Value = %d.\n", value);
+
+  value = int_fun() != ++int_var;
+  printf("OK. Int function call different from pre increment comparison. Value = %d.\n", value);
+
+  value = int_fun() != --int_var;
+  printf("OK. Int function call different from pre decrement comparison. Value = %d.\n", value);
+
+  value = int_fun() != int_var++;
+  printf("OK. Int function call different from post increment comparison. Value = %d.\n", value);
+
+  value = int_fun() != int_var--;
+  printf("OK. Int function call different from post decrement comparison. Value = %d.\n", value);
+
+  value = int_fun() != (1 && 1)||(10 > 5)||(10 < 5)||(10 == 10)||(10 != 20);
+  printf("OK. Int function call different from costant comparisons comparison. Value = %d.\n", value);
+
+  value = char_fun() != 10;
+  printf("OK. Char function call different from costant positive integer comparison. Value = %d.\n", value);
+
+  value = char_fun() != -1;
+  printf("OK. Char function call different from costant negative integer comparison. Value = %d.\n", value);
+
+  value = char_fun() != int_var;
+  printf("OK. Char function call different from variable integer comparison. Value = %d.\n", value);
+
+  value = char_fun() != char_var;
+  printf("OK. Char function call different from variable char comparison. Value = %d.\n", value);
+
+  value = char_fun() != int_array[1];
+  printf("OK. Char function call different from int array element comparison. Value = %d.\n", value);
+
+  value = char_fun() != char_array[1];
+  printf("OK. Char function call different from char array element comparison. Value = %d.\n", value);
+
+  value = char_fun() != 'a';
+  printf("OK. Char function call different from costant char comparison. Value = %d.\n", value);
+
+  value = char_fun() != int_fun();
+  printf("OK. Char function call different from int function call comparison. Value = %d.\n", value);
+
+  value = char_fun() != char_fun();
+  printf("OK. Char function call different from char function call comparison. Value = %d.\n", value);
+
+  value = char_fun() != (1+1*10/10%10);
+  printf("OK. Char function call different from costant operation comparison. Value = %d.\n", value);
+
+  value = char_fun() != ++int_var;
+  printf("OK. Char function call different from pre increment comparison. Value = %d.\n", value);
+
+  value = char_fun() != --int_var;
+  printf("OK. Char function call different from pre decrement comparison. Value = %d.\n", value);
+
+  value = char_fun() != int_var++;
+  printf("OK. Char function call different from post increment comparison. Value = %d.\n", value);
+
+  value = char_fun() != int_var--;
+  printf("OK. Char function call different from post decrement comparison. Value = %d.\n", value);
+
+  value = char_fun() != (1 && 1)||(10 > 5)||(10 < 5)||(10 == 10)||(10 != 20);
+  printf("OK. Char function call different from costant comparisons comparison. Value = %d.\n", value);
+
+  return 0;
 }
 
 int main(){
 
-  int x;
-  int pos;
-  pos = 1;
-  int neg;
-  neg = 0;
-  int int_var;
-  int_var = 23;
-  char char_var;
-  char_var = 's';
-  int int_vec[3];
-  int_vec[1] = 10;
-  char char_vec[3];
-  char_vec[1] = 's';
-
-
-  //// function call ('s') != ////
-  // function call != 0
-  x = fun0() != 0;
-  --ST
-  // function call != 1
-  x = fun0() != 1;
-  --ST
-  // function call != costant positive integer
-  x = fun0() != 10;
-  --ST
-  // function call != costant negative integer
-  x = fun0() != -1;
-  --ST
-  // function call != int identifier (1)
-  x = fun0() != pos;
-  --ST
-  // function call != int identifier (0)
-  x = fun0() != neg;
-  --ST
-  // function call != int identifier
-  x = fun0() != int_var;
-  --ST
-  // function call != char identifier
-  x = fun0() != char_var;
-  --ST
-  // function call != int array element
-  x = fun0() != int_vec[1];
-  --ST
-  // function call != char array element
-  x = fun0() != char_vec[1];
-  --ST
-  // function call != char
-  x = fun0() != 's';
-  --ST
-  // function call != function call
-  x = fun0() != fun0();
-  --ST
-  // function call != function call
-  x = fun0() != fun1();
-  --ST
-  // function call != sum
-  x = fun0() != 1 + 1;
-  --ST
-  // function call != dif
-  x = fun0() != 1 - 1;
-  --ST
-  // function call != prod
-  x = fun0() != 1 * 1;
-  --ST
-  // function call != div
-  x = fun0() != 1 / 1;
-  --ST
-  // function call != mod
-  x = fun0() != 1 % 1;
-  --ST
-  // function call != round parenthesis
-  x = fun0() != (1-1);
-  --ST
-  // function call != comparison
-  x = fun0() != 1 && 1;
-  --ST
-  // function call != increment
-  x = fun0() != int_var++;
-  --ST
-  // function call != decrement
-  x = fun0() != int_var--;
-  --ST
+  test();
 
   return 0;
 }
