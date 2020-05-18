@@ -19,7 +19,7 @@ ProgramNode * MainNode;
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////// ERROR MESSAGES //////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
+// todo rimuovere
 char * ErrorMsg (){
 
   char * error = (char*)malloc(sizeof("\n\aline:10000000000\x1b[31merror:\x1b[0m ") + sizeof(char)*100);
@@ -73,7 +73,6 @@ void PrintErrors (struct ErrorList * list){
   }
 
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 ///////////////// TREE NODE USEFUL FUNCTIONS ///////////////////////////////////
@@ -297,60 +296,6 @@ int isAssignable(struct TreeNode * node){
       printf("%s \'%s\' is not assignable.\n", ErrorMsg(), IdentifierTypeString(variable_type));
       exit(EXIT_FAILURE);
     }
-
-    printf("********isAssignable*************\n");
-    /*
-    // check if the variable was previously declared before be assigned
-    if (!Check_VarWasDeclared(MainNode, identifier, 1)){
-
-      printf("%s use of undeclared identifier \'%s\'\n", ErrorMsg(), identifier);
-      exit(EXIT_FAILURE);
-    }
-
-    enum Type varType = Retrieve_VarType(MainNode, identifier);
-
-    // array identifier are not assignable
-    if (node -> node.Expr -> exprType == ID){
-      if(varType == INT_V_ || varType == CHAR_V_){
-
-        printf("%s array pointer is not assignable.\n", ErrorMsg());
-        exit(EXIT_FAILURE);
-        return 0;
-      }
-      else{
-      return 1;
-    }
-    }
-    else if (node -> node.Expr -> exprType == VEC){
-
-      // array without dimension
-      if(node -> child_list -> elements == 0){
-        printf("%s array '%s' dimension expression missing.\n", ErrorMsg(), identifier);
-        exit(EXIT_FAILURE);
-        return 0;
-      }
-      else if (!IgnoreFlag(identifier)){
-        int index = Retrieve_ArrayIndex(MainNode, node);
-        int array_dim = Retrieve_ArrayDim(MainNode, identifier);
-
-        // out of bounds array error
-        if (index > array_dim - 1){
-          printf("%s array index %d is past the end of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
-          exit(EXIT_FAILURE);
-          return 0;
-        }
-        else if (index < 0){
-          printf("%s array index %d is before the beginning of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
-          exit(EXIT_FAILURE);
-          return 0;
-        }
-        else return 1;
-      }
-      // ignore case
-      else return 1;
-
-    }
-    */
   }
   else{
     printf("%s %s expression is not assignable.\n", ErrorMsg(), ExprTypeString(node));
@@ -1025,7 +970,7 @@ void SymbolTable_AssignValue (struct ProgramNode * prog, struct TreeNode * varia
 int IgnoreFlag(char * identifier){
   struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar(identifier);
   return ST_Node -> ignore;
-};
+}
 void SymbolTableCopy (struct SymbolTable * SymbolTab, struct SymbolTable * newSymbolTab){
 
   struct SymbolTable_Node * variable;

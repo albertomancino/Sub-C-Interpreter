@@ -981,46 +981,26 @@ void exec_Expression (struct TreeNode * node){
     enum exprType type = node -> node.Expr -> exprType;
     // todo aggiungere eventualmente
     switch (type) {
-      case NUM: printf("%s expression result unused.\n", WarnMsg());
-                break;
-      case ID:  printf("%s expression result unused.\n", WarnMsg());
-                break;
-      case VEC: printf("%s expression result unused.\n", WarnMsg());
-                break;
-      case STR: printf("%s expression result unused.\n", WarnMsg());
-                break;
-      case C:   printf("%s expression result unused.\n", WarnMsg());
-                break;
+      case NUM: /*DO NOTHING*/ break;
+      case ID:  /*DO NOTHING*/ break;
+      case VEC: /*DO NOTHING*/ break;
+      case STR: /*DO NOTHING*/ break;
+      case C:   /*DO NOTHING*/ break;
       case FC:  exec_FunctionCall(node);
                 break;
-      case SUM: printf("%s expression result unused.\n", WarnMsg());
-                break;
-      case DIF: printf("%s expression result unused.\n", WarnMsg());
-                break;
-      case TIM: printf("%s expression result unused.\n", WarnMsg());
-                break;
-      case DIV: printf("%s expression result unused.\n", WarnMsg());
-                break;
-      case MOD: printf("%s expression result unused.\n", WarnMsg());
-                break;
-      case RND: printf("%s expression result unused.\n", WarnMsg());
-                break;
-      case CMP: printf("%s expression result unused.\n", WarnMsg());
-                break;
-      case PI:  exec_IncDec(node);
-                break;
-      case PD:  exec_IncDec(node);
-                break;
-      case IP:  exec_IncDec(node);
-                break;
-      case DP:  exec_IncDec(node);
-                break;
-      case PA:  exec_Asgn(MainNode, node -> child_list -> first);
-                break;
-      case ADD: printf("%s expression result unused.\n", WarnMsg());
-                break;
-      default:
-                break;
+      case SUM: /*DO NOTHING*/ break;
+      case DIF: /*DO NOTHING*/ break;
+      case TIM: /*DO NOTHING*/ break;
+      case DIV: /*DO NOTHING*/ break;
+      case MOD: /*DO NOTHING*/ break;
+      case RND: /*DO NOTHING*/ break;
+      case CMP: /*DO NOTHING*/ break;
+      case PI:  /*DO NOTHING*/ break;
+      case PD:  /*DO NOTHING*/ break;
+      case IP:  /*DO NOTHING*/ break;
+      case DP:  /*DO NOTHING*/ break;
+      case ADD: /*DO NOTHING*/ break;
+      default:  break;
       }
   }
   else{

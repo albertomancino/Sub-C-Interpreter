@@ -178,7 +178,7 @@ statement_scope
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 statement
-: expr END_COMMA                                                                {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Expression($1);}
+: expr END_COMMA                                                                {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); Warning_Unused($1); if(Check_activation()) exec_Expression($1);}
 | return_statement                                                              {if(P_DEBUGGING==1) printf("BISON: Return statement found\n");                                     if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
 | declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");                                if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); exec_DclN(MainNode,$1);}
 | assignment END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Assignment statement found\n");                                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Asgn(MainNode,$1);}
@@ -1157,13 +1157,16 @@ struct TreeNode * create_IncDecNode(enum exprType type, struct TreeNode * var){
 
 struct TreeNode * create_OperationNode(ProgramNode * prog, struct TreeNode * first, struct TreeNode * second, enum exprType type){
 
+  Check_NodeType(Expr, first, "create_OperationNode");
+  Check_NodeType(Expr, second, "create_OperationNode");
+
   if (first == NULL || second == NULL) {
       printf("%s create_OperationNode - comparison missing one or two expressions\n", ErrorMsg());
       exit(EXIT_FAILURE);
     }
   else{
     struct TreeNode * node = create_ExprNode(type, 0, NULL, first, second, 0);
-    Check_OperationConcistency(prog, node);
+    Check_OperationConcistency(node);
 
     return node;
   }
@@ -1405,91 +1408,106 @@ void Check_VariableConcistency(struct TreeNode * node){
   }
 }
 
-void Check_OperationConcistency (ProgramNode * prog, struct TreeNode * operation_node){
+void Check_OperationConcistency (struct TreeNode * operation_node){
 
+  Check_NodeType(Expr, operation_node, "Check_OperationConcistency");
   if (operation_node -> nodeType == Expr){
     if(isOperation(operation_node)){
 
-      struct TreeNode * leftOp = operation_node -> child_list -> first;
-      struct TreeNode * rightOp;
-      if (operation_node -> node.Expr -> exprType != RND) rightOp = operation_node -> child_list -> first -> next;
+      if (operation_node -> node.Expr -> exprType != RND){
+        // left operand type check
+        struct TreeNode * leftOp = operation_node -> child_list -> first;
+        enum Type leftOp_type = expressionType(leftOp);
 
-      enum exprType leftOp_type = leftOp -> node.Expr -> exprType;
-      enum exprType rightOp_type;
-      if (operation_node -> node.Expr -> exprType != RND) rightOp_type = rightOp -> node.Expr -> exprType;
+        // right operand type check
+        struct TreeNode * rightOp = operation_node -> child_list -> first -> next;
+        enum Type rightOp_type = expressionType(rightOp);
 
-      // Raise an error if one operand is an undeclared identifier
-      if (leftOp_type == ID || leftOp_type == VEC){
-
-        char * left_identifier = TreeNode_Identifier(leftOp);
-        if (!Check_VarWasDeclared(prog, left_identifier, 1)){
-
-          printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),left_identifier);
+        // left operand must not be a pointer
+        if (leftOp_type != INT_ && leftOp_type != CHAR_){
+          printf("%s Invalid operands. Operations with pointers are not allowed.\n", ErrorMsg());
           exit(EXIT_FAILURE);
         }
-      }
-      if (rightOp_type == ID || rightOp_type == VEC){
-
-        char * right_identifier = TreeNode_Identifier(rightOp);
-        if (!Check_VarWasDeclared(prog, right_identifier, 1)){
-
-          printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),right_identifier);
+        // right operand must not be a pointer
+        if (rightOp_type != INT_ && rightOp_type != CHAR_){
+          printf("%s Invalid operands. Operations with pointers are not allowed.\n", ErrorMsg());
           exit(EXIT_FAILURE);
         }
-      }
 
-      // Raise a warning if one or two operands are array identifiers
-      if (leftOp_type == ID){
-        char * identifier = TreeNode_Identifier(leftOp);
-        enum Type varType = Retrieve_VarType(prog, identifier);
-        if (varType == INT_V_ || varType == CHAR_V_){
+        // todo rimuovere
+        /*
+        if (operation_node -> node.Expr -> exprType != RND) rightOp_type = expressionType(rightOp);
 
-          printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
-          exit(EXIT_FAILURE);
-        }
-      }
-      if (rightOp_type == ID){
-        char * identifier = TreeNode_Identifier(rightOp);
-        enum Type varType = Retrieve_VarType(prog, identifier);
-        if (varType == INT_V_ || varType == CHAR_V_){
+        // Raise an error if one operand is an undeclared identifier
+        if (leftOp_type == ID || leftOp_type == VEC){
 
-          printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
-          exit(EXIT_FAILURE);
-        }
-      }
+          char * left_identifier = TreeNode_Identifier(leftOp);
+          if (!Check_VarWasDeclared(MainNode, left_identifier, 1)){
 
-      // Raise an error if one or two operands are strings
-      if (leftOp_type == STR || rightOp_type == STR){
-        printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
-        exit(EXIT_FAILURE);
-      }
-
-      // Raise a warning if there's a division by 0
-      if(operation_node -> node.Expr -> exprType == DIV){
-        // If the second operand is costant
-        if(IsCostant(operation_node -> child_list -> first -> next)){
-          // If the second operand value is 0
-          if(Expr_toInt(prog, operation_node -> child_list -> first -> next) == 0){
-            printf("%s division by zero is undefined.\n", WarnMsg());
+            printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),left_identifier);
+            exit(EXIT_FAILURE);
           }
         }
-      }
-      // Node value pre-calculus if it is not a division by 0
-      else if(IsCostant(operation_node)){
+        if (rightOp_type == ID || rightOp_type == VEC){
 
-          int value = Expr_toInt(prog, operation_node);
-          operation_node -> node.Expr -> exprVal.intExpr = value;
-          operation_node -> node.Expr -> known = 1;
+          char * right_identifier = TreeNode_Identifier(rightOp);
+          if (!Check_VarWasDeclared(MainNode, right_identifier, 1)){
+
+            printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),right_identifier);
+            exit(EXIT_FAILURE);
+          }
+        }
+
+        // Raise a warning if one or two operands are array identifiers
+        if (leftOp_type == ID){
+          char * identifier = TreeNode_Identifier(leftOp);
+          enum Type varType = Retrieve_VarType(MainNode, identifier);
+          if (varType == INT_V_ || varType == CHAR_V_){
+
+            printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
+            exit(EXIT_FAILURE);
+          }
+        }
+        if (rightOp_type == ID){
+          char * identifier = TreeNode_Identifier(rightOp);
+          enum Type varType = Retrieve_VarType(MainNode, identifier);
+          if (varType == INT_V_ || varType == CHAR_V_){
+
+            printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
+            exit(EXIT_FAILURE);
+          }
+        }
+
+        // Raise an error if one or two operands are strings
+        if (leftOp_type == STR || rightOp_type == STR){
+          printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
+          exit(EXIT_FAILURE);
+        }
+        */
+
+        // Raise a warning if there's a division by 0
+        if(operation_node -> node.Expr -> exprType == DIV){
+          // If the second operand is costant
+          if(IsCostant(operation_node -> child_list -> first -> next)){
+            // If the second operand value is 0
+            if(Expr_toInt(MainNode, operation_node -> child_list -> first -> next) == 0){
+              printf("%s division by zero is undefined.\n", WarnMsg());
+            }
+          }
+        }
+        // Node value pre-calculus if it is not a division by 0
+        else if(IsCostant(operation_node)){
+
+            int value = Expr_toInt(MainNode, operation_node);
+            operation_node -> node.Expr -> exprVal.intExpr = value;
+            operation_node -> node.Expr -> known = 1;
+        }
       }
     }
     else{
       printf("%s Check_OperationConcistency - incorrect call. SUM/DIF/TIM/DIV/MOD/RND Expr TreeNode expected.\n", ErrorMsg());
       exit(EXIT_FAILURE);
     }
-  }
-  else{
-    printf("%s Check_OperationConcistency - incorrect call. Expr TreeNode expected.\n", ErrorMsg());
-    exit(EXIT_FAILURE);
   }
 }
 
@@ -2321,6 +2339,49 @@ void Check_VariableAddress(struct TreeNode * variable){
   }
 }
 
+void Warning_Unused(struct TreeNode * node){
+
+  Check_NodeType(Expr, node, "Warning_Unused");
+
+  enum exprType type = node -> node.Expr -> exprType;
+
+  // todo aggiungere eventualmente
+  switch (type) {
+    case NUM: printf("%s expression result unused.\n", WarnMsg());
+              break;
+    case ID:  printf("%s expression result unused.\n", WarnMsg());
+              break;
+    case VEC: printf("%s expression result unused.\n", WarnMsg());
+              break;
+    case STR: printf("%s expression result unused.\n", WarnMsg());
+              break;
+    case C:   printf("%s expression result unused.\n", WarnMsg());
+              break;
+    case FC:  break;
+    case SUM: printf("%s expression result unused.\n", WarnMsg());
+              break;
+    case DIF: printf("%s expression result unused.\n", WarnMsg());
+              break;
+    case TIM: printf("%s expression result unused.\n", WarnMsg());
+              break;
+    case DIV: printf("%s expression result unused.\n", WarnMsg());
+              break;
+    case MOD: printf("%s expression result unused.\n", WarnMsg());
+              break;
+    case RND: printf("%s expression result unused.\n", WarnMsg());
+              break;
+    case CMP: printf("%s expression result unused.\n", WarnMsg());
+              break;
+    case PI:  break;
+    case PD:  break;
+    case IP:  break;
+    case DP:  break;
+    case ADD: break;
+    default:  break;
+
+}
+
+}
 //////////////////  execution CONTROL  /////////////////////////////////////////
 
 int Check_Main(){

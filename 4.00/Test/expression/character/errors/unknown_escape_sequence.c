@@ -1,12 +1,14 @@
-int fun(){
+int test(){
 
-  int x;
-  x = 10 / 0;
+  '\9';
+  '\c';
 
   return 0;
 }
 
 int main(){
-  
+
+  test();
+
   return 0;
 }

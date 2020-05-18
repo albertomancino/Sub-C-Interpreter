@@ -14,7 +14,6 @@ int test(){
   x = &char_array;
   x = "Hello World";
 
-
   return 0;
 }
 

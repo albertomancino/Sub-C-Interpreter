@@ -91,7 +91,7 @@ void Check_VariableConcistency                        (struct TreeNode *);
 void Check_FunctionCallConcistency                    (ProgramNode *, struct TreeNode *);
 void Check_PrintfCallConcistency                      (struct TreeNode *);
 void Check_ScanfCallConcistency                       (struct TreeNode *);
-void Check_OperationConcistency                       (ProgramNode *, struct TreeNode *);
+void Check_OperationConcistency                       (struct TreeNode *);
 void Check_ComparisonConcistency                      (ProgramNode *, struct TreeNode *);
 void Check_AsgnConcistency                            (struct ProgramNode *, struct TreeNode *, struct TreeNode *);
 void Check_DeclConcistency                            (struct TreeNode *);
@@ -105,6 +105,7 @@ void Check_Scanf_String                               (char *, struct TreeNode *
 void Check_Printf_FormatString_argument               (char, struct TreeNode *);
 void Check_Scanf_FormatString_argument                (char, struct TreeNode *);
 void Check_VariableAddress                            (struct TreeNode *);
+void Warning_Unused                                   (struct TreeNode *);
 int Check_Main                                        ();
 char Check_activation                                 ();
 void Scope_Activation                                 ();

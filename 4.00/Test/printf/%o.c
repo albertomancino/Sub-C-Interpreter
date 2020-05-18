@@ -15,6 +15,7 @@ int test(){
   char c = 'a';
   char d[] = {'H','e','l','l','o'};
 
+  printf("\n");
   printf("Costant positive integer: %o\n", 1);
   printf("Costant negative integer: %o\n", -1);
   printf("Int variable: %o\n", a);
