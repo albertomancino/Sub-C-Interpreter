@@ -1,4 +1,4 @@
-int fun(){
+int test(){
 
   int a;
   a = 10 / 0;
