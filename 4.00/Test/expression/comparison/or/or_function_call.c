@@ -18,106 +18,106 @@ int test(){
   int value;
 
   value = int_fun() || 0;
-  printf("OK. Int function call and 0 comparison. Value = %d.\n", value);
+  printf("OK. Int function call or 0 comparison. Value = %d.\n", value);
 
   value = int_fun() || 1;
-  printf("OK. Int function call and 1 comparison. Value = %d.\n", value);
+  printf("OK. Int function call or 1 comparison. Value = %d.\n", value);
 
   value = int_fun() || 10;
-  printf("OK. Int function call and costant positive integer comparison. Value = %d.\n", value);
+  printf("OK. Int function call or costant positive integer comparison. Value = %d.\n", value);
 
   value = int_fun() || -1;
-  printf("OK. Int function call and costant negative integer comparison. Value = %d.\n", value);
+  printf("OK. Int function call or costant negative integer comparison. Value = %d.\n", value);
 
   value = int_fun() || int_var;
-  printf("OK. Int function call and variable integer comparison. Value = %d.\n", value);
+  printf("OK. Int function call or variable integer comparison. Value = %d.\n", value);
 
   value = int_fun() || char_var;
-  printf("OK. Int function call and variable char comparison. Value = %d.\n", value);
+  printf("OK. Int function call or variable char comparison. Value = %d.\n", value);
 
   value = int_fun() || int_array[1];
-  printf("OK. Int function call and int array element comparison. Value = %d.\n", value);
+  printf("OK. Int function call or int array element comparison. Value = %d.\n", value);
 
   value = int_fun() || char_array[1];
-  printf("OK. Int function call and char array element comparison. Value = %d.\n", value);
+  printf("OK. Int function call or char array element comparison. Value = %d.\n", value);
 
   value = int_fun() || 'a';
-  printf("OK. Int function call and costant char comparison. Value = %d.\n", value);
+  printf("OK. Int function call or costant char comparison. Value = %d.\n", value);
 
   value = int_fun() || int_fun();
-  printf("OK. Int function call and int function call comparison. Value = %d.\n", value);
+  printf("OK. Int function call or int function call comparison. Value = %d.\n", value);
 
   value = int_fun() || char_fun();
-  printf("OK. Int function call and char function call comparison. Value = %d.\n", value);
+  printf("OK. Int function call or char function call comparison. Value = %d.\n", value);
 
   value = int_fun() || (1+1*10/10%10);
-  printf("OK. Int function call and costant operation comparison. Value = %d.\n", value);
+  printf("OK. Int function call or costant operation comparison. Value = %d.\n", value);
 
   value = int_fun() || ++int_var;
-  printf("OK. Int function call and pre increment comparison. Value = %d.\n", value);
+  printf("OK. Int function call or pre increment comparison. Value = %d.\n", value);
 
   value = int_fun() || --int_var;
-  printf("OK. Int function call and pre decrement comparison. Value = %d.\n", value);
+  printf("OK. Int function call or pre decrement comparison. Value = %d.\n", value);
 
   value = int_fun() || int_var++;
-  printf("OK. Int function call and post increment comparison. Value = %d.\n", value);
+  printf("OK. Int function call or post increment comparison. Value = %d.\n", value);
 
   value = int_fun() || int_var--;
-  printf("OK. Int function call and post decrement comparison. Value = %d.\n", value);
+  printf("OK. Int function call or post decrement comparison. Value = %d.\n", value);
 
   value = int_fun() || (1 && 1)||(10 > 5)||(10 < 5)||(10 == 10)||(10 != 20);
-  printf("OK. Int function call and costant comparisons comparison. Value = %d.\n", value);
+  printf("OK. Int function call or costant comparisons comparison. Value = %d.\n", value);
 
   value = char_fun() || 0;
-  printf("OK. Char function call and 0 comparison. Value = %d.\n", value);
+  printf("OK. Char function call or 0 comparison. Value = %d.\n", value);
 
   value = char_fun() || 1;
-  printf("OK. Char function call and 1 comparison. Value = %d.\n", value);
+  printf("OK. Char function call or 1 comparison. Value = %d.\n", value);
 
   value = char_fun() || 10;
-  printf("OK. Char function call and costant positive integer comparison. Value = %d.\n", value);
+  printf("OK. Char function call or costant positive integer comparison. Value = %d.\n", value);
 
   value = char_fun() || -1;
-  printf("OK. Char function call and costant negative integer comparison. Value = %d.\n", value);
+  printf("OK. Char function call or costant negative integer comparison. Value = %d.\n", value);
 
   value = char_fun() || int_var;
-  printf("OK. Char function call and variable integer comparison. Value = %d.\n", value);
+  printf("OK. Char function call or variable integer comparison. Value = %d.\n", value);
 
   value = char_fun() || char_var;
-  printf("OK. Char function call and variable char comparison. Value = %d.\n", value);
+  printf("OK. Char function call or variable char comparison. Value = %d.\n", value);
 
   value = char_fun() || int_array[1];
-  printf("OK. Char function call and int array element comparison. Value = %d.\n", value);
+  printf("OK. Char function call or int array element comparison. Value = %d.\n", value);
 
   value = char_fun() || char_array[1];
-  printf("OK. Char function call and char array element comparison. Value = %d.\n", value);
+  printf("OK. Char function call or char array element comparison. Value = %d.\n", value);
 
   value = char_fun() || 'a';
-  printf("OK. Char function call and costant char comparison. Value = %d.\n", value);
+  printf("OK. Char function call or costant char comparison. Value = %d.\n", value);
 
   value = char_fun() || int_fun();
-  printf("OK. Char function call and int function call comparison. Value = %d.\n", value);
+  printf("OK. Char function call or int function call comparison. Value = %d.\n", value);
 
   value = char_fun() || char_fun();
-  printf("OK. Char function call and char function call comparison. Value = %d.\n", value);
+  printf("OK. Char function call or char function call comparison. Value = %d.\n", value);
 
   value = char_fun() || (1+1*10/10%10);
-  printf("OK. Char function call and costant operation comparison. Value = %d.\n", value);
+  printf("OK. Char function call or costant operation comparison. Value = %d.\n", value);
 
   value = char_fun() || ++int_var;
-  printf("OK. Char function call and pre increment comparison. Value = %d.\n", value);
+  printf("OK. Char function call or pre increment comparison. Value = %d.\n", value);
 
   value = char_fun() || --int_var;
-  printf("OK. Char function call and pre decrement comparison. Value = %d.\n", value);
+  printf("OK. Char function call or pre decrement comparison. Value = %d.\n", value);
 
   value = char_fun() || int_var++;
-  printf("OK. Char function call and post increment comparison. Value = %d.\n", value);
+  printf("OK. Char function call or post increment comparison. Value = %d.\n", value);
 
   value = char_fun() || int_var--;
-  printf("OK. Char function call and post decrement comparison. Value = %d.\n", value);
+  printf("OK. Char function call or post decrement comparison. Value = %d.\n", value);
 
   value = char_fun() || (1 && 1)||(10 > 5)||(10 < 5)||(10 == 10)||(10 != 20);
-  printf("OK. Char function call and costant comparisons comparison. Value = %d.\n", value);
+  printf("OK. Char function call or costant comparisons comparison. Value = %d.\n", value);
 
   return 0;
 }
