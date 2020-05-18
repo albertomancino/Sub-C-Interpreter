@@ -92,7 +92,7 @@ void Check_FunctionCallConcistency                    (ProgramNode *, struct Tre
 void Check_PrintfCallConcistency                      (struct TreeNode *);
 void Check_ScanfCallConcistency                       (struct TreeNode *);
 void Check_OperationConcistency                       (struct TreeNode *);
-void Check_ComparisonConcistency                      (ProgramNode *, struct TreeNode *);
+void Check_ComparisonConcistency                      (struct TreeNode *);
 void Check_AsgnConcistency                            (struct ProgramNode *, struct TreeNode *, struct TreeNode *);
 void Check_DeclConcistency                            (struct TreeNode *);
 int Check_ArrayDimension                              (struct TreeNode *);

@@ -2161,10 +2161,12 @@ void copyChar(){
 }
 
 void copyNUM(){
+
   long value;
   if(strlen(yytext)<12){
-    value = atof (yytext);
-    if (value >= -2147483648 && value <= 2147483647){
+    value = atof(yytext);
+
+    if (value < 2147483649){
       yylval.intValue = value;
     }
     else{
