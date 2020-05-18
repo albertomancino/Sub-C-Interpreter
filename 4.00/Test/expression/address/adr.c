@@ -21,10 +21,6 @@ int test(){
   printf("%d\n", &xv[4]);
   printf("%d\n", &yv[4]);
 
-
-
-
-
   return 0;
 }
 
