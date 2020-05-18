@@ -17,55 +17,55 @@ int test(){
 
   int value;
 
-  value = char_var && 0;
+  value = char_var || 0;
   printf("OK. Char variable and 0 comparison. Value = %d.\n", value);
 
-  value = char_var && 1;
+  value = char_var || 1;
   printf("OK. Char variable and 1 comparison. Value = %d.\n", value);
 
-  value = char_var && 10;
+  value = char_var || 10;
   printf("OK. Char variable and costant positive integer comparison. Value = %d.\n", value);
 
-  value = char_var && -1;
+  value = char_var || -1;
   printf("OK. Char variable and costant negative integer comparison. Value = %d.\n", value);
 
-  value = char_var && int_var;
+  value = char_var || int_var;
   printf("OK. Char variable and variable integer comparison. Value = %d.\n", value);
 
-  value = char_var && char_var;
+  value = char_var || char_var;
   printf("OK. Char variable and variable char comparison. Value = %d.\n", value);
 
-  value = char_var && int_array[1];
+  value = char_var || int_array[1];
   printf("OK. Char variable and int array element comparison. Value = %d.\n", value);
 
-  value = char_var && char_array[1];
+  value = char_var || char_array[1];
   printf("OK. Char variable and char array element comparison. Value = %d.\n", value);
 
-  value = char_var && 'a';
+  value = char_var || 'a';
   printf("OK. Char variable and costant char comparison. Value = %d.\n", value);
 
-  value = char_var && int_fun();
+  value = char_var || int_fun();
   printf("OK. Char variable and int function call comparison. Value = %d.\n", value);
 
-  value = char_var && char_fun();
+  value = char_var || char_fun();
   printf("OK. Char variable and char function call comparison. Value = %d.\n", value);
 
-  value = char_var && (1+1*10/10%10);
+  value = char_var || (1+1*10/10%10);
   printf("OK. Char variable and costant operation comparison. Value = %d.\n", value);
 
-  value = char_var && ++int_var;
+  value = char_var || ++int_var;
   printf("OK. Char variable and pre increment comparison. Value = %d.\n", value);
 
-  value = char_var && --int_var;
+  value = char_var || --int_var;
   printf("OK. Char variable and pre decrement comparison. Value = %d.\n", value);
 
-  value = char_var && int_var++;
+  value = char_var || int_var++;
   printf("OK. Char variable and post increment comparison. Value = %d.\n", value);
 
-  value = char_var && int_var--;
+  value = char_var || int_var--;
   printf("OK. Char variable and post decrement comparison. Value = %d.\n", value);
 
-  value = char_var && (1 && 1)||(10 > 5)||(10 < 5)||(10 == 10)||(10 != 20);
+  value = char_var || (1 && 1)||(10 > 5)||(10 < 5)||(10 == 10)||(10 != 20);
   printf("OK. Char variable and costant comparisons comparison. Value = %d.\n", value);
 
   return 0;
