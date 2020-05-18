@@ -1,4 +1,4 @@
-int main(){
+int test(){
 
   int x;
   char y;
@@ -16,14 +16,6 @@ int main(){
   x = 'a' || 'b';
   x = 'a' * 'b' && 'b'%'\?';
   x = 'a' * 'b' || 'b'%'\?';
-
-  // AND - OR array identifier
-  x = vec1 && vec2;
-  x = vec1 || vec2;
-
-  // AND - OR string
-  x = "hello" && "world";
-  x = "hello" || "world";
 
   // > - < always true against char
   x = 128 > y;
@@ -99,14 +91,19 @@ int main(){
 
   // == - != always true against boolean
   x = 2 != x && x;
-  x = 's' != x && x;
   x = (10*10) != x && x;
 
   // == - != always false against boolean
   x = 2 == x && x;
-  x = 's' == x && x;
   x = (10*10) == x && x;
 
+
+  return 0;
+}
+
+int main(){
+
+  test();
 
   return 0;
 }

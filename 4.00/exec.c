@@ -710,7 +710,11 @@ int exec_Operation (struct TreeNode * node){
                   }
                   value = leftOp_value / rightOp_value;
         break;
-        case MOD: value = (int)leftOp_value % (int)rightOp_value;
+        case MOD: if(rightOp_value == 0){
+                    printf("%s division by 0!\n", ErrorMsg());
+                    exit(EXIT_FAILURE);
+                  }
+                  value = (int)leftOp_value % (int)rightOp_value;
         break;
         case RND: value = leftOp_value;
         break;

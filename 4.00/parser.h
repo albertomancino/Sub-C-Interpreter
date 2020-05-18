@@ -67,7 +67,7 @@ struct TreeNode * create_ReturnNode                   (struct TreeNode *);
 struct TreeNode * create_Expr_ListNode                (struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_Arg_ListNode                 (struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_Function_CallNode            (ProgramNode * , char *, struct TreeNode *);
-struct TreeNode * create_OperationNode                (ProgramNode *, struct TreeNode *, struct TreeNode *, enum exprType);
+struct TreeNode * create_OperationNode                (struct TreeNode *, struct TreeNode *, enum exprType);
 struct TreeNode * create_ComparisonNode               (ProgramNode *, struct TreeNode *, struct TreeNode *, enum cmpType);
 struct TreeNode * create_IncDecNode                   (enum exprType, struct TreeNode *);
 struct TreeNode * create_IfElseNode                   (struct TreeNode *, struct TreeNode *);

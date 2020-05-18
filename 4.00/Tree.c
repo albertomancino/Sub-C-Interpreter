@@ -243,8 +243,6 @@ int IsCostant(struct TreeNode * node){
                 break;
       case DP:  return 0;
                 break;
-      case PA:  return (IsCostant(node -> child_list -> first -> child_list -> last));
-                break;
       case ADD: return 1;
                 break;
       default:
@@ -1353,6 +1351,7 @@ struct FunNode * FunNodeList_Get (ProgramNode * prog, int index){
 */
 enum Type Retrive_FunType(ProgramNode * prog, char * identifier){
 
+  if (!strcmp(identifier, "printf") || !strcmp(identifier, "scanf")) return INT_;
   int index = FunNodeList_Search(prog, identifier);
   struct FunNode * function = FunNodeList_Get(prog, index);
   return function -> funType;

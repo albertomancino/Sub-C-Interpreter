@@ -2084,32 +2084,32 @@ yyreduce:
 
   case 92:
 #line 308 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: expr PLUS expr -> operation\n");        if(TREE_BUILDING) (yyval.node) = create_OperationNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), SUM);        if(TREE_DEBUGGING) printf("TREE: Expr node plus type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: expr PLUS expr -> operation\n");        if(TREE_BUILDING) (yyval.node) = create_OperationNode((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), SUM);        if(TREE_DEBUGGING) printf("TREE: Expr node plus type created\n");;}
     break;
 
   case 93:
 #line 309 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: expr MINUS expr -> operation\n");       if(TREE_BUILDING) (yyval.node) = create_OperationNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), DIF);        if(TREE_DEBUGGING) printf("TREE: Expr node difference type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: expr MINUS expr -> operation\n");       if(TREE_BUILDING) (yyval.node) = create_OperationNode((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), DIF);        if(TREE_DEBUGGING) printf("TREE: Expr node difference type created\n");;}
     break;
 
   case 94:
 #line 310 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: expr STAR expr -> operation\n");        if(TREE_BUILDING) (yyval.node) = create_OperationNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), TIM);        if(TREE_DEBUGGING) printf("TREE: Expr node times type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: expr STAR expr -> operation\n");        if(TREE_BUILDING) (yyval.node) = create_OperationNode((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), TIM);        if(TREE_DEBUGGING) printf("TREE: Expr node times type created\n");;}
     break;
 
   case 95:
 #line 311 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: expr DIVIDE expr -> operation\n");      if(TREE_BUILDING) (yyval.node) = create_OperationNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), DIV);        if(TREE_DEBUGGING) printf("TREE: Expr node divide type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: expr DIVIDE expr -> operation\n");      if(TREE_BUILDING) (yyval.node) = create_OperationNode((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), DIV);        if(TREE_DEBUGGING) printf("TREE: Expr node divide type created\n");;}
     break;
 
   case 96:
 #line 312 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: expr MODULO expr -> operation\n");      if(TREE_BUILDING) (yyval.node) = create_OperationNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), MOD);        if(TREE_DEBUGGING) printf("TREE: Expr node modulo type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: expr MODULO expr -> operation\n");      if(TREE_BUILDING) (yyval.node) = create_OperationNode((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node), MOD);        if(TREE_DEBUGGING) printf("TREE: Expr node modulo type created\n");;}
     break;
 
   case 97:
 #line 313 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: ( expr ) -> operation\n");              if(TREE_BUILDING) (yyval.node) = create_OperationNode(MainNode, (yyvsp[(2) - (3)].node), (yyvsp[(2) - (3)].node), RND);        if(TREE_DEBUGGING) printf("TREE: Expr node round brackets type created\n");;}
+    {if(P_DEBUGGING==1) printf("BISON: ( expr ) -> operation\n");              if(TREE_BUILDING) (yyval.node) = create_OperationNode((yyvsp[(2) - (3)].node), (yyvsp[(2) - (3)].node), RND);        if(TREE_DEBUGGING) printf("TREE: Expr node round brackets type created\n");;}
     break;
 
   case 98:
@@ -2482,7 +2482,6 @@ struct TreeNode * create_Function_CallNode(ProgramNode * prog, char * function_i
     return node;
   }
   else{
-
     struct TreeNode * node = create_ExprNode(FC, 0, function_id, expr_list, NULL, 0);
     Check_FunctionCallConcistency(prog, node);
     return node;
@@ -2500,7 +2499,7 @@ struct TreeNode * create_ComparisonNode(ProgramNode * prog, struct TreeNode * fi
     else{
 
       struct TreeNode * node = create_ExprNode(CMP, 0, NULL, first, second, cmptype);
-      Check_ComparisonConcistency(prog, node);
+      Check_ComparisonConcistency(MainNode, node);
 
       return node;
     }
@@ -3206,7 +3205,7 @@ struct TreeNode * create_IncDecNode(enum exprType type, struct TreeNode * var){
 
 ////////////////////  operation PRODUCTION  ////////////////////////////////////
 
-struct TreeNode * create_OperationNode(ProgramNode * prog, struct TreeNode * first, struct TreeNode * second, enum exprType type){
+struct TreeNode * create_OperationNode(struct TreeNode * first, struct TreeNode * second, enum exprType type){
 
   Check_NodeType(Expr, first, "create_OperationNode");
   Check_NodeType(Expr, second, "create_OperationNode");
@@ -3383,7 +3382,7 @@ void Check_ExprConcistency(ProgramNode * prog, struct TreeNode * expr_node){
       case DIV: break;
       case MOD: break;
       case RND: break;
-      case CMP: Check_ComparisonConcistency (prog, expr_node); break;
+      case CMP: Check_ComparisonConcistency (MainNode, expr_node); break;
       case PI:  break;
       case PD:  break;
       case IP:  break;
@@ -3537,7 +3536,7 @@ void Check_OperationConcistency (struct TreeNode * operation_node){
         */
 
         // Raise a warning if there's a division by 0
-        if(operation_node -> node.Expr -> exprType == DIV){
+        if(operation_node -> node.Expr -> exprType == DIV || operation_node -> node.Expr -> exprType == MOD){
           // If the second operand is costant
           if(IsCostant(operation_node -> child_list -> first -> next)){
             // If the second operand value is 0
@@ -3564,287 +3563,264 @@ void Check_OperationConcistency (struct TreeNode * operation_node){
 
 void Check_ComparisonConcistency (ProgramNode * prog, struct TreeNode * comparison_node){
 
-  if (comparison_node -> nodeType == Expr){
-    if(comparison_node -> node.Expr -> exprType == CMP){
+  Check_NodeType(Expr, comparison_node, "Check_ComparisonConcistency");
+  Check_ExprType(CMP, comparison_node, "Check_ComparisonConcistency");
 
-      enum cmpType type = comparison_node -> node.Expr -> exprVal.cmpExpr;
-      // comparison is a binary logic operation with two operands: leftOp and rightOp
-      struct TreeNode * leftOp = comparison_node -> child_list -> first;
-      struct TreeNode * rightOp = comparison_node -> child_list -> first -> next;
+  enum cmpType type = comparison_node -> node.Expr -> exprVal.cmpExpr;
 
-      // comparison is a binary logic operation with two operands: leftOp and rightOp
-      enum exprType leftOp_type = leftOp -> node.Expr -> exprType;
-      enum exprType rightOp_type = rightOp -> node.Expr -> exprType;
+  // comparison is a binary logic operation with two operands: leftOp and rightOp
+  struct TreeNode * leftOp = comparison_node -> child_list -> first;
+  struct TreeNode * rightOp = comparison_node -> child_list -> first -> next;
 
+  // comparison is a binary logic operation with two operands: leftOp and rightOp
+  enum exprType leftOp_type = leftOp -> node.Expr -> exprType;
+  enum exprType rightOp_type = rightOp -> node.Expr -> exprType;
 
-      // Raise an error if one or two operands are strings
-      if (leftOp_type == STR || rightOp_type == STR){
-        printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
-        exit(EXIT_FAILURE);
-      }
+  enum Type left_type = expressionType(leftOp);
+  enum Type right_type = expressionType(rightOp);
 
-      // Raise an error if one operand is an undeclared identifier
-      if (leftOp_type == ID || leftOp_type == VEC){
+  if ((left_type != INT_ && left_type != CHAR_) || ((right_type != INT_ && right_type != CHAR_))){
+    printf("%s Invalid operands. Operations with pointers are not allowed.\n", ErrorMsg());
+    exit(EXIT_FAILURE);
+  }
 
-        char * left_identifier = TreeNode_Identifier(leftOp);
-        if (!Check_VarWasDeclared(prog, left_identifier, 1)){
+  /*
+  // Raise an error if one or two operands are strings
+  if (leftOp_type == STR || rightOp_type == STR){
+    printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
+    exit(EXIT_FAILURE);
+  }
 
-          printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),left_identifier);
-          exit(EXIT_FAILURE);
-        }
-      }
-      if (rightOp_type == ID || rightOp_type == VEC){
+  // Raise an error if one operand is an undeclared identifier
+  if (leftOp_type == ID || leftOp_type == VEC){
 
-        char * right_identifier = TreeNode_Identifier(rightOp);
+    char * left_identifier = TreeNode_Identifier(leftOp);
+    if (!Check_VarWasDeclared(prog, left_identifier, 1)){
 
-        if (!Check_VarWasDeclared(prog, right_identifier, 1)){
-
-          printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),right_identifier);
-          exit(EXIT_FAILURE);
-        }
-      }
-
-      // todo gestire ++ e --
-      if (type == AND_ || type == OR_){
-
-        // Raise a warning if the operand is a costant and is different from 0 or 1
-        if (IsCostant(leftOp)){
-          int value = Expr_toInt(prog, leftOp);
-          if (value != 0 && value != 1){
-            printf("%s logical operation with costant first operand.\n", WarnMsg());
-          }
-
-        }
-        if (IsCostant(rightOp)){
-          int value = Expr_toInt(prog, rightOp);
-          if (value != 0 && value != 1){
-            printf("%s logical operation with costant first operand.\n", WarnMsg());
-          }
-
-        }
-
-        // Raise a warning if the operand is an array identifier
-        if (leftOp_type == ID){
-          char * identifier = TreeNode_Identifier(leftOp);
-          enum Type varType = Retrieve_VarType(prog, identifier);
-          if (varType == INT_V_ || varType == CHAR_V_){
-
-          printf("%s array identifier will always evaluate to 'true'.\n", WarnMsg());
-          }
-        }
-        if (rightOp_type == ID){
-          char * identifier = TreeNode_Identifier(rightOp);
-          enum Type varType = Retrieve_VarType(prog, identifier);
-          if (varType == INT_V_ || varType == CHAR_V_){
-
-          printf("%s array identifier will always evaluate to 'true'.\n", WarnMsg());
-          }
-        }
-
-        // Raise a warning if the operand is a string
-        if (leftOp_type == STR || rightOp_type == STR){
-          printf("%s string identifier will always evaluate to 'true'.\n", WarnMsg());
-        }
-
-      }
-      else if(type == GREAT_ || type == LESS_ || type == EQUAL_ || type == DIFF_ ){
-
-        // Print an error if the operand is a string
-        if (leftOp_type == STR || rightOp_type == STR){
-
-          printf("%s this interpreter does not support comparison against pointers.\n", ErrorMsg());
-          exit(EXIT_FAILURE);
-        }
-
-        // Print an error if the operand is an array identifier
-        if (leftOp_type == ID){
-          char * identifier = TreeNode_Identifier(leftOp);
-          enum Type varType = Retrieve_VarType(prog, identifier);
-          if (varType == INT_V_ || varType == CHAR_V_){
-
-          printf("%s this interpreter does not support comparison against pointers.\n", ErrorMsg());
-          exit(EXIT_FAILURE);
-          }
-        }
-        if (rightOp_type == ID){
-          char * identifier = TreeNode_Identifier(rightOp);
-          enum Type varType = Retrieve_VarType(prog, identifier);
-          if (varType == INT_V_ || varType == CHAR_V_){
-
-          printf("%s this interpreter does not support comparison against pointers.\n", ErrorMsg());
-          exit(EXIT_FAILURE);
-          }
-        }
-
-        // Print a warning if the comparison with a char is always true or always false
-        if (IsCostant(leftOp)){
-          if (rightOp_type == ID || rightOp_type == VEC){
-            char * identifier = TreeNode_Identifier(rightOp);
-            enum Type varType = Retrieve_VarType(prog, identifier);
-
-            if (varType == CHAR_ || varType == CHAR_V_){
-              if (type == GREAT_){
-                if (Expr_toInt(prog, leftOp) > 127){
-                  printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-                }
-                else if (Expr_toInt(prog, leftOp) < -128){
-                  printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-                }
-              }
-              if (type == LESS_){
-                if (Expr_toInt(prog, leftOp) > 127){
-                  printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-                }
-                else if (Expr_toInt(prog, leftOp) < -128){
-                  printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-                }
-              }
-              if (type == EQUAL_){
-                if (Expr_toInt(prog, leftOp) > 127){
-                  printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-                }
-                else if (Expr_toInt(prog, leftOp) < -128){
-                  printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-                }
-              }
-              if (type == DIFF_){
-                if (Expr_toInt(prog, leftOp) > 127){
-                  printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-                }
-                else if (Expr_toInt(prog, leftOp) < -128){
-                  printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-                }
-              }
-            }
-          }
-        }
-        if (IsCostant(rightOp)){
-          if (leftOp_type == ID || leftOp_type == VEC){
-            char * identifier = TreeNode_Identifier(leftOp);
-            enum Type varType = Retrieve_VarType(prog, identifier);
-
-            if (varType == CHAR_ || varType == CHAR_V_){
-              if (type == GREAT_){
-                if (Expr_toInt(prog, rightOp) > 127){
-                  printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, rightOp));
-                }
-                else if (Expr_toInt(prog, rightOp) < -128){
-                  printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(prog, rightOp));
-                }
-              }
-              if (type == LESS_){
-                if (Expr_toInt(prog, rightOp) > 127){
-                  printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), rightOp -> node.Expr -> exprVal.intExpr);
-                }
-                else if (Expr_toInt(prog, rightOp) < -128){
-                  printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), rightOp -> node.Expr -> exprVal.intExpr);
-                }
-              }
-              if (type == EQUAL_){
-                if (Expr_toInt(prog, rightOp) > 127){
-                  printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, rightOp));
-                }
-                else if (Expr_toInt(prog, rightOp) < -128){
-                  printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, rightOp));
-                }
-              }
-              if (type == DIFF_){
-                if (Expr_toInt(prog, rightOp) > 127){
-                  printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), rightOp -> node.Expr -> exprVal.intExpr);
-                }
-                else if (Expr_toInt(prog, rightOp) < -128){
-                  printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), rightOp -> node.Expr -> exprVal.intExpr);
-                }
-              }
-            }
-          }
-        }
-
-        // Print a warning if the comparison with an other comparison is always true or always false
-        if (leftOp_type == CMP && IsCostant(rightOp)){
-          if (type == GREAT_){
-            if (Expr_toInt(prog, rightOp) < 0){
-                printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(prog, rightOp));
-            }
-            if (Expr_toInt(prog, rightOp) > 0){
-                printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(prog, rightOp));
-            }
-          }
-          if (type == LESS_){
-            if (Expr_toInt(prog, rightOp) > 1){
-                printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(prog, rightOp));
-            }
-            if (Expr_toInt(prog, rightOp) < 1){
-                printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(prog, rightOp));
-            }
-          }
-          if (type == EQUAL_){
-            if (Expr_toInt(prog, rightOp) != 0 &&  Expr_toInt(prog, rightOp) != 1){
-                  printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(prog, rightOp));
-              }
-          }
-          if (type == DIFF_){
-            if (Expr_toInt(prog, rightOp) != 0 &&  rightOp -> node.Expr -> exprVal.intExpr != 1){
-                printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(prog, rightOp));
-            }
-          }
-        }
-        if (IsCostant(leftOp) && rightOp_type == CMP){
-          if (type == GREAT_){
-            if (Expr_toInt(prog, leftOp) > 1){
-                printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-            }
-            if (Expr_toInt(prog, leftOp) < 1){
-                printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-            }
-          }
-          if (type == LESS_){
-            if (Expr_toInt(prog, leftOp) < 0){
-                printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-            }
-            if (Expr_toInt(prog, leftOp) > 0){
-                printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-            }
-          }
-          if (type == EQUAL_){
-            if (Expr_toInt(prog, leftOp) != 0 &&  Expr_toInt(prog, leftOp) != 1){
-                  printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-              }
-          }
-          if (type == DIFF_){
-            if (Expr_toInt(prog, leftOp) != 0 &&  Expr_toInt(prog, leftOp) != 1){
-                printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
-            }
-          }
-        }
-
-        // Print a warning if the comparison is between a variable and itself
-        if (((leftOp_type == ID) && (rightOp_type == ID)) || ((leftOp_type == VEC) && (rightOp_type == VEC))){
-
-          char * left_identifier = TreeNode_Identifier(leftOp);
-          char * right_identifier = TreeNode_Identifier(rightOp);
-
-          if (!strcmp(left_identifier, right_identifier)){
-            if (type == GREAT_ || type == LESS_ || type == DIFF_){
-              printf("%s self-comparison always evaluates to false.\n", WarnMsg());
-            }
-            else if (type == EQUAL_){
-              printf("%s self-comparison always evaluates to true.\n", WarnMsg());
-            }
-          }
-        }
-
-      }
-    }
-    else{
-      printf("%s Check_ComparisonConcistency - incorrect call. CMP Expr TreeNode expected.\n", ErrorMsg());
+      printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),left_identifier);
       exit(EXIT_FAILURE);
     }
   }
-  else{
-    printf("%s Check_ComparisonConcistency - incorrect call. Expr TreeNode expected.\n", ErrorMsg());
-    exit(EXIT_FAILURE);
+  if (rightOp_type == ID || rightOp_type == VEC){
+
+    char * right_identifier = TreeNode_Identifier(rightOp);
+
+    if (!Check_VarWasDeclared(prog, right_identifier, 1)){
+
+      printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),right_identifier);
+      exit(EXIT_FAILURE);
+    }
   }
+  */
+
+  // todo gestire ++ e --
+  if (type == AND_ || type == OR_){
+
+    // Raise a warning if the operand is a costant and is different from 0 or 1
+    if (IsCostant(leftOp)){
+      int value = Expr_toInt(prog, leftOp);
+      if (value != 0 && value != 1){
+        printf("%s logical operation with costant first operand.\n", WarnMsg());
+      }
+
+    }
+    if (IsCostant(rightOp)){
+      int value = Expr_toInt(prog, rightOp);
+      if (value != 0 && value != 1){
+        printf("%s logical operation with costant second operand.\n", WarnMsg());
+      }
+    }
+
+  }
+  else if(type == GREAT_ || type == LESS_ || type == EQUAL_ || type == DIFF_ ){
+
+    // Print an error if the operand is a string
+    if (leftOp_type == STR || rightOp_type == STR){
+
+      printf("%s this interpreter does not support comparison against pointers.\n", ErrorMsg());
+      exit(EXIT_FAILURE);
+    }
+
+    // Print an error if the operand is an array identifier
+    if (leftOp_type == ID){
+      char * identifier = TreeNode_Identifier(leftOp);
+      enum Type varType = Retrieve_VarType(prog, identifier);
+      if (varType == INT_V_ || varType == CHAR_V_){
+
+      printf("%s this interpreter does not support comparison against pointers.\n", ErrorMsg());
+      exit(EXIT_FAILURE);
+      }
+    }
+    if (rightOp_type == ID){
+      char * identifier = TreeNode_Identifier(rightOp);
+      enum Type varType = Retrieve_VarType(prog, identifier);
+      if (varType == INT_V_ || varType == CHAR_V_){
+
+      printf("%s this interpreter does not support comparison against pointers.\n", ErrorMsg());
+      exit(EXIT_FAILURE);
+      }
+    }
+
+    // Print a warning if the comparison with a char is always true or always false
+    if (IsCostant(leftOp)){
+      if (rightOp_type == ID || rightOp_type == VEC){
+        char * identifier = TreeNode_Identifier(rightOp);
+        enum Type varType = Retrieve_VarType(prog, identifier);
+
+        if (varType == CHAR_ || varType == CHAR_V_){
+          if (type == GREAT_){
+            if (Expr_toInt(prog, leftOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+            }
+            else if (Expr_toInt(prog, leftOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+            }
+          }
+          if (type == LESS_){
+            if (Expr_toInt(prog, leftOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+            }
+            else if (Expr_toInt(prog, leftOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+            }
+          }
+          if (type == EQUAL_){
+            if (Expr_toInt(prog, leftOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+            }
+            else if (Expr_toInt(prog, leftOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+            }
+          }
+          if (type == DIFF_){
+            if (Expr_toInt(prog, leftOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+            }
+            else if (Expr_toInt(prog, leftOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+            }
+          }
+        }
+      }
+    }
+    if (IsCostant(rightOp)){
+      if (leftOp_type == ID || leftOp_type == VEC){
+        char * identifier = TreeNode_Identifier(leftOp);
+        enum Type varType = Retrieve_VarType(prog, identifier);
+
+        if (varType == CHAR_ || varType == CHAR_V_){
+          if (type == GREAT_){
+            if (Expr_toInt(prog, rightOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, rightOp));
+            }
+            else if (Expr_toInt(prog, rightOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(prog, rightOp));
+            }
+          }
+          if (type == LESS_){
+            if (Expr_toInt(prog, rightOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), rightOp -> node.Expr -> exprVal.intExpr);
+            }
+            else if (Expr_toInt(prog, rightOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), rightOp -> node.Expr -> exprVal.intExpr);
+            }
+          }
+          if (type == EQUAL_){
+            if (Expr_toInt(prog, rightOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, rightOp));
+            }
+            else if (Expr_toInt(prog, rightOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(prog, rightOp));
+            }
+          }
+          if (type == DIFF_){
+            if (Expr_toInt(prog, rightOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), rightOp -> node.Expr -> exprVal.intExpr);
+            }
+            else if (Expr_toInt(prog, rightOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), rightOp -> node.Expr -> exprVal.intExpr);
+            }
+          }
+        }
+      }
+    }
+
+    // Print a warning if the comparison with an other comparison is always true or always false
+    if (leftOp_type == CMP && IsCostant(rightOp)){
+      if (type == GREAT_){
+        if (Expr_toInt(prog, rightOp) < 0){
+            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(prog, rightOp));
+        }
+        if (Expr_toInt(prog, rightOp) > 0){
+            printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(prog, rightOp));
+        }
+      }
+      if (type == LESS_){
+        if (Expr_toInt(prog, rightOp) > 1){
+            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(prog, rightOp));
+        }
+        if (Expr_toInt(prog, rightOp) < 1){
+            printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(prog, rightOp));
+        }
+      }
+      if (type == EQUAL_){
+        if (Expr_toInt(prog, rightOp) != 0 &&  Expr_toInt(prog, rightOp) != 1){
+              printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(prog, rightOp));
+          }
+      }
+      if (type == DIFF_){
+        if (Expr_toInt(prog, rightOp) != 0 &&  rightOp -> node.Expr -> exprVal.intExpr != 1){
+            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(prog, rightOp));
+        }
+      }
+    }
+    if (IsCostant(leftOp) && rightOp_type == CMP){
+      if (type == GREAT_){
+        if (Expr_toInt(prog, leftOp) > 1){
+            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+        }
+        if (Expr_toInt(prog, leftOp) < 1){
+            printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+        }
+      }
+      if (type == LESS_){
+        if (Expr_toInt(prog, leftOp) < 0){
+            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+        }
+        if (Expr_toInt(prog, leftOp) > 0){
+            printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+        }
+      }
+      if (type == EQUAL_){
+        if (Expr_toInt(prog, leftOp) != 0 &&  Expr_toInt(prog, leftOp) != 1){
+              printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+          }
+      }
+      if (type == DIFF_){
+        if (Expr_toInt(prog, leftOp) != 0 &&  Expr_toInt(prog, leftOp) != 1){
+            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(prog, leftOp));
+        }
+      }
+    }
+
+    // Print a warning if the comparison is between a variable and itself
+    if (((leftOp_type == ID) && (rightOp_type == ID)) || ((leftOp_type == VEC) && (rightOp_type == VEC))){
+
+      char * left_identifier = TreeNode_Identifier(leftOp);
+      char * right_identifier = TreeNode_Identifier(rightOp);
+
+      if (!strcmp(left_identifier, right_identifier)){
+        if (type == GREAT_ || type == LESS_ || type == DIFF_){
+          printf("%s self-comparison always evaluates to false.\n", WarnMsg());
+        }
+        else if (type == EQUAL_){
+          printf("%s self-comparison always evaluates to true.\n", WarnMsg());
+        }
+      }
+    }
+
+  }
+
 }
 
 void Check_AsgnConcistency(ProgramNode * prog, struct TreeNode * leftOp, struct TreeNode * rightOp){
@@ -3905,7 +3881,6 @@ void Check_AsgnConcistency(ProgramNode * prog, struct TreeNode * leftOp, struct 
       }
     }
     */
-
 
     char * leftOp_identifier = TreeNode_Identifier(leftOp);
 
