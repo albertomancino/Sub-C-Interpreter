@@ -1137,17 +1137,15 @@ struct TreeNode * create_ReturnNode(struct TreeNode * expr){
 ////////////////////  pre_incdec_statement PRODUCTION  //////////////////////////
 
 struct TreeNode * create_IncDecNode(enum exprType type, struct TreeNode * var){
-  if (var -> nodeType == Expr){
-    if (isAssignable(var)){
-      return create_ExprNode(type, 0, NULL, var, NULL, 0);
-    }
-    else{
-      printf("%s expression is not assignable.\n", ErrorMsg());
-      exit(EXIT_FAILURE);
-    }
+
+  Check_NodeType(Expr, var, "create_IncDecNode");
+
+  if (isAssignable(var)){
+    Check_VariableConcistency(var);
+    return create_ExprNode(type, 0, NULL, var, NULL, 0);
   }
   else{
-    printf("%s create_IncDecNode - incorrect call. Expr TreeNode expected.\n", ErrorMsg());
+    printf("%s expression is not assignable.\n", ErrorMsg());
     exit(EXIT_FAILURE);
   }
 }
