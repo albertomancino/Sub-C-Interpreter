@@ -133,7 +133,7 @@ void SymbolTableCopy (struct SymbolTable *, struct SymbolTable *);
 ////////////////////////////////////////////////////////////////////////////////
 
 ProgramNode* ProgramNode_Set ();
-int CheckFunAlreadyExist (ProgramNode*, char*);
+int CheckFunAlreadyExist (char*);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -142,8 +142,8 @@ int CheckFunAlreadyExist (ProgramNode*, char*);
 
 void FunNodeList_Set (ProgramNode*);
 void FunNodeList_Add (ProgramNode*, struct TreeNode *);
-int FunNodeList_Search (ProgramNode *, char *);
-struct FunNode * FunNodeList_Get (ProgramNode *, int);
+int FunNodeList_Search (char *);
+struct FunNode * FunNodeList_Get (int);
 enum Type Retrive_FunType(ProgramNode *, char *);
 
 void ActiveFunStack_Set (ProgramNode*);

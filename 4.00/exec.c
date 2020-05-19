@@ -435,8 +435,8 @@ int exec_FunctionCall(struct TreeNode * function_call){
     struct ScopeStack * new_stack = ScopeStack_Set();
 
     // Retrieving function declaration node
-    int index = FunNodeList_Search (MainNode, function_call -> node.Expr -> exprVal.stringExpr);
-    struct FunNode * functionNode = FunNodeList_Get (MainNode, index);
+    int index = FunNodeList_Search (function_call -> node.Expr -> exprVal.stringExpr);
+    struct FunNode * functionNode = FunNodeList_Get (index);
     enum Type function_type = functionNode -> funType;
 
     // Function scope node
@@ -465,9 +465,6 @@ int exec_FunctionCall(struct TreeNode * function_call){
       struct TreeNode * parameter;
       struct TreeNode * argument;
 
-      printf("arguments: %s\n", NodeTypeString(arguments));
-      printf("elementi %d\n", arguments -> child_list -> elements);
-
       for (int i = 0; i < arguments -> child_list -> elements; i++){
 
         if (i == 0) argument = arguments -> child_list -> first;
@@ -475,9 +472,6 @@ int exec_FunctionCall(struct TreeNode * function_call){
 
         if (i == 0) parameter = parameters -> child_list -> first;
         else  parameter = parameter -> next;
-
-        printf("argument = %s\n", NodeTypeString(argument));  // FUNZIONE
-        printf("parameter = %s\n", ExprTypeString(parameter));  // QUELLO CHE PASSO
 
         // assign parameter value
         if (argument -> node.DclN -> type == INT_ || argument -> node.DclN -> type == CHAR_){
@@ -619,61 +613,58 @@ int exec_FunctionCall(struct TreeNode * function_call){
 
 int exec_IncDec(struct TreeNode * node){
 
-  if (node -> nodeType == Expr){
+  Check_NodeType(Expr, node, "exec_IncDec");
+
+  // pre increment
+  if (node -> node.Expr -> exprType == PI){
+
+    // value
+    int value = Expr_toInt(MainNode, node -> child_list -> first);
     // pre increment
-    if (node -> node.Expr -> exprType == PI){
-
-      // value
-      int value = Expr_toInt(MainNode, node -> child_list -> first);
-      // pre increment
-      SymbolTable_AssignValue(MainNode, node -> child_list -> first, value + 1);
-      // value post increment
-      value ++;
+    SymbolTable_AssignValue(MainNode, node -> child_list -> first, value + 1);
+    // value post increment
+    value ++;
 
 
-      return value;
-    }
+    return value;
+  }
+  // pre decrement
+  else if (node -> node.Expr -> exprType == PD){
+
+    // value
+    int value = Expr_toInt(MainNode, node -> child_list -> first);
     // pre decrement
-    else if (node -> node.Expr -> exprType == PD){
+    SymbolTable_AssignValue(MainNode, node -> child_list -> first, value - 1);
+    // value post increment
+    value --;
 
-      // value
-      int value = Expr_toInt(MainNode, node -> child_list -> first);
-      // pre decrement
-      SymbolTable_AssignValue(MainNode, node -> child_list -> first, value - 1);
-      // value post increment
-      value --;
+    return value;
+  }
+  // post increment
+  else if (node -> node.Expr -> exprType == IP){
 
-      return value;
-    }
+    // value pre increment
+    int value = Expr_toInt(MainNode, node -> child_list -> first);
     // post increment
-    else if (node -> node.Expr -> exprType == IP){
+    SymbolTable_AssignValue(MainNode, node -> child_list -> first, value + 1);
 
-      // value pre increment
-      int value = Expr_toInt(MainNode, node -> child_list -> first);
-      // post increment
-      SymbolTable_AssignValue(MainNode, node -> child_list -> first, value + 1);
+    return value;
+  }
+  // post decrement
+  else if (node -> node.Expr -> exprType == DP){
 
-      return value;
-    }
-    // post decrement
-    else if (node -> node.Expr -> exprType == DP){
+    // value pre increment
+    int value = Expr_toInt(MainNode, node -> child_list -> first);
+    // post increment
+    SymbolTable_AssignValue(MainNode, node -> child_list -> first, value - 1);
 
-      // value pre increment
-      int value = Expr_toInt(MainNode, node -> child_list -> first);
-      // post increment
-      SymbolTable_AssignValue(MainNode, node -> child_list -> first, value - 1);
-
-      return value;
-    }
-    else{
-      printf("%s exec_IncDec - incorrect call. IP / DP Expr TreeNode expected. Type found: %u\n", ErrorMsg(), node -> node.Expr -> exprType);
-      exit(EXIT_FAILURE);
-    }
+    return value;
   }
   else{
-    printf("%s exec_IncDec - incorrect call. Expr node type expected.\n", ErrorMsg());
+    printf("%s exec_IncDec - incorrect call. IP / DP Expr TreeNode expected. Type found: %u\n", ErrorMsg(), node -> node.Expr -> exprType);
     exit(EXIT_FAILURE);
   }
+
   return 0;
 }
 
@@ -999,10 +990,10 @@ void exec_Expression (struct TreeNode * node){
       case MOD: /*DO NOTHING*/ break;
       case RND: /*DO NOTHING*/ break;
       case CMP: /*DO NOTHING*/ break;
-      case PI:  /*DO NOTHING*/ break;
-      case PD:  /*DO NOTHING*/ break;
-      case IP:  /*DO NOTHING*/ break;
-      case DP:  /*DO NOTHING*/ break;
+      case PI:  exec_IncDec(node); break;
+      case PD:  exec_IncDec(node); break;
+      case IP:  exec_IncDec(node); break;
+      case DP:  exec_IncDec(node); break;
       case ADD: /*DO NOTHING*/ break;
       default:  break;
       }
@@ -1151,33 +1142,24 @@ void exec_Multi_Asgn (struct TreeNode * node){
 
 void exec_while (struct TreeNode * node){
 
-  if (node -> nodeType == While){
-    struct TreeNode * condition = node -> child_list -> first -> next;
-    if (condition -> nodeType == Expr){
+  Check_NodeType(While, node, "exec_while");
 
-      int condition_value = Expr_toInt(MainNode, condition);
-      int index = 0;
-      // todo: rimuovere il limite di 150
-      while(condition_value && (index < 150)){
-        // execution of the statement in the while scope
-        exec_scope(node -> child_list -> first);
+  struct TreeNode * condition = node -> child_list -> first -> next;
+  Check_NodeType(Expr, condition, "exec_while");
 
-        // condition value update
-        condition_value = Expr_toInt(MainNode, condition);
+  int condition_value = Expr_toInt(MainNode, condition);
+  int index = 0;
+  // todo: rimuovere il limite di 150
+  while(condition_value && (index < 150)){
+    // execution of the statement in the while scope
+    exec_scope(node -> child_list -> first);
 
-        index ++;
-      }
-      printf("\n%s %d WHILE eseguito con %d iterazioni!%s\n\n", ANSI_BOLD_YELLOW, yylineno, index, ANSI_COLOR_RESET);
-    }
-    else{
-      printf("%s exec_while - unexpected condition Tree Node type. Type found %s.\n", ErrorMsg(), NodeTypeString(condition));
-      exit(EXIT_FAILURE);
-    }
+    // condition value update
+    condition_value = Expr_toInt(MainNode, condition);
+
+    index ++;
   }
-  else{
-    printf("%s exec_while - unexpected Tree Node type. Expected While, found %s.\n", ErrorMsg(), NodeTypeString(node));
-    exit(EXIT_FAILURE);
-  }
+  printf("\n%s %d WHILE eseguito con %d iterazioni!%s\n\n", ANSI_BOLD_YELLOW, yylineno, index, ANSI_COLOR_RESET);
 
 }
 

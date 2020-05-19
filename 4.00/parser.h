@@ -88,7 +88,7 @@ void Check_CharConcistency                            (int);
 void Check_IdentifierConcistency                      (ProgramNode *, struct TreeNode *);
 void Check_ArrayConcistency                           (ProgramNode *, struct TreeNode *);
 void Check_VariableConcistency                        (struct TreeNode *);
-void Check_FunctionCallConcistency                    (ProgramNode *, struct TreeNode *);
+void Check_FunctionCallConcistency                    (struct TreeNode *);
 void Check_PrintfCallConcistency                      (struct TreeNode *);
 void Check_ScanfCallConcistency                       (struct TreeNode *);
 void Check_OperationConcistency                       (struct TreeNode *);

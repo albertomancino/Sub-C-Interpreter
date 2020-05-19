@@ -1222,7 +1222,7 @@ void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
   char * identifier = TreeNode_Identifier(declaration);
 
   // check if a function with the same identifier was already declared
-  if (CheckFunAlreadyExist(prog,identifier)){
+  if (CheckFunAlreadyExist(identifier)){
     printf("%s redefinition of \'%s\'\n", ErrorMsg(),identifier);
     exit(EXIT_FAILURE);
   }
@@ -1297,10 +1297,10 @@ void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
 * returns -2 if there isn't any function with the identifier passed as argument
 * returns the position in the function node with the identifier passed as argument
 */
-int FunNodeList_Search (ProgramNode * prog, char * identifier){
+int FunNodeList_Search (char * identifier){
 
   struct FunNode * newFunNode;
-  struct FunNodeList * funList = prog -> function_list;
+  struct FunNodeList * funList = MainNode -> function_list;
   int flag = -2;  // default flag value
   // todo toremove debug
   if (funList -> elements != 0){
@@ -1321,12 +1321,12 @@ int FunNodeList_Search (ProgramNode * prog, char * identifier){
 * Given an index return the index-th function node in the program node function list.
 * The index can be retrieved with the 'FunNodeList_Search' function.
 */
-struct FunNode * FunNodeList_Get (ProgramNode * prog, int index){
+struct FunNode * FunNodeList_Get (int index){
 
   // index must be inside list bounds
-  if (index >= prog -> function_list -> elements){
+  if (index >= MainNode -> function_list -> elements){
 
-    printf("%s FunNodeList_Get - list index is past the end of the list. List contains %d elements.\n", ErrorMsg(),prog -> function_list -> elements);
+    printf("%s FunNodeList_Get - list index is past the end of the list. List contains %d elements.\n", ErrorMsg(),MainNode -> function_list -> elements);
     exit(EXIT_FAILURE);
   }
   else if (index < 0){
@@ -1334,14 +1334,10 @@ struct FunNode * FunNodeList_Get (ProgramNode * prog, int index){
     exit(EXIT_FAILURE);
     }
 
-  struct FunNode * function = prog -> function_list -> first;
-  for (int i = 0; i < prog -> function_list -> elements; i++){
-    if (i == index){
-      return function;
-    }
-    else{
-      function = function -> next;
-    }
+  struct FunNode * function = MainNode -> function_list -> first;
+  for (int i = 0; i < MainNode -> function_list -> elements; i++){
+    if (i == index) return function;
+    else function = function -> next;
   }
 
   return function;
@@ -1352,8 +1348,8 @@ struct FunNode * FunNodeList_Get (ProgramNode * prog, int index){
 enum Type Retrive_FunType(ProgramNode * prog, char * identifier){
 
   if (!strcmp(identifier, "printf") || !strcmp(identifier, "scanf")) return INT_;
-  int index = FunNodeList_Search(prog, identifier);
-  struct FunNode * function = FunNodeList_Get(prog, index);
+  int index = FunNodeList_Search(identifier);
+  struct FunNode * function = FunNodeList_Get(index);
   return function -> funType;
 }
 // todo: rimuovere se useless
@@ -1417,30 +1413,27 @@ ProgramNode* ProgramNode_Set (){
 }
 
 // returns 1 if a function with the same identifier was already declared, otherwise 0
-int CheckFunAlreadyExist (ProgramNode* prog, char* identifier){
+int CheckFunAlreadyExist (char* identifier){
 
   // printf - scanf name check
   if (!strcmp(identifier, "printf") || !strcmp(identifier, "scanf")){
     printf("%s incompatible redeclaration of library function \'%s\'.\n", ErrorMsg(), identifier);
     exit(EXIT_FAILURE);
   }
-  FunNodeList * list = prog -> function_list;
+  FunNodeList * list = MainNode -> function_list;
 
-  if (list -> elements == 0) {
-    //printf("CHECK IF FUNCTION EXIST: Nessuna funzione ancora dichiarata\n");
-    return 0;}
-  // scorro tutti i nodi funzione
+  if (list -> elements == 0) return 0;
+
+  // searching in the function node list
   FunNode * function = list -> first;
   for (int i = 0; i < list -> elements; i++){
     if(!strcmp(function -> funName, identifier)){
-      //printf("CHECK IF FUNCTION EXIST: a function with identifier %s already exist!!\n",identifier);
       return 1;
     }
     else{
       function = function -> next;
     }
   }
-  //printf("CHECK IF FUNCTION EXIST: Nessuna funzione con lo stesso nome precedentemente dichiarata\n");
   return 0;
 }
 

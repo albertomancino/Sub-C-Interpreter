@@ -2483,7 +2483,7 @@ struct TreeNode * create_Function_CallNode(ProgramNode * prog, char * function_i
   }
   else{
     struct TreeNode * node = create_ExprNode(FC, 0, function_id, expr_list, NULL, 0);
-    Check_FunctionCallConcistency(prog, node);
+    Check_FunctionCallConcistency(node);
     return node;
   }
 }
@@ -3381,7 +3381,7 @@ void Check_ExprConcistency(ProgramNode * prog, struct TreeNode * expr_node){
       case VEC: Check_ArrayConcistency (prog, expr_node); break;
       case STR: break;
       case C:   break;
-      case FC:  Check_FunctionCallConcistency (prog, expr_node); break;
+      case FC:  Check_FunctionCallConcistency (expr_node); break;
       case SUM: break;
       case DIF: break;
       case TIM: break;
@@ -3928,7 +3928,7 @@ void Check_ExprType (enum exprType type, struct TreeNode * node, char * function
   }
 }
 
-void Check_FunctionCallConcistency (ProgramNode * prog, struct TreeNode * function_call){
+void Check_FunctionCallConcistency (struct TreeNode * function_call){
 
   Check_NodeType(Expr, function_call, "Check_FunctionCallConcistency");
   Check_ExprType(FC, function_call, "Check_FunctionCallConcistency");
@@ -3936,23 +3936,7 @@ void Check_FunctionCallConcistency (ProgramNode * prog, struct TreeNode * functi
   char * function_id = function_call -> node.Expr -> exprVal.stringExpr;
 
   // check if function was declared
-  if(CheckFunAlreadyExist(prog, function_id)){
-
-    if (function_call -> child_list -> elements > 0){
-
-      struct TreeNode * arguments = function_call -> child_list -> first;
-      struct TreeNode * argument = arguments -> child_list -> first;
-      // check arguments
-      for (int i = 0; i < arguments -> child_list -> elements; i++){
-
-        if (i != 0) argument = argument -> next;
-        // pensaci un attimo: se è stato creato il nodo expr, non è di per se già controllato in fase di creazione?
-        Check_ExprConcistency(prog, argument);
-      }
-    }
-
-    Check_FunctionParameters(function_call);
-  }
+  if(CheckFunAlreadyExist(function_id)) Check_FunctionParameters(function_call);
   // undeclared function error
   else{
     printf("%s call of undeclared function \'%s\'\n", ErrorMsg(), function_id);
@@ -3966,8 +3950,8 @@ void Check_FunctionCallConcistency (ProgramNode * prog, struct TreeNode * functi
 void Check_FunctionParameters(struct TreeNode * function_call){
 
   char * identifier = function_call -> node.Expr -> exprVal.stringExpr;
-  int index = FunNodeList_Search(MainNode, identifier);
-  struct FunNode * functionNode = FunNodeList_Get(MainNode, index);
+  int index = FunNodeList_Search(identifier);
+  struct FunNode * functionNode = FunNodeList_Get(index);
 
   struct TreeNode * call_parameters;
   struct TreeNode * decl_parameters = functionNode -> function_scope -> child_list -> first;
@@ -3975,11 +3959,13 @@ void Check_FunctionParameters(struct TreeNode * function_call){
   int call_parameters_No;
   int decl_parameters_No = decl_parameters -> child_list -> elements;
 
+  // if function call has parameters
   if (function_call -> child_list -> elements > 0){
 
     call_parameters = function_call -> child_list -> first;
     call_parameters_No = call_parameters -> child_list -> elements;
   }
+  // if function call has not parameters
   else call_parameters_No = 0;
 
   // error: too many arguments
@@ -3992,6 +3978,7 @@ void Check_FunctionParameters(struct TreeNode * function_call){
     printf("%s too few arguments to function call '%s', expected %d, have %d.\n", ErrorMsg(), identifier, decl_parameters_No, call_parameters_No);
     exit(EXIT_FAILURE);
   }
+  // no error: right number of parameters
   else{
     struct TreeNode * declaration;
     struct TreeNode * argument;
@@ -4003,16 +3990,9 @@ void Check_FunctionParameters(struct TreeNode * function_call){
       if (i == 0) argument = call_parameters -> child_list -> first;
       else argument = argument -> next;
 
-      printf("---------------- %d ----------------\n", i);
-      printf("NODO DI TIPO %s\n", NodeTypeString(declaration));
-      printf("Dichiarazione di tipo: %s\n", VarTypeString(declaration -> node.DclN -> type));
-      printf("PASSO UN TIPO %s\n",  NodeTypeString(argument));
-      printf("Argomento di tipo: %s\n", ExprTypeString(argument));
-
       CheckParameterAssignment(declaration, argument);
     }
   }
-
 }
 
 void CheckParameterAssignment(struct TreeNode * declaration, struct TreeNode * expression){
@@ -4027,7 +4007,7 @@ void CheckParameterAssignment(struct TreeNode * declaration, struct TreeNode * e
     printf("%s incompatible integer to pointer conversion passing \'%s\' to parameter of type \'%s\'.\n", ErrorMsg(), IdentifierTypeString(expression_type), IdentifierTypeString(declaration_type));
     exit(EXIT_FAILURE);
   }
-  if ((declaration_type == INT_ || declaration_type == CHAR_) && (expression_type == INT_V_ || expression_type == CHAR_V_)){
+  if ((declaration_type == INT_ || declaration_type == CHAR_) && (expression_type == INT_V_ || expression_type == CHAR_V_ || expression_type == INT_P_ || expression_type == CHAR_P_)){
     printf("%s incompatible pointer to integer conversion passing \'%s\' to parameter of type \'%s\'.\n", ErrorMsg(), IdentifierTypeString(expression_type), IdentifierTypeString(declaration_type));
     exit(EXIT_FAILURE);
   }

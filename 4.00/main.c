@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "Tree.h"
 #include "Tree.c"
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
@@ -30,8 +31,13 @@ int main (int argc, char *argv[]){
     }
   }
   else{
-    yyin = fopen(argv[1], "r");
 
+    if( access( argv[1], R_OK ) == -1 ) {
+
+      printf("%serror%s: C file not found.\n",RED,RESET);
+      exit(EXIT_FAILURE);
+    }
+    yyin = fopen(argv[1], "r");
     if (yyin == NULL){
       printf("%serror%s: C file reading fails.\n",RED,RESET);
       exit(EXIT_FAILURE);
