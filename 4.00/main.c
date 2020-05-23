@@ -54,6 +54,7 @@ int main (int argc, char *argv[]){
 
     if (!parsing){
       printf("\n\n%sSuccessul parsing%s\n\n\n", GREEN, RESET);
+      printf("Main function return value: %d\n", MainNode -> return_value);
     }
 
     //PrintTree(MainNode);

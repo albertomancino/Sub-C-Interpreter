@@ -48,7 +48,7 @@ typedef struct FunNodeList { // List of function nodes
 
 typedef struct ProgramNode {
   FunNodeList * function_list;
-  // Active function da valutare
+  // todo Active function da valutare
   FunNodeList * active_function; // managed as a stack
   // riferimento allo scope attivo
   //struct TreeNode * actual_scope; todo: rimuovere
@@ -59,6 +59,8 @@ typedef struct ProgramNode {
   struct TreeNode * global_scope;
   // warnings counter
   int warnings;
+  int return_value;
+
 } ProgramNode;
 
 
@@ -164,7 +166,7 @@ void ScopeStack_Pop(struct ScopeStack *);
 struct TreeNode * ScopeStack_Peek(struct ScopeStack *);
 
 void Add_Node_Tree (ProgramNode *, struct TreeNode *);
-void SetAs_ActualScope(ProgramNode *, struct TreeNode *, char);
+void SetAs_ActualScope(struct TreeNode *, char);
 void Remove_ActualScope(struct ProgramNode *);
 struct TreeNode * Get_ActualScope(struct ProgramNode *);
 int ScopeStack_Elements();
@@ -206,17 +208,3 @@ void PrintScopeStackDimension();
 
 char * ErrorMsg ();
 char * WarnMsg ();
-
-struct ErrorList{
-
-  int elements;
-  struct Error * first;
-  struct Error * last;
-};
-
-struct Error{
-
-  char* errorMsg;
-  struct Error * next;
-
-};

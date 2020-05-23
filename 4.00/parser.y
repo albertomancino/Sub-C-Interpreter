@@ -25,6 +25,7 @@ int yylineno;
 ProgramNode * MainNode;
 struct ErrorList * Errors;
 struct TreeNode * NullTreeNode;
+struct TreeNode * return_node;
 FILE *yyin;
 
 %}
@@ -128,8 +129,8 @@ function_list
 ;
 
 main_function
-: main_function_declaration statement_list CLOSED_BRACKET                       {if(P_DEBUGGING==1) printf("BISON: MAIN function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
-| main_function_declaration CLOSED_BRACKET                                      {if(P_DEBUGGING==1) printf("BISON: MAIN function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
+: main_function_declaration statement_list CLOSED_BRACKET                       {if(P_DEBUGGING==1) printf("BISON: MAIN function found\n");  Function_End();}
+| main_function_declaration CLOSED_BRACKET                                      {if(P_DEBUGGING==1) printf("BISON: MAIN function found\n");  Function_End();}
 ;
 
 main_function_declaration
@@ -137,8 +138,8 @@ main_function_declaration
 ;
 
 function
-: function_declaration statement_list CLOSED_BRACKET                            {if(P_DEBUGGING==1) printf("BISON: Function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
-| function_declaration CLOSED_BRACKET                                           {if(P_DEBUGGING==1) printf("BISON: Function found\n"); /* Resetting global scope as acutal scope*/ MainNode -> actual_stack = MainNode -> global_scope_stack;}
+: function_declaration statement_list CLOSED_BRACKET                            {if(P_DEBUGGING==1) printf("BISON: Function found\n"); Function_End(); if(Check_Main()) YYACCEPT}
+| function_declaration CLOSED_BRACKET                                           {if(P_DEBUGGING==1) printf("BISON: Function found\n"); Function_End(); if(Check_Main()) YYACCEPT}
 ;
 
 function_declaration
@@ -157,12 +158,12 @@ arguments_declaration_list
 ;
 
 scope
-: start_scope statement_list CLOSED_BRACKET                                     {if(P_DEBUGGING==1) printf("BISON: End of the scope found\n");             if(TREE_BUILDING) ScopeStack_Pop(MainNode -> actual_stack);/*SymbolTable_Print(MainNode->ActualScope->last -> ThisScope.Tree -> node.ST); ScopeStack_Rem(MainNode->ActualScope);*/}
-| start_scope CLOSED_BRACKET                                                    {if(P_DEBUGGING==1) printf("BISON: New empty scope found\n");              if(TREE_BUILDING) ScopeStack_Pop(MainNode -> actual_stack);/*ScopeStack_Rem(MainNode->ActualScope);*/}
+: start_scope statement_list CLOSED_BRACKET                                     {if(P_DEBUGGING==1) printf("BISON: End of the scope found\n");             if(TREE_BUILDING) Propagate_return_flag(); ScopeStack_Pop(MainNode -> actual_stack);}
+| start_scope CLOSED_BRACKET                                                    {if(P_DEBUGGING==1) printf("BISON: New empty scope found\n");              if(TREE_BUILDING) Propagate_return_flag(); ScopeStack_Pop(MainNode -> actual_stack);}
 ;
 
 start_scope
-: OPEN_BRACKET                                                                  {if(P_DEBUGGING==1) printf("BISON: Start of the scope found\n");           if(TREE_BUILDING) { $$ = create_ScopeNode(); Add_Node_Tree(MainNode, $$); SetAs_ActualScope(MainNode, $$, Check_activation());}}
+: OPEN_BRACKET                                                                  {if(P_DEBUGGING==1) printf("BISON: Start of the scope found\n");           if(TREE_BUILDING) { $$ = create_ScopeNode(); Add_Node_Tree(MainNode, $$); SetAs_ActualScope($$, Check_activation());}}
 ;
 
 statement_list
@@ -174,19 +175,19 @@ statement_scope
 : statement
 | scope
 ;
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 statement
 : expr END_COMMA                                                                {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); Warning_Unused($1); if(Check_activation()) exec_Expression($1);}
-| return_statement                                                              {if(P_DEBUGGING==1) printf("BISON: Return statement found\n");                                     if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
+| return_statement                                                              {if(P_DEBUGGING==1) printf("BISON: Return statement found\n");                                     if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); Update_return_flag(); if(Check_activation()) {return_node = exec_return($1); Return_main(return_node); YYACCEPT;}}
 | declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");                                if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); exec_DclN(MainNode,$1);}
 | assignment END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Assignment statement found\n");                                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Asgn(MainNode,$1);}
 | multi_dec END_COMMA                                                           {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                          if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_DclN($1);}
 | multi_asgn END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                           if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_Asgn($1);}
 | declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_DclN_Asgn($1)}
-| if_else_statement                                                             {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_ifElse($1)}
-| while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                            if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_while($1)}
+| if_else_statement                                                             {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) {return_node = exec_ifElse($1); if(Return_main(return_node)) YYACCEPT;}}
+| while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                            if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) {return_node = exec_while($1);  if(Return_main(return_node)) YYACCEPT;}}
 | END_COMMA                                                                     {if(P_DEBUGGING==1) printf("BISON: Empty statement found\n");}
 ;
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -206,6 +207,7 @@ if_else_statement
 
 else_statement
 : else_declaration OPEN_BRACKET statement_list CLOSED_BRACKET                   {if(P_DEBUGGING==1) printf("BISON: Else statement1 found\n");              if(TREE_BUILDING) $$ = create_ElseNode($1);                                if(TREE_DEBUGGING) printf("TREE: Else statement node created\n");}
+| else_declaration OPEN_BRACKET CLOSED_BRACKET                                  {if(P_DEBUGGING==1) printf("BISON: Else statement1 found\n");              if(TREE_BUILDING) $$ = create_ElseNode($1);                                if(TREE_DEBUGGING) printf("TREE: Else statement node created\n");}
 | else_declaration statement                                                    {if(P_DEBUGGING==1) printf("BISON: Else statement2 found\n");              if(TREE_BUILDING) $$ = create_ElseNode($1);                                if(TREE_DEBUGGING) printf("TREE: Else statement node created\n");}
 ;
 
@@ -490,22 +492,31 @@ void create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parame
   FunNodeList_Add (MainNode, declaration);
   Add_Node_Tree(MainNode, parameters);
 
-  // declaration of parameters
-  for (int i = 0; i < parameters -> child_list -> elements; i++){
+  char * fun_identifier = TreeNode_Identifier(declaration);
 
-    struct TreeNode * parameter;
-
-    if (i == 0) parameter = parameters -> child_list -> first;
-    else parameter = parameter -> next;
-
-    if (parameter -> node.DclN -> arrayDim != NULL){ if (!IsCostant(parameter -> node.DclN -> arrayDim)) parameter -> node.DclN -> ignore = 1;}
-    else if (parameter -> node.DclN -> arrayDim == NULL && (parameter -> node.DclN -> type == INT_V_ || parameter -> node.DclN -> type == CHAR_V_)){
-      parameter -> node.DclN -> arrayDim = create_ExprNode(NUM, 0, NULL, NULL, NULL, 0);
-      parameter -> node.DclN -> ignore = 1;
-    }
-
-    exec_DclN(MainNode, parameter);
+  if (!strcmp("main", fun_identifier)){
+    if (parameters -> child_list -> elements != 0) printf("%s this interpreter does not support main function arguments. \nArguments will be ignored.\n", WarnMsg());
+    Scope_Activation();
   }
+  else{
+    // declaration of parameters
+    for (int i = 0; i < parameters -> child_list -> elements; i++){
+
+      struct TreeNode * parameter;
+
+      if (i == 0) parameter = parameters -> child_list -> first;
+      else parameter = parameter -> next;
+
+      if (parameter -> node.DclN -> arrayDim != NULL){ if (!IsCostant(parameter -> node.DclN -> arrayDim)) parameter -> node.DclN -> ignore = 1;}
+      else if (parameter -> node.DclN -> arrayDim == NULL && (parameter -> node.DclN -> type == INT_V_ || parameter -> node.DclN -> type == CHAR_V_)){
+        parameter -> node.DclN -> arrayDim = create_ExprNode(NUM, 0, NULL, NULL, NULL, 0);
+        parameter -> node.DclN -> ignore = 1;
+      }
+
+      exec_DclN(MainNode, parameter);
+    }
+  }
+
 }
 
 ////////////////////  if PRODUCTION  ///////////////////////////////////////////
@@ -529,13 +540,21 @@ struct TreeNode * create_IfElseNode(struct TreeNode * if_node, struct TreeNode *
     TreeNodeList_Add(newIfElseNode -> child_list, else_node);
   }
 
+  // return flag check
+  char if_return_flag = Check_return_statement(if_node -> child_list -> first);
+  char else_return_flag;
+  if (else_node != NULL) else_return_flag = Check_return_statement(else_node -> child_list -> first);
+
+
+  if (if_return_flag == 1 && else_return_flag == 1)
+    MainNode -> actual_stack -> top -> return_flag = 1;
+
   return newIfElseNode;
 }
 
 struct TreeNode * create_ElseNode (struct TreeNode * else_node){
 
   Check_NodeType(Else, else_node, "create_ElseNode");
-
   // else scope is ended
   ScopeStack_Pop(MainNode -> actual_stack);
 
@@ -555,13 +574,12 @@ struct TreeNode * create_ElseDeclaration(){
   TreeNodeList_Add(newElseNode -> child_list, ElseScope);
   // setting else scope as new actual scope
   // else scope is inactive by default
-  SetAs_ActualScope(MainNode, ElseScope, 0);
+  SetAs_ActualScope(ElseScope, 0);
 
   return newElseNode;
 }
 
 struct TreeNode * create_IfNode (struct TreeNode * if_node, struct TreeNode * condition){
-
 
   Check_NodeType(If, if_node, "create_IfNode");
   Check_NodeType(Expr, condition, "create_IfNode");
@@ -587,7 +605,7 @@ struct TreeNode * create_IfDeclaration(){
   TreeNodeList_Add(newIfNode -> child_list, ifScope);
   // setting if scope as new actual scope
   // if scope is inactive by default
-  SetAs_ActualScope(MainNode, ifScope, 0);
+  SetAs_ActualScope(ifScope, 0);
   // by default if condition is not satisfied
   newIfNode -> node.flag = 0;
 
@@ -598,23 +616,13 @@ struct TreeNode * create_IfDeclaration(){
 
 struct TreeNode * create_WhileNode(struct TreeNode * while_node, struct TreeNode * condition){
 
-  if (while_node -> nodeType == While){
-    if (condition -> nodeType == Expr){
+  Check_NodeType(While, while_node, "create_WhileNode");
+  Check_NodeType(Expr, condition, "create_WhileNode");
 
-      TreeNodeList_Add(while_node -> child_list, condition);
-      ScopeStack_Pop(MainNode -> actual_stack);
+  TreeNodeList_Add(while_node -> child_list, condition);
+  ScopeStack_Pop(MainNode -> actual_stack);
 
-      return while_node;
-    }
-    else{
-      printf("%s create_WhileNode - unexpected Tree Node type. Expected Expr, found %s.\n", ErrorMsg(), NodeTypeString(condition));
-      exit(EXIT_FAILURE);
-    }
-  }
-  else{
-    printf("%s create_WhileNode - unexpected Tree Node type. Expected While, found %s.\n", ErrorMsg(), NodeTypeString(while_node));
-    exit(EXIT_FAILURE);
-  }
+  return while_node;
 }
 
 struct TreeNode * create_Condition(struct TreeNode * expr){
@@ -673,7 +681,7 @@ struct TreeNode * create_WhileDeclaration(){
   TreeNodeList_Add(newWhileNode -> child_list, whileScope);
   // setting while scope as new actual scope
   // while scope is inactive by default
-  SetAs_ActualScope(MainNode, whileScope, 0);
+  SetAs_ActualScope(whileScope, 0);
 
   return newWhileNode;
 }
@@ -1200,8 +1208,7 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
 
                   // check if array dimension index is not a pointer
                   if (dimension_type == INT_ || dimension_type == CHAR_){
-                    // todo potrebbe essere da rimuovere
-                    Check_ExprConcistency(MainNode, first);
+
                     // adding the array dimension index as tree node child
                     TreeNodeList_Add(newTreeNode -> child_list, first);
                   }
@@ -1278,77 +1285,12 @@ struct TreeNode * TreeNodeInitialization (){
     return newTreeNode;
   }
 
-/* todo rimuovere sta schifezza
-////////////////////  global scope declaration PRODUCTION  /////////////////////
-
-void create_GlobalDeclarationNode(ProgramNode * prog, struct TreeNode * declaration){
-
-  if (declaration -> nodeType == DclN){
-
-    // check array lenght declaration, must not be an identifier
-    if (declaration -> node.DclN -> arrayDim != NULL){
-      if (declaration -> node.DclN -> arrayDim -> nodeType == Expr){
-        if (!IsCostant(declaration -> node.DclN -> arrayDim)){
-          printf("%s variable lenght array not allowed in at global scope.\n", ErrorMsg());
-          exit(EXIT_FAILURE);
-        }
-      }
-      else{
-        printf("%s create_GlobalDeclarationNode - array lenght Expr node expected. Type found %u.\n", ErrorMsg(), declaration -> node.DclN -> arrayDim -> nodeType);
-        exit(EXIT_FAILURE);
-      }
-    }
-
-    // adding node to the AST
-    Add_Node_Tree(prog, declaration);
-  }
-  else{
-    printf("%s create_GlobalDeclarationNode - incorrect call. DclN node expected. Type found %u.\n", ErrorMsg(), declaration -> nodeType);
-    exit(EXIT_FAILURE);
-  }
-}*/
-
 //////////////////  concistency FUNCTIONS  /////////////////////////////////////
 
 void Check_CharConcistency(int value){
   if (value < -128 || value > 127){
     printf("%s implicit conversion from 'int' to 'char' changes value from %d to %d\n", WarnMsg(), value, (char)value);
   }
-}
-
-void Check_ExprConcistency(ProgramNode * prog, struct TreeNode * expr_node){
-
-  enum exprType type = expr_node -> node.Expr -> exprType;
-  // an Expr Tree Node is expected
-  if ( expr_node -> nodeType == Expr){
-    // todo da rivedere
-    switch (type) {
-      case NUM: break;
-      case ID:  Check_IdentifierConcistency (prog, expr_node); break;
-      case VEC: Check_ArrayConcistency (prog, expr_node); break;
-      case STR: break;
-      case C:   break;
-      case FC:  Check_FunctionCallConcistency (expr_node); break;
-      case SUM: break;
-      case DIF: break;
-      case TIM: break;
-      case DIV: break;
-      case MOD: break;
-      case RND: break;
-      case CMP: Check_ComparisonConcistency (expr_node); break;
-      case PI:  break;
-      case PD:  break;
-      case IP:  break;
-      case DP:  break;
-      case PA:  break;
-    }
-  }
-  // Error: unexpected TreeNode type
-  else{
-    printf("%s Check_ExprConcistency - incorrect call. Expr TreeNode expected.\n", ErrorMsg());
-    exit(EXIT_FAILURE);
-  }
-
 }
 
 void Check_IdentifierConcistency(ProgramNode * prog, struct TreeNode * identifier_node){
@@ -1436,57 +1378,6 @@ void Check_OperationConcistency (struct TreeNode * operation_node){
           printf("%s Invalid operands. Operations with pointers are not allowed.\n", ErrorMsg());
           exit(EXIT_FAILURE);
         }
-
-        // todo rimuovere
-        /*
-        if (operation_node -> node.Expr -> exprType != RND) rightOp_type = expressionType(rightOp);
-
-        // Raise an error if one operand is an undeclared identifier
-        if (leftOp_type == ID || leftOp_type == VEC){
-
-          char * left_identifier = TreeNode_Identifier(leftOp);
-          if (!Check_VarWasDeclared(MainNode, left_identifier, 1)){
-
-            printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),left_identifier);
-            exit(EXIT_FAILURE);
-          }
-        }
-        if (rightOp_type == ID || rightOp_type == VEC){
-
-          char * right_identifier = TreeNode_Identifier(rightOp);
-          if (!Check_VarWasDeclared(MainNode, right_identifier, 1)){
-
-            printf("%s use of undeclared identifier \'%s\'.\n",ErrorMsg(),right_identifier);
-            exit(EXIT_FAILURE);
-          }
-        }
-
-        // Raise a warning if one or two operands are array identifiers
-        if (leftOp_type == ID){
-          char * identifier = TreeNode_Identifier(leftOp);
-          enum Type varType = Retrieve_VarType(MainNode, identifier);
-          if (varType == INT_V_ || varType == CHAR_V_){
-
-            printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
-            exit(EXIT_FAILURE);
-          }
-        }
-        if (rightOp_type == ID){
-          char * identifier = TreeNode_Identifier(rightOp);
-          enum Type varType = Retrieve_VarType(MainNode, identifier);
-          if (varType == INT_V_ || varType == CHAR_V_){
-
-            printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
-            exit(EXIT_FAILURE);
-          }
-        }
-
-        // Raise an error if one or two operands are strings
-        if (leftOp_type == STR || rightOp_type == STR){
-          printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
-          exit(EXIT_FAILURE);
-        }
-        */
 
         // Raise a warning if there's a division by 0
         if(operation_node -> node.Expr -> exprType == DIV || operation_node -> node.Expr -> exprType == MOD){
@@ -1737,46 +1628,6 @@ void Check_AsgnConcistency(ProgramNode * prog, struct TreeNode * leftOp, struct 
     if (value_type != INT_ && value_type != CHAR_)
       printf("%s incompatible pointer to integer conversion assigning to '%s' from '%s'.\n", WarnMsg(), IdentifierTypeString(variable_type), IdentifierTypeString(value_type));
 
-    // todo valutare da rimuovere
-    /*
-
-    if (rightOp_type == STR){
-      printf("%s a string is not assignable\n", ErrorMsg());
-      exit(EXIT_FAILURE);
-    }
-    else if (rightOp_type == ID){
-
-      char * rightOp_identifier = rightOp -> node.Expr -> exprVal.stringExpr;
-      enum Type rightOp_varType = Retrieve_VarType(prog, rightOp_identifier);
-
-      // check if rigth operator is not a vector identifier
-      if (rightOp_varType == INT_V_ || rightOp_varType == CHAR_V_){
-        int array_dim = Retrieve_ArrayDim(prog, rightOp_identifier);
-        if (rightOp_varType == INT_V_) printf("%s array type \'int[%d]\' is not assignable.\n", ErrorMsg(), array_dim);
-        if (rightOp_varType == CHAR_V_) printf("%s array type \'char[%d]\' is not assignable.\n", ErrorMsg(), array_dim);
-        exit(EXIT_FAILURE);
-      }
-    }
-    else if (rightOp_type == VEC){
-
-      char * rightOp_identifier = rightOp -> node.Expr -> exprVal.stringExpr;
-      int index = Retrieve_ArrayIndex(prog, rightOp);
-      int array_dim = Retrieve_ArrayDim(prog, rightOp_identifier);
-
-      if (!IgnoreFlag(rightOp_identifier)){
-        // out of bounds array error
-        if (index > array_dim-1){
-          printf("%s array index %d is past the end of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
-          exit(EXIT_FAILURE);
-        }
-        else if (index < 0){
-          printf("%s array index %d is before the beginning of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
-          exit(EXIT_FAILURE);
-        }
-      }
-    }
-    */
-
     char * leftOp_identifier = TreeNode_Identifier(leftOp);
 
     // Char assignment concistency
@@ -1789,9 +1640,6 @@ void Check_AsgnConcistency(ProgramNode * prog, struct TreeNode * leftOp, struct 
         Check_CharConcistency(value);
       }
     }
-
-    // todo: gestire il caso in cui il valore deriva dal contenuto di una espressione per esempio con parentesi
-    // dovrebbe essere già gestito perchè con le stringhe non si possono fare operazioni, ma è da verificare
 
     if(Multiple_Modifications(rightOp, leftOp_identifier)){
       printf("%s multiple unsequenced modifications to '%s'\n", WarnMsg(), leftOp_identifier);
@@ -2065,7 +1913,7 @@ void Check_ScanfCallConcistency(struct TreeNode * function_call){
     if (firstArgument -> node.Expr -> exprType != STR){
 
       enum Type expression_type = expressionType(firstArgument);
-      // todo qui si potrebbe tollerare anche un CHAR_P_
+
       if (expression_type != CHAR_V_){
         printf("%s incompatible integer to pointer conversion passing \'%s\' to parameter of type \'char pointer\'.\n", ErrorMsg(), IdentifierTypeString(expression_type));
         exit(EXIT_FAILURE);
@@ -2143,7 +1991,6 @@ void Check_Printf_FormatString_argument(char string_form, struct TreeNode * expr
     }
   }
 }
-
 
 void Check_Scanf_FormatString_argument (char string_form, struct TreeNode * expression){
 
@@ -2246,8 +2093,8 @@ void Warning_Unused(struct TreeNode * node){
 
   enum exprType type = node -> node.Expr -> exprType;
 
-  // todo aggiungere eventualmente
   switch (type) {
+
     case NUM: printf("%s expression result unused.\n", WarnMsg());
               break;
     case ID:  printf("%s expression result unused.\n", WarnMsg());
@@ -2277,23 +2124,20 @@ void Warning_Unused(struct TreeNode * node){
     case PD:  break;
     case IP:  break;
     case DP:  break;
-    case ADD: break;
+    case ADD: printf("%s expression result unused.\n", WarnMsg());
+              break;
     default:  break;
 
+  }
 }
 
-}
 //////////////////  execution CONTROL  /////////////////////////////////////////
 
 int Check_Main(){
 
   struct FunNode * actualFunction =  MainNode -> function_list -> last;
-  if (!strcmp("main", actualFunction -> funName)){
-    return 1;
-  }
-  else{
-    return 0;
-  }
+  if (!strcmp("main", actualFunction -> funName)) return 1;
+  else return 0;
 }
 
 char Check_activation(){
@@ -2308,4 +2152,52 @@ void Scope_Activation(){
   if (actualScope -> prevScope -> active){
     actualScope -> active = 1;
   }
+}
+
+void Function_End(){
+
+  // Return warning
+  if (MainNode -> actual_stack -> top -> return_flag == 0)
+    printf("%s control may reach end of non-void function.\n", WarnMsg());
+
+  // Resetting global scope as actual scope
+  MainNode -> actual_stack = MainNode -> global_scope_stack;
+}
+
+void Update_return_flag(){
+
+  MainNode -> actual_stack -> top -> return_flag = 1;
+}
+
+void Propagate_return_flag(){
+
+  if (MainNode -> actual_stack -> top -> return_flag == 1)
+    MainNode -> actual_stack -> top -> prevScope -> return_flag = 1;
+}
+
+int Check_return_statement(struct TreeNode * scope){
+
+  Check_NodeType(Scope, scope, "Check_return_statement");
+  struct TreeNode * statement;
+
+  for (int i = 0; i < scope -> child_list -> elements; i++){
+    if (i == 0) statement = scope -> child_list -> first;
+    else statement = statement -> next;
+
+    if (statement -> nodeType == Return) return 1;
+  }
+
+  return 0;
+}
+
+int Return_main (struct TreeNode * node){
+
+  if (node != NULL) {
+
+    Check_NodeType(Expr, node, "Return");
+
+    MainNode -> return_value = Expr_toInt(MainNode, node);
+    return 1;
+  }
+  else return 0;
 }

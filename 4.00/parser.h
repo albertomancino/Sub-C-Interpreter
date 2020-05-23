@@ -81,9 +81,7 @@ struct TreeNode * create_WhileDeclaration             ();
 struct TreeNode * TreeNodeInitialization              ();
 struct TreeNode * ExprList_Expression                 (struct TreeNode *, int);
 void create_FunctionNode                              (struct TreeNode *, struct TreeNode *);
-void create_GlobalDeclarationNode                     (ProgramNode *, struct TreeNode *);
 void create_MainFunction                              (struct ProgramNode *, struct TreeNode *);
-void Check_ExprConcistency                            (ProgramNode *, struct TreeNode *);
 void Check_CharConcistency                            (int);
 void Check_IdentifierConcistency                      (ProgramNode *, struct TreeNode *);
 void Check_ArrayConcistency                           (ProgramNode *, struct TreeNode *);
@@ -106,19 +104,18 @@ void Check_Printf_FormatString_argument               (char, struct TreeNode *);
 void Check_Scanf_FormatString_argument                (char, struct TreeNode *);
 void Check_VariableAddress                            (struct TreeNode *);
 void Warning_Unused                                   (struct TreeNode *);
+int Check_return_statement                            (struct TreeNode *);
+int Return_main                                       (struct TreeNode *);
 int Check_Main                                        ();
 char Check_activation                                 ();
 void Scope_Activation                                 ();
-
+void Function_End                                     ();
+void Update_return_flag                               ();
+void Propagate_return_flag                            ();
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////  NODES STRUCTURES  //////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
-//  todo remove
-/*struct funCall{
-  char identifier[1023];
-};*/
 
 struct exprNode {
 
@@ -181,6 +178,7 @@ struct Scope{
   struct TreeNode * thisScope;
   struct Scope * prevScope;
   char active;
+  char return_flag;
 };
 
 struct ScopeStack{

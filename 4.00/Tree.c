@@ -17,9 +17,9 @@ int TREE_BUILDING;
 ProgramNode * MainNode;
 
 ////////////////////////////////////////////////////////////////////////////////
-////////////////// ERROR MESSAGES //////////////////////////////////////////////
+////////////////// ERROR &  WARN MESSAGES //////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-// todo rimuovere
+
 char * ErrorMsg (){
 
   char * error = (char*)malloc(sizeof("\n\aline:10000000000\x1b[31merror:\x1b[0m ") + sizeof(char)*100);
@@ -34,45 +34,6 @@ char * WarnMsg (){
   return error;
 }
 
-struct ErrorList * Error_Set(){
-
-  struct ErrorList * new = (struct ErrorList *) malloc (sizeof(struct ErrorList));
-  new -> elements = 0;
-  new -> first = NULL;
-  new -> last = NULL;
-  return new;
-}
-void Error_Add (struct ErrorList * list, char * newError){
-
-  struct Error * error = (struct Error *) malloc (sizeof(struct Error));
-  error -> errorMsg = (char *) malloc (sizeof(char)*strlen(newError));
-  strcpy(error -> errorMsg, newError);
-  error -> next = NULL;
-
-  if (list -> elements == 0){
-
-    list -> first = list -> last = error;
-    list -> first -> next = error;
-    list -> last -> next = NULL;
-  }
-  else{
-
-    list -> last -> next = error;
-    list -> last = error;
-  }
-
-  list -> elements ++;
-}
-void PrintErrors (struct ErrorList * list){
-
-  struct Error * error;
-  error = list -> first;
-  while (error!=NULL){              // equivalente a while (error != NULL)
-    printf("%s\n",error -> errorMsg);
-    error = error -> next;
-  }
-
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 ///////////////// TREE NODE USEFUL FUNCTIONS ///////////////////////////////////
@@ -362,6 +323,7 @@ enum Type expressionType(struct TreeNode * expression){
   else if (expression_type == STR)                          return_type = CHAR_V_;
   else if (expression_type == C)                            return_type = CHAR_;
   else if (expression_type == FC)                           return_type = Retrive_FunType(MainNode, expression -> node.Expr -> exprVal.stringExpr);
+  else if (expression_type == RND)                          return_type = expressionType(expression -> child_list -> first);
   else if (isOperation(expression))                         return_type = INT_;
   else if (expression_type == CMP)                          return_type = INT_;
   else if (expression_type == PI || expression_type == PD || expression_type == IP || expression_type == DP)
@@ -473,10 +435,7 @@ int SymbolTable_Add(struct SymbolTable * table, char * identifier, enum Type typ
 
     newSTN -> type = type; // variable type
     strcpy(newSTN -> identifier, identifier); // variable identifier
-    // todo toremove variable pointer
-    //newSTN -> varPtr = varPtr; // variable pointer
 
-    // todo ha senso impostare la dimensione ad 1?
     // declaration of a variable
     if (type == INT_) newSTN -> arrayDim = 1;
     if (type == CHAR_) newSTN -> arrayDim = 1;
@@ -530,7 +489,7 @@ int SymbolTable_Search(struct SymbolTable * table, char * identifier){
 
   struct SymbolTable_Node * newSTN;
   int flag = -2;  // default flag value
-  // todo toremove debug
+
   if (table -> elements != 0){
     newSTN = table -> first;
     for (int i = 0; i < table -> elements; i++){
@@ -543,9 +502,7 @@ int SymbolTable_Search(struct SymbolTable * table, char * identifier){
 
   return flag;
   }
-  else {
-    return -1;
-  }
+  else return -1;
 }
 /*
 *   returns the index-th symbol table node inside the given symbol table
@@ -554,11 +511,7 @@ struct SymbolTable_Node * SymbolTable_Get(struct SymbolTable * table, int index)
 
   struct SymbolTable_Node * newSTN;
 
-  if (table -> elements < index || index < 0){
-    // todo valutare se tenerlo questo errore
-    printf("%s SymbolTable_Get - FAILED INDEX SEARCH, index is not present\n", ErrorMsg());
-    return NULL;
-  }
+  if (table -> elements < index || index < 0) return NULL;
   else {
 
     if (index == 0) return table -> first;
@@ -574,67 +527,6 @@ struct SymbolTable_Node * SymbolTable_Get(struct SymbolTable * table, int index)
   }
 
 }
-
-
-// todo probabilmente inutile
-int SymbolTable_Put(struct SymbolTable * table, struct SymbolTable_Node * new ,int index){
-
-  struct SymbolTable_Node * newSTN;
-
-  if (table -> elements < index || index < 0){
-
-    //printf("SYMBOL TABLE: FAILED INDEX SEARCH, index is not present\n");
-    return 0;
-  }
-
-  else {
-
-    if (index == 1) {
-      table -> first = new;
-      return 1;
-    }
-
-    else if (index == table -> elements) {
-      table -> last = new;
-      return 1;
-    }
-
-    else{
-
-      newSTN = table -> first -> next;
-      for (int i=1; i < index-1; i++){
-        newSTN = newSTN -> next;
-      }
-
-      newSTN = new;
-      return 1;
-    }
-  }
-
-}
-// todo valutare di rimuovere SymbolTable_AddInt
-/*int SymbolTable_AddInt (struct SymbolTable * table, char * identifier, int value){
-
-  struct SymbolTable_Node * support;
-
-  if (SymbolTable_Search < 0) return 0;
-
-  support = SymbolTable_Get(table, SymbolTable_Search(table, identifier));
-
-  if (support -> type == INT_) {
-
-    support -> varVal.intVal = value;
-    return 1;
-
-  }
-  else {
-
-    printf("SYMBOL TABLE: ERROR - TYPE NOT MATCHED. Expected int");
-    return -1;
-
-  }
-}*/
-
 
 /*
 *   prints the symbol table elements with their types and values
@@ -938,12 +830,6 @@ void SymbolTable_AssignValue (struct ProgramNode * prog, struct TreeNode * varia
       }
       else if(varType == CHAR_){
 
-        // todo valutare di rimuoverlo dato che è già presente in fase di dichiarazione, mancherebbe il warning in fase di assegnazione ma effettivamente non bisogna generarne
-        /*
-        if (value < -128 || value > 127){
-          printf("%s implicit conversion from 'int' to 'char' changes value from %d to %d\n", WarnMsg(), value, (char)value);
-        }
-        */
         ST_Node -> varVal.charVal = (char)value;
       }
       else if(varType == INT_V_){
@@ -1133,18 +1019,19 @@ void ScopeStack_Push(struct ScopeStack * stack, struct TreeNode * scope, char ac
     stack -> top = newScope;
     // flag that specifies if the scope is active or not
     stack -> top -> active = active;
+    stack -> top -> return_flag = 0;
   }
   stack -> elements += 1;
-  // todo valutare di rimuovere
-  // debug si potrebbe tenere con un if di controllo
+
   if(ST_DEBUGGING) printf("New scope in the scope stack. Scope in the stacks: %d\n", stack -> elements);
 }
 void ScopeStack_Pop(struct ScopeStack * stack){
 
   struct Scope * previous_scope = stack -> top -> prevScope;
+
   stack -> top = previous_scope;
   stack -> elements -= 1;
-  // todo valutare di rimuovere
+
   if(ST_DEBUGGING) printf("A scope has been removed from the scope stack. Scope in the stacks: %d\n", stack -> elements);
 
 }
@@ -1152,8 +1039,8 @@ struct TreeNode * ScopeStack_Peek(struct ScopeStack * stack){
 
   return stack -> top -> thisScope;
 }
-void SetAs_ActualScope(struct ProgramNode * prog, struct TreeNode * scope, char active){
-  ScopeStack_Push(prog -> actual_stack, scope, active);
+void SetAs_ActualScope(struct TreeNode * scope, char active){
+  ScopeStack_Push(MainNode -> actual_stack, scope, active);
 }
 void Remove_ActualScope(struct ProgramNode * prog){
   ScopeStack_Pop(prog -> actual_stack);
@@ -1240,6 +1127,9 @@ void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
   // Linking function identifier to the created function node
   newFunction -> funName = identifier;
 
+  // main function must be an 'int function'
+  if (!strcmp("main", identifier)) if (declaration -> node.DclN -> type != INT_) printf("%s Return type of \'main\' is not \'int\'.\n", WarnMsg());
+
   // Linking function type to the created function node
   newFunction -> funType = declaration -> node.DclN -> type;
 
@@ -1260,17 +1150,8 @@ void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
 
   // Setting the function scope stack as actual scope stack
   prog -> actual_stack = newFunction -> scope_stack;
-  // todo valutare di rimuovere questo debugging
-  if (ST_DEBUGGING) printf("New actual scope stack set.\n");
 
-  /*
-  // Setting function scope as new actual scope
-  prog -> actual_scope = newFunction -> function_scope;
-  printf("SCOPE - FunNodeList_Add: nuovo actual_scope settato. È lo scope della nuova funzione %s\n",identifier);
-  */
-  // todo: rimuovere questa parte commentata dal momento in cui le funzioni non vanno più nello scope stack
-  // Adding function to scope stack
-  //ScopeStack_Add(prog -> ActualScope, NULL, newElem);   //  adding scope as new actual scope
+  if (ST_DEBUGGING) printf("New actual scope stack set.\n");
 
   // Adding function to ProgramNode function list
   // Fist function in the function list
@@ -1302,7 +1183,7 @@ int FunNodeList_Search (char * identifier){
   struct FunNode * newFunNode;
   struct FunNodeList * funList = MainNode -> function_list;
   int flag = -2;  // default flag value
-  // todo toremove debug
+
   if (funList -> elements != 0){
     newFunNode = funList -> first;
     for (int i = 0; i < funList -> elements; i++){
@@ -1377,7 +1258,6 @@ void ActiveFunStack_Add (ProgramNode* prog, FunNode* function){
 
     function_stack -> first = function;
     function_stack -> last = function;
-    // last todo
   }
 
 }
@@ -1397,7 +1277,7 @@ ProgramNode* ProgramNode_Set (){
   // initializing functions' list
   FunNodeList_Set(prog);
   // initializing functions' stack
-  ActiveFunStack_Set(prog);
+  //todo remove ActiveFunStack_Set(prog);
   // global scope setting
   prog -> global_scope = create_ScopeNode();
   // global scope stack setting
@@ -1409,6 +1289,8 @@ ProgramNode* ProgramNode_Set (){
   prog -> actual_stack = prog -> global_scope_stack;
   // setting warnings counter
   prog -> warnings = 0;
+  prog -> return_value = 0;
+
   return prog;
 }
 

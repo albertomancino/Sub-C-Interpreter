@@ -1,31 +1,35 @@
 OBIETTIVO
 
-- IDEONA (per ora non pare essere necessaria): le expr possono "portarsi dietro" il proprio tipo. Ad esempio ( 1 + ( 2 + 3 )) so che è un int perchè (2+3) è int e 1+(2+3) è int + int. Potrebbe essere inutile dato che i tipi sono solo char e int. Potrebbe essere utile intercettare le STRINGHE.
-- Ricordarsi che è valido come assignment anche l'espressione (a)=10;
 - Attenzione a liberare la memoria, soprattutto quando si hanno nodi rimossi oppure quando termina uno scope
-- PROVA TUTTO
-- Controllare per bene la nuova expression PA
-- buttare un occhio su CMP_node_logicValue si può fare meglio
 - migliorare subsequent assignment
 - analizzare le precedenze, soprattutto tra comparison a AND/OR. Es: x > 10 && x < 50;  come lo prende così? con le parentesei è tutto più chiaro ovviamente
 - ATTENZIONE pare ci sia un eccesso di strcpy quando basterebbe il puntatore.
 - Forse il global scope stack non è così utile, perchè tanto quando una funzione finisce il proprio scope rimane il global scope
-- Assicurarsi che tutto sia consistente, sia possibile. Pensa alla svista della dimensione dei vettori che non veniva controllata.
 - Nel C99 è possibile fare in questo modo int funzione(int dimension, int vec[dimension]), per farlo è necessario dichiarare dimension prima che venga creato il nodo vec. Si può fare ma bisogna modificare le produzioni
-- Grande dilemma dei controlli: se ho creato un nodo expr, non è stato già controllato che fosse precedentemente dichiarato? BISOGNA FAR CONTROLLI E PULIZIA
-- Gli assignment possono essere parametri per le funzioni :)KILL ME PLS
-- Capire bene se gli assignement sono expr o pure no
 - Multi declaration non funziona bene perchè non dichiara l'ultima variabile!
 - Bisogna aggiustare la dichiarazione dei parametri nelle funzioni: manca il controllo se un parametro con lo stesso nome è stato già dichiarato
 - Liberare la memoria dopo la chiamata di una funzione
 - Aggiungere il caso di dimensione variabile in una dichiarazione di funzione
 - Il main non deve essere un token bisogna aggiustare
-- Bisogna spostare tutti i controlli nella creazione delle espressioni! Non è possibile che si possa fare questo: int x; x[10]; solo perchè essendo un expr non utilizzato non viene controllato.
-- Expression result unused viene lanciato come warning solo quando viene eseguito. Si può spostare in fase di creazione del nodo statement non in esecuzione.
-- Attenzione l'if all'interno delle funzioni non viene eseguito correttamente. Il motivo è che bisogna correggere quando e come deve avvenire l'esecuzione dell'ìf e dell'else.
+V Bisogna spostare tutti i controlli nella creazione delle espressioni! Non è possibile che si possa fare questo: int x; x[10]; solo perchè essendo un expr non utilizzato non viene controllato.
+V Expression result unused viene lanciato come warning solo quando viene eseguito. Si può spostare in fase di creazione del nodo statement non in esecuzione.
+V Attenzione l'if all'interno delle funzioni non viene eseguito correttamente. Il motivo è che bisogna correggere quando e come deve avvenire l'esecuzione dell'ìf e dell'else.
 - Gestire anche l'indirizzo &string come parametro di una funzione printf. ESEMPIO: printf(&a);
 - Capire se tenere o no la integer to pointer converion. Per esempio if("Hello World") vale o no?
-- Out of bounds array in assignment dovrebbe essere in expression
+V Out of bounds array in assignment dovrebbe essere in expression
+
+
+
+MAIN SENZA RETURN
+
+From http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2009/n2960.pdf:
+
+§ 3.6.1/5
+
+If control reaches the end of main without encountering a return statement, the effect is that of executing return 0;
+
+Io ho applicato questa cosa perchè di default il valore del return value nel program node è 0.
+
 
 
 PRINTF E STRING FORMAT
