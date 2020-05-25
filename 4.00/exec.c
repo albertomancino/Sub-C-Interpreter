@@ -67,6 +67,7 @@ int exec_FunctionCall(struct TreeNode * function_call){
   Check_NodeType(Expr, function_call, "exec_FunctionCall");
   Check_ExprType(FC, function_call, "exec_FunctionCall");
 
+
   if (!strcmp(function_call -> node.Expr -> exprVal.stringExpr, "printf")){
 
     struct TreeNode * arguments = function_call -> child_list -> first;
@@ -171,7 +172,7 @@ int exec_FunctionCall(struct TreeNode * function_call){
               }
               else if (argument -> child_list -> first -> node.Expr -> exprType == VEC){
 
-                int index = Retrieve_ArrayIndex(MainNode, argument -> child_list -> first);
+                int index = Retrieve_ArrayIndex(argument -> child_list -> first);
                 if (stringNode -> type == INT_V_) string = (char*)&(stringNode -> varPtr.intPtr)[index];
                 else if (stringNode -> type == CHAR_V_) string = &(stringNode -> varPtr.charPtr)[index];
               }
@@ -440,7 +441,13 @@ int exec_FunctionCall(struct TreeNode * function_call){
             // value must be taken from the function call stack
             MainNode -> actual_stack = previous_stack;
             enum Type parameter_type = Retrieve_VarType(MainNode, TreeNode_Identifier(parameter));
-            struct SymbolTable_Node * parameter_node = SymbolTable_RetrieveVar(MainNode, TreeNode_Identifier(parameter));
+
+            struct SymbolTable_Node * parameter_node = SymbolTable_IterativeRetrieveVar(TreeNode_Identifier(parameter));
+            if ( parameter_node == NULL){
+              printf("%s an error occurred searching the parameter in memory.\n", ErrorMsg());
+              exit(EXIT_FAILURE);
+            }
+
             int parameter_dimension = Retrieve_ArrayDim(MainNode, TreeNode_Identifier(parameter));
 
             if (parameter_type == INT_V_ || parameter_type == CHAR_V_){
@@ -520,6 +527,7 @@ int exec_FunctionCall(struct TreeNode * function_call){
       }
     }
 
+    // setting function stack as actual stack
     MainNode -> actual_stack = new_stack;
 
     struct TreeNode * return_node;
@@ -950,7 +958,7 @@ void exec_DclN (ProgramNode * prog, struct TreeNode * node){
     // check if array dimension is defined
     Check_ArrayDimension(node);
 
-    arrayDim = Retrieve_ArrayIndex(prog, node);
+    arrayDim = Retrieve_ArrayIndex(node);
     if (arrayDim < 0){
       printf("%s '%s' declared as an array with 0 or negative size\n", ErrorMsg(), variable_identifier);
       exit(EXIT_FAILURE);
@@ -977,25 +985,24 @@ void exec_DclN (ProgramNode * prog, struct TreeNode * node){
 *   Given an assignment node change the value stored in the SymbolTable_Node for the variables involved
 */
 void exec_Asgn (ProgramNode * prog, struct TreeNode * node){
+
   // check if the node is an assignmentNode
-  if (node -> nodeType == Asgn){
+  Check_NodeType(Asgn, node, "exec_Asgn");
+  // the last node stores the value to assign to other nodes
+  struct TreeNode * valueNode = node -> child_list -> last;
 
-    // the last node stores the value to assign to other nodes
-    struct TreeNode * valueNode = node -> child_list -> last;
-    // value to assign to all the variables
-    int value = Expr_toInt(prog, valueNode);
+  // value to assign to all the variables
+  int value = Expr_toInt(prog, valueNode);
 
-    struct TreeNode * assigned_var = node -> child_list -> first;
-    // assignment
-    for (int i = 1; i < node -> child_list -> elements; i++){
-      SymbolTable_AssignValue(prog, assigned_var, value);
-      assigned_var = assigned_var -> next;
-    }
 
-  }
-  else{
-    printf("line:%d %serror%s - exec_Asgn: incorrect call\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
-    exit(EXIT_FAILURE);
+  struct TreeNode * assigned_var = node -> child_list -> first;
+  // assignment
+
+  for (int i = 1; i < node -> child_list -> elements; i++){
+
+    SymbolTable_AssignValue(prog, assigned_var, value);
+
+    assigned_var = assigned_var -> next;
   }
 }
 
@@ -1005,22 +1012,18 @@ void exec_Asgn (ProgramNode * prog, struct TreeNode * node){
 */
 void exec_DclN_Asgn (struct TreeNode * node){
 
-  if (node -> nodeType == DclAsgn){
-    // the first assignment node is the second node in the child list
-    struct TreeNode * assignemnt = node -> child_list -> first -> next;
+  Check_NodeType(DclAsgn, node, "exec_DclN_Asgn");
 
-    // node -> child_list -> elements - 1 cause the first node in the list is the declaration node
-    for (int i = 0; i < node -> child_list -> elements - 1; i++){
+  // the first assignment node is the second node in the child list
+  struct TreeNode * assignemnt = node -> child_list -> first -> next;
 
-      if (i != 0) assignemnt = assignemnt -> next;
-      exec_Asgn(MainNode, assignemnt);
-    }
+  // node -> child_list -> elements - 1 cause the first node in the list is the declaration node
+  for (int i = 0; i < node -> child_list -> elements - 1; i++){
+
+    if (i != 0) assignemnt = assignemnt -> next;
+
+    exec_Asgn(MainNode, assignemnt);
   }
-  else{
-    printf("%s exec_Asgn - incorrect call. DclAsgn TreeNode type expected. Type found %u.\n", ErrorMsg(), node -> nodeType);
-    exit(EXIT_FAILURE);
-  }
-
 }
 
 ///////////////////////////  MULTI DECLARATION   ///////////////////////////////
@@ -1059,7 +1062,7 @@ void exec_Multi_Asgn (struct TreeNode * node){
 
 ///////////////////////////  WHILE LOOP   //////////////////////////////////////
 
-struct TreeNode * exec_while (struct TreeNode * node){
+struct TreeNode * exec_while (struct TreeNode * node, char scope_flag){
 
   Check_NodeType(While, node, "exec_while");
 
@@ -1072,7 +1075,7 @@ struct TreeNode * exec_while (struct TreeNode * node){
 
   while(condition_value){
     // execution of the statement in the while scope
-    return_node = exec_scope(node -> child_list -> first);
+    return_node = exec_scope(node -> child_list -> first, scope_flag);
 
     if (return_node != NULL) return return_node;
 
@@ -1086,24 +1089,24 @@ struct TreeNode * exec_while (struct TreeNode * node){
 
 ///////////////////////////  IF ELSE   /////////////////////////////////////////
 
-struct TreeNode * exec_ifElse (struct TreeNode * node){
+struct TreeNode * exec_ifElse (struct TreeNode * node, char scope_flag){
 
   Check_NodeType(IfElse, node, "exec_ifElse");
   struct TreeNode * return_node = NULL;
 
   struct TreeNode * if_node = node -> child_list -> first;
   // checking if condition and executing if scope if the condition is true
-  return_node = exec_if(if_node);
+  return_node = exec_if(if_node, scope_flag);
 
   // if the if condition was false and an else statement is present
   if (if_node -> node.flag == 0 && node -> child_list -> last -> nodeType == Else)
     // execution of the statements in the else scope
-    return_node = exec_scope(node -> child_list -> last -> child_list -> first);
+    return_node = exec_scope(node -> child_list -> last -> child_list -> first, scope_flag);
 
   return return_node;
 }
 
-struct TreeNode * exec_if (struct TreeNode * node){
+struct TreeNode * exec_if (struct TreeNode * node, char scope_flag){
   // argument node must be an if node
   Check_NodeType(If, node, "exec_if");
   struct TreeNode * return_node = NULL;
@@ -1117,7 +1120,7 @@ struct TreeNode * exec_if (struct TreeNode * node){
   // if condition is true
   if (condition_value){
     // execution of the statement in the if scope
-    return_node = exec_scope(node -> child_list -> first);
+    return_node = exec_scope(node -> child_list -> first, scope_flag);
     // if condition flag
     node -> node.flag = 1;
   }
@@ -1141,35 +1144,47 @@ struct TreeNode * exec_functionScope (struct TreeNode * node){
 
     if (i == 1) statement = node -> child_list -> first -> next;
     else statement = statement -> next;
-    return_value = exec_statement(statement);
+    return_value = exec_statement(statement, 1);
     if (return_value != NULL) return return_value;
   }
 
   return NULL;
 }
 
-struct TreeNode * exec_scope (struct TreeNode * node){
+struct TreeNode * exec_scope (struct TreeNode * node, char scope_flag){
 
   Check_NodeType(Scope, node, "exec_scope");
 
   struct TreeNode * statement;
   struct TreeNode * return_node = NULL;
 
+  if (scope_flag == 1) {
+
+    // creating scope
+    struct TreeNode * scope = create_ScopeNode();
+    // copying scope declarations
+    SymbolTableCopy(node -> node.ST, scope -> node.ST);
+    // pushing copyied scope in the scope stack
+    ScopeStack_Push(MainNode -> actual_stack, scope, 1);
+  }
+
   for (int i = 0; i < node -> child_list -> elements; i++){
 
     if (i == 0) statement = node -> child_list -> first;
     else statement = statement -> next;
 
-    return_node = exec_statement(statement);
+    return_node = exec_statement(statement, scope_flag);
     if (return_node != NULL) return return_node;
   }
+
+  if (scope_flag == 1) ScopeStack_Pop(MainNode -> actual_stack);
 
   return NULL;
 }
 
 ///////////////////////////  STATEMENTS   //////////////////////////////////////
 
-struct TreeNode * exec_statement (struct TreeNode * node){
+struct TreeNode * exec_statement (struct TreeNode * node, char scope_flag){
 
   struct TreeNode * returned_node = NULL;
 
@@ -1192,15 +1207,15 @@ struct TreeNode * exec_statement (struct TreeNode * node){
     break;
     case ArgLst:  printf("%s exec_statement - unexpected statment. Type found: %s\n", ErrorMsg(), NodeTypeString(node)); exit(EXIT_FAILURE);
     break;
-    case Scope:   returned_node = exec_scope(node);
+    case Scope:   returned_node = exec_scope(node, scope_flag);
     break;
     case If:      printf("%s exec_statement - unexpected statment. Type found: %s\n", ErrorMsg(), NodeTypeString(node)); exit(EXIT_FAILURE);
     break;
     case Else:    printf("%s exec_statement - unexpected statment. Type found: %s\n", ErrorMsg(), NodeTypeString(node)); exit(EXIT_FAILURE);
     break;
-    case IfElse:  returned_node = exec_ifElse(node);
+    case IfElse:  returned_node = exec_ifElse(node, scope_flag);
     break;
-    case While:   returned_node = exec_while(node);
+    case While:   returned_node = exec_while(node, scope_flag);
     break;
     case MultiDc: exec_Multi_DclN(node);
     break;

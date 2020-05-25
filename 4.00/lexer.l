@@ -33,7 +33,6 @@ ILcomment   \/\/(.)*\n
 <comment>"*"+[^*\/n]*
 <comment>\n
 <comment>"*"+"/"  BEGIN(INITIAL);
-"main"      {                                                                                 return MAIN;}
 "return"    {                                                                                 return RETURN;}
 "if"        {if(L_DEBUGGING==1) printf("%d FLEX: IF found\n",yylineno);                       return IF;}
 "else"      {if(L_DEBUGGING==1) printf("%d FLEX: ELSE found\n",yylineno);                     return ELSE;}

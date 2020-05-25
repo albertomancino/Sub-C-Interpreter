@@ -1,6 +1,5 @@
 int test(int x){
 
-  int x;
   char char_array[3];
 
   x = ("Hello");
@@ -15,11 +14,14 @@ int test(int x){
   return 0;
 }
 
-int main(){
+int main(int x){
 
   test(1);
 
   int test;
 
-  return 0;
+}
+
+int test2(int x){
+  int t;
 }

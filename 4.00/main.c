@@ -64,6 +64,11 @@ int main (int argc, char *argv[]){
       printf("%s%d warnings%s detected.\n", BOLDWHITE, MainNode -> warnings, RESET);
     }
   }
+
+  printf("\n ------------------------------------------------------------------------------------------------------------- \n");
+  printf(" -----------------------------------------------SUB-C INTERPRETER----------------------------------------------- \n\n\n");
+
+  return 0;
 }
 
 void title(){

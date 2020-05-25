@@ -51,28 +51,27 @@
      CLOSED_SQUARED = 267,
      OPEN_BRACKET = 268,
      CLOSED_BRACKET = 269,
-     MAIN = 270,
-     RETURN = 271,
-     STRING = 272,
-     CH = 273,
-     IF = 274,
-     ELSE = 275,
-     WHILE = 276,
-     INC = 277,
-     DEC = 278,
-     AMP = 279,
-     COMMA = 280,
-     DF = 281,
-     ET = 282,
-     LT = 283,
-     GT = 284,
-     OR = 285,
-     AND = 286,
-     MINUS = 287,
-     PLUS = 288,
-     MODULO = 289,
-     DIVIDE = 290,
-     STAR = 291
+     RETURN = 270,
+     STRING = 271,
+     CH = 272,
+     IF = 273,
+     ELSE = 274,
+     WHILE = 275,
+     INC = 276,
+     DEC = 277,
+     AMP = 278,
+     COMMA = 279,
+     DF = 280,
+     ET = 281,
+     LT = 282,
+     GT = 283,
+     OR = 284,
+     AND = 285,
+     MINUS = 286,
+     PLUS = 287,
+     MODULO = 288,
+     DIVIDE = 289,
+     STAR = 290
    };
 #endif
 /* Tokens.  */
@@ -88,28 +87,27 @@
 #define CLOSED_SQUARED 267
 #define OPEN_BRACKET 268
 #define CLOSED_BRACKET 269
-#define MAIN 270
-#define RETURN 271
-#define STRING 272
-#define CH 273
-#define IF 274
-#define ELSE 275
-#define WHILE 276
-#define INC 277
-#define DEC 278
-#define AMP 279
-#define COMMA 280
-#define DF 281
-#define ET 282
-#define LT 283
-#define GT 284
-#define OR 285
-#define AND 286
-#define MINUS 287
-#define PLUS 288
-#define MODULO 289
-#define DIVIDE 290
-#define STAR 291
+#define RETURN 270
+#define STRING 271
+#define CH 272
+#define IF 273
+#define ELSE 274
+#define WHILE 275
+#define INC 276
+#define DEC 277
+#define AMP 278
+#define COMMA 279
+#define DF 280
+#define ET 281
+#define LT 282
+#define GT 283
+#define OR 284
+#define AND 285
+#define MINUS 286
+#define PLUS 287
+#define MODULO 288
+#define DIVIDE 289
+#define STAR 290
 
 
 
@@ -124,7 +122,7 @@ typedef union YYSTYPE
     struct TreeNode *node;
 }
 /* Line 1529 of yacc.c.  */
-#line 128 "parser.tab.h"
+#line 126 "parser.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

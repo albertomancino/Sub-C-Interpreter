@@ -59,7 +59,10 @@ typedef struct ProgramNode {
   struct TreeNode * global_scope;
   // warnings counter
   int warnings;
+  // value returned by 'main' function
   int return_value;
+  // flag is 1 if there is a main function in the file
+  char main_flag;
 
 } ProgramNode;
 
@@ -92,7 +95,7 @@ struct SymbolTable_Node{
 ////////////////////////////////////////////////////////////////////////////////
 
 char * TreeNode_Identifier(struct TreeNode *);
-int Retrieve_ArrayIndex(ProgramNode *, struct TreeNode *);
+int Retrieve_ArrayIndex(struct TreeNode *);
 int IsCostant(struct TreeNode *);
 int isOperation(struct TreeNode *);
 int isAssignable(struct TreeNode *);
@@ -195,6 +198,7 @@ void PrintDepth ();
 void PrintTreeNodeList (struct TreeNodeList*);
 char * VarTypeString(enum Type);
 void PrintActualST(ProgramNode *);
+void PrintActualStack();
 char * NodeTypeString(struct TreeNode *);
 char * ExprTypeString(struct TreeNode *);
 char * PrintNodeType (enum nodeType);

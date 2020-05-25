@@ -53,66 +53,6 @@ enum cmpType{
 };
 
 
-
-
-
-struct TreeNode * create_DeclarationNode              (enum Type, struct TreeNode *);
-struct TreeNode * create_ScopeNode                    ();
-struct TreeNode * create_ExprNode                     (enum exprType, long, char *, struct TreeNode *, struct TreeNode *, enum cmpType);
-struct TreeNode * create_MultiAssignment              (struct TreeNode *, struct TreeNode *);
-struct TreeNode * create_MultiDeclaration             (struct TreeNode *, struct TreeNode *, char);
-struct TreeNode * create_Declaration_AssignmentNode   (struct TreeNode *, struct TreeNode *);
-struct TreeNode * create_AssignmentNode               (struct ProgramNode *, struct TreeNode *, struct TreeNode *);
-struct TreeNode * create_ReturnNode                   (struct TreeNode *);
-struct TreeNode * create_Expr_ListNode                (struct TreeNode *, struct TreeNode *);
-struct TreeNode * create_Arg_ListNode                 (struct TreeNode *, struct TreeNode *);
-struct TreeNode * create_Function_CallNode            (ProgramNode * , char *, struct TreeNode *);
-struct TreeNode * create_OperationNode                (struct TreeNode *, struct TreeNode *, enum exprType);
-struct TreeNode * create_ComparisonNode               (ProgramNode *, struct TreeNode *, struct TreeNode *, enum cmpType);
-struct TreeNode * create_IncDecNode                   (enum exprType, struct TreeNode *);
-struct TreeNode * create_IfElseNode                   (struct TreeNode *, struct TreeNode *);
-struct TreeNode * create_ElseNode                     (struct TreeNode *);
-struct TreeNode * create_ElseDeclaration              ();
-struct TreeNode * create_IfDeclaration                ();
-struct TreeNode * create_IfNode                       (struct TreeNode *, struct TreeNode *);
-struct TreeNode * create_WhileNode                    (struct TreeNode *, struct TreeNode *);
-struct TreeNode * create_Condition                    (struct TreeNode *);
-struct TreeNode * create_WhileDeclaration             ();
-struct TreeNode * TreeNodeInitialization              ();
-struct TreeNode * ExprList_Expression                 (struct TreeNode *, int);
-void create_FunctionNode                              (struct TreeNode *, struct TreeNode *);
-void create_MainFunction                              (struct ProgramNode *, struct TreeNode *);
-void Check_CharConcistency                            (int);
-void Check_IdentifierConcistency                      (ProgramNode *, struct TreeNode *);
-void Check_ArrayConcistency                           (ProgramNode *, struct TreeNode *);
-void Check_VariableConcistency                        (struct TreeNode *);
-void Check_FunctionCallConcistency                    (struct TreeNode *);
-void Check_PrintfCallConcistency                      (struct TreeNode *);
-void Check_ScanfCallConcistency                       (struct TreeNode *);
-void Check_OperationConcistency                       (struct TreeNode *);
-void Check_ComparisonConcistency                      (struct TreeNode *);
-void Check_AsgnConcistency                            (struct ProgramNode *, struct TreeNode *, struct TreeNode *);
-void Check_DeclConcistency                            (struct TreeNode *);
-int Check_ArrayDimension                              (struct TreeNode *);
-void Check_NodeType                                   (enum nodeType, struct TreeNode *, char *);
-void Check_ExprType                                   (enum exprType, struct TreeNode *, char *);
-void Check_FunctionParameters                         (struct TreeNode *);
-void CheckParameterAssignment                         (struct TreeNode * , struct TreeNode * );
-void Check_Printf_String                              (char *,  struct TreeNode *);
-void Check_Scanf_String                               (char *, struct TreeNode *);
-void Check_Printf_FormatString_argument               (char, struct TreeNode *);
-void Check_Scanf_FormatString_argument                (char, struct TreeNode *);
-void Check_VariableAddress                            (struct TreeNode *);
-void Warning_Unused                                   (struct TreeNode *);
-int Check_return_statement                            (struct TreeNode *);
-int Return_main                                       (struct TreeNode *);
-int Check_Main                                        ();
-char Check_activation                                 ();
-void Scope_Activation                                 ();
-void Function_End                                     ();
-void Update_return_flag                               ();
-void Propagate_return_flag                            ();
-
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////  NODES STRUCTURES  //////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -173,7 +113,6 @@ struct TreeNodeList{
 
 };
 
-
 struct Scope{
   struct TreeNode * thisScope;
   struct Scope * prevScope;
@@ -185,3 +124,61 @@ struct ScopeStack{
   int elements;
   struct Scope *top;
 };
+
+
+
+struct TreeNode * create_DeclarationNode              (enum Type, struct TreeNode *);
+struct TreeNode * create_ScopeNode                    ();
+struct TreeNode * create_ExprNode                     (enum exprType, long, char *, struct TreeNode *, struct TreeNode *, enum cmpType);
+struct TreeNode * create_MultiAssignment              (struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_MultiDeclaration             (struct TreeNode *, struct TreeNode *, char);
+struct TreeNode * create_Declaration_AssignmentNode   (struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_AssignmentNode               (struct ProgramNode *, struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_ReturnNode                   (struct TreeNode *);
+struct TreeNode * create_Expr_ListNode                (struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_Arg_ListNode                 (struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_Function_CallNode            (char *, struct TreeNode *);
+struct TreeNode * create_OperationNode                (struct TreeNode *, struct TreeNode *, enum exprType);
+struct TreeNode * create_ComparisonNode               (struct TreeNode *, struct TreeNode *, enum cmpType);
+struct TreeNode * create_IncDecNode                   (enum exprType, struct TreeNode *);
+struct TreeNode * create_IfElseNode                   (struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_ElseNode                     (struct TreeNode *);
+struct TreeNode * create_ElseDeclaration              ();
+struct TreeNode * create_IfDeclaration                ();
+struct TreeNode * create_IfNode                       (struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_WhileNode                    (struct TreeNode *, struct TreeNode *);
+struct TreeNode * create_Condition                    (struct TreeNode *);
+struct TreeNode * create_WhileDeclaration             ();
+struct TreeNode * TreeNodeInitialization              ();
+struct TreeNode * ExprList_Expression                 (struct TreeNode *, int);
+void create_FunctionNode                              (struct TreeNode *, struct TreeNode *);
+void Check_CharConcistency                            (int);
+void Check_IdentifierConcistency                      (struct TreeNode *);
+void Check_ArrayConcistency                           (struct TreeNode *);
+void Check_VariableConcistency                        (struct TreeNode *);
+void Check_FunctionCallConcistency                    (struct TreeNode *);
+void Check_PrintfCallConcistency                      (struct TreeNode *);
+void Check_ScanfCallConcistency                       (struct TreeNode *);
+void Check_OperationConcistency                       (struct TreeNode *);
+void Check_ComparisonConcistency                      (struct TreeNode *);
+void Check_AsgnConcistency                            (struct TreeNode *, struct TreeNode *);
+void Check_DeclConcistency                            (struct TreeNode *);
+int  Check_ArrayDimension                             (struct TreeNode *);
+void Check_NodeType                                   (enum nodeType, struct TreeNode *, char *);
+void Check_ExprType                                   (enum exprType, struct TreeNode *, char *);
+void Check_FunctionParameters                         (struct TreeNode *);
+void CheckParameterAssignment                         (struct TreeNode * , struct TreeNode * );
+void Check_Printf_String                              (char *,  struct TreeNode *);
+void Check_Scanf_String                               (char *, struct TreeNode *);
+void Check_Printf_FormatString_argument               (char, struct TreeNode *);
+void Check_Scanf_FormatString_argument                (char, struct TreeNode *);
+void Check_VariableAddress                            (struct TreeNode *);
+void Warning_Unused                                   (struct TreeNode *);
+int Check_return_statement                            (struct TreeNode *);
+int Return_main                                       (struct TreeNode *);
+int Check_Main                                        ();
+char Check_activation                                 ();
+void Scope_Activation                                 ();
+void Function_End                                     ();
+void Update_return_flag                               ();
+void Propagate_return_flag                            ();
