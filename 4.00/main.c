@@ -46,7 +46,6 @@ int main (int argc, char *argv[]){
     title();
 
     MainNode = ProgramNode_Set();
-
     int parsing = 0;
     parsing = yyparse();
 
@@ -66,7 +65,7 @@ int main (int argc, char *argv[]){
   }
 
   printf("\n ------------------------------------------------------------------------------------------------------------- \n");
-  printf(" -----------------------------------------------SUB-C INTERPRETER----------------------------------------------- \n\n\n");
+  printf(" -----------------------------------------------SUB-C INTERPRETER--------------------------------------------- \n\n\n");
 
   return 0;
 }
@@ -79,6 +78,6 @@ void title(){
   printf("\n\n %sDesigned and made by%s: Alberto Carlo Maria Mancino\n", BOLD_YELLOW, RESET);
   printf(" %sSupervised by%s: Prof. Ing. Floriano Scioscia\n", BOLD_YELLOW, RESET);
   printf("\n %sVersion No%s: 4.00\n",BOLDWHITE, RESET);
-  printf("\n ------------------------------------------------------------------------------------------------------------- \n");
+  printf("\n -----------------------------------------------SUB-C INTERPRETER--------------------------------------------- \n");
   printf(" ------------------------------------------------------------------------------------------------------------- \n\n\n");
 }

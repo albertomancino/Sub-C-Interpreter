@@ -12,39 +12,6 @@
 ProgramNode * MainNode;
 
 
-///////////////////////////  USEFUL FUNCTIONS   ////////////////////////////////
-
-/*
-* Given an Expr TreeNode returns a Type var with the node value type (INT_, CHAR_, INT_V_. CHAR_V_)
-*/
-enum Type ExprNode_valueType (ProgramNode * prog, struct TreeNode * node){
-
-  // value node expr type
-  enum exprType valueExprType = node -> node.Expr -> exprType;
-  // value type
-  enum Type valueType;
-
-  if (valueExprType == NUM){
-    valueType = INT_;
-  }
-  else if (valueExprType == ID || valueExprType == VEC){
-    valueType = Retrieve_VarType(prog, node -> node.Expr -> exprVal.stringExpr);
-  }
-  else if (valueExprType == C){
-    valueType = CHAR_;
-  }
-  else if (valueExprType == FC){
-    valueType = Retrive_FunType(prog, node -> node.Expr -> exprVal.stringExpr);
-  }
-  // remaining types are integers (SUM, DIF, TIM, DIV, MOD, RND, CMP)
-  else{
-    valueType = INT_;
-  }
-
-  return valueType;
-}
-
-
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////// INTERPRETATION  /////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,7 +22,7 @@ struct TreeNode * exec_return(struct TreeNode * node){
 
   Check_NodeType(Return, node, "exec_return");
 
-  int return_value = Expr_toInt(MainNode, node -> child_list -> first);
+  int return_value = Expr_toInt(node -> child_list -> first);
   struct TreeNode * return_node = create_ExprNode(NUM, return_value, NULL, NULL, NULL, 0);
   return return_node;
 }
@@ -99,43 +66,43 @@ int exec_FunctionCall(struct TreeNode * function_call){
       // string format
       if (string[i] == '%'){
         if (string[i+1] == 'd'){
-          if (remaining_arguments > 0) printed += printf("%d", Expr_toInt(MainNode, argument));
+          if (remaining_arguments > 0) printed += printf("%d", Expr_toInt(argument));
           else printed = printf("%d");
           remaining_arguments --;
           if (remaining_arguments > 0)  argument = argument -> next;
         }
         else if (string[i+1] == 'i'){
-          if (remaining_arguments > 0) printed += printf("%i", Expr_toInt(MainNode, argument));
+          if (remaining_arguments > 0) printed += printf("%i", Expr_toInt(argument));
           else printed = printf("%i");
           remaining_arguments --;
           if (remaining_arguments > 0)  argument = argument -> next;
         }
         else if (string[i+1] == 'c'){
-          if (remaining_arguments > 0) printed += printf("%c", Expr_toInt(MainNode, argument));
+          if (remaining_arguments > 0) printed += printf("%c", Expr_toInt(argument));
           else printed = printf("%c");
           remaining_arguments --;
           if (remaining_arguments > 0)  argument = argument -> next;
         }
         else if (string[i+1] == 'o'){
-          if (remaining_arguments > 0) printed += printf("%o", Expr_toInt(MainNode, argument));
+          if (remaining_arguments > 0) printed += printf("%o", Expr_toInt(argument));
           else printed = printf("%o");
           remaining_arguments --;
           if (remaining_arguments > 0)  argument = argument -> next;
         }
         else if (string[i+1] == 'u'){
-          if (remaining_arguments > 0) printed += printf("%u", Expr_toInt(MainNode, argument));
+          if (remaining_arguments > 0) printed += printf("%u", Expr_toInt(argument));
           else printed = printf("%u");
           remaining_arguments --;
           if (remaining_arguments > 0)  argument = argument -> next;
         }
         else if (string[i+1] == 'x'){
-          if (remaining_arguments > 0) printed += printf("%x", Expr_toInt(MainNode, argument));
+          if (remaining_arguments > 0) printed += printf("%x", Expr_toInt(argument));
           else printed = printf("%x");
           remaining_arguments --;
           if (remaining_arguments > 0)  argument = argument -> next;
         }
         else if (string[i+1] == 'X'){
-          if (remaining_arguments > 0) printed += printf("%X", Expr_toInt(MainNode, argument));
+          if (remaining_arguments > 0) printed += printf("%X", Expr_toInt(argument));
           else printed = printf("%X");
           remaining_arguments --;
           if (remaining_arguments > 0)  argument = argument -> next;
@@ -426,21 +393,21 @@ int exec_FunctionCall(struct TreeNode * function_call){
           struct TreeNode * identifier = create_ExprNode(ID, 0, TreeNode_Identifier(argument), NULL, NULL, 0);
           // value must be taken from the function call stack
           MainNode -> actual_stack = previous_stack;
-          int value = Expr_toInt(MainNode, parameter);
+          int value = Expr_toInt(parameter);
 
           // assignment must be done in the function scope
           MainNode -> actual_stack = new_stack;
           struct TreeNode * valueNode = create_ExprNode(NUM, value, NULL, NULL, NULL, 0);
 
           struct TreeNode * assignment = create_AssignmentNode(MainNode, identifier, valueNode);
-          exec_Asgn(MainNode, assignment);
+          exec_Asgn(assignment);
         }
         if (argument -> node.DclN -> type == INT_V_ || argument -> node.DclN -> type == CHAR_V_){
           if (parameter -> node.Expr -> exprType == ID){
 
             // value must be taken from the function call stack
             MainNode -> actual_stack = previous_stack;
-            enum Type parameter_type = Retrieve_VarType(MainNode, TreeNode_Identifier(parameter));
+            enum Type parameter_type = Retrieve_VarType(TreeNode_Identifier(parameter));
 
             struct SymbolTable_Node * parameter_node = SymbolTable_IterativeRetrieveVar(TreeNode_Identifier(parameter));
             if ( parameter_node == NULL){
@@ -448,16 +415,16 @@ int exec_FunctionCall(struct TreeNode * function_call){
               exit(EXIT_FAILURE);
             }
 
-            int parameter_dimension = Retrieve_ArrayDim(MainNode, TreeNode_Identifier(parameter));
+            int parameter_dimension = Retrieve_ArrayDim(TreeNode_Identifier(parameter));
 
             if (parameter_type == INT_V_ || parameter_type == CHAR_V_){
 
               if (argument -> node.DclN -> type == parameter_type){
 
                 MainNode -> actual_stack = new_stack;
-                struct SymbolTable_Node * argument_node = SymbolTable_RetrieveVar(MainNode, TreeNode_Identifier(argument));
+                struct SymbolTable_Node * argument_node = SymbolTable_RetrieveVar(TreeNode_Identifier(argument));
 
-                int argument_dimension = Expr_toInt(MainNode, argument -> node.DclN -> arrayDim);
+                int argument_dimension = Expr_toInt(argument -> node.DclN -> arrayDim);
 
                 // undeclared array dimension
                 // array dimension must be updated
@@ -492,9 +459,9 @@ int exec_FunctionCall(struct TreeNode * function_call){
               int parameter_dimension = strlen(parameter -> node.Expr -> exprVal.stringExpr) + 1;
 
               MainNode -> actual_stack = new_stack;
-              struct SymbolTable_Node * argument_node = SymbolTable_RetrieveVar(MainNode, TreeNode_Identifier(argument));
+              struct SymbolTable_Node * argument_node = SymbolTable_RetrieveVar(TreeNode_Identifier(argument));
 
-              int argument_dimension = Expr_toInt(MainNode, argument -> node.DclN -> arrayDim);
+              int argument_dimension = Expr_toInt(argument -> node.DclN -> arrayDim);
 
               // undeclared array dimension
               // array dimension must be updated
@@ -539,7 +506,7 @@ int exec_FunctionCall(struct TreeNode * function_call){
 
      // return the value
      if (return_node != NULL){
-       int return_value = Expr_toInt(MainNode, return_node);
+       int return_value = Expr_toInt(return_node);
 
        // value returned by function
        if (function_type == INT_) return return_value;
@@ -558,9 +525,9 @@ int exec_IncDec(struct TreeNode * node){
   if (node -> node.Expr -> exprType == PI){
 
     // value
-    int value = Expr_toInt(MainNode, node -> child_list -> first);
+    int value = Expr_toInt(node -> child_list -> first);
     // pre increment
-    SymbolTable_AssignValue(MainNode, node -> child_list -> first, value + 1);
+    SymbolTable_AssignValue(node -> child_list -> first, value + 1);
     // value post increment
     value ++;
 
@@ -571,9 +538,9 @@ int exec_IncDec(struct TreeNode * node){
   else if (node -> node.Expr -> exprType == PD){
 
     // value
-    int value = Expr_toInt(MainNode, node -> child_list -> first);
+    int value = Expr_toInt(node -> child_list -> first);
     // pre decrement
-    SymbolTable_AssignValue(MainNode, node -> child_list -> first, value - 1);
+    SymbolTable_AssignValue(node -> child_list -> first, value - 1);
     // value post increment
     value --;
 
@@ -583,9 +550,9 @@ int exec_IncDec(struct TreeNode * node){
   else if (node -> node.Expr -> exprType == IP){
 
     // value pre increment
-    int value = Expr_toInt(MainNode, node -> child_list -> first);
+    int value = Expr_toInt(node -> child_list -> first);
     // post increment
-    SymbolTable_AssignValue(MainNode, node -> child_list -> first, value + 1);
+    SymbolTable_AssignValue(node -> child_list -> first, value + 1);
 
     return value;
   }
@@ -593,9 +560,9 @@ int exec_IncDec(struct TreeNode * node){
   else if (node -> node.Expr -> exprType == DP){
 
     // value pre increment
-    int value = Expr_toInt(MainNode, node -> child_list -> first);
+    int value = Expr_toInt(node -> child_list -> first);
     // post increment
-    SymbolTable_AssignValue(MainNode, node -> child_list -> first, value - 1);
+    SymbolTable_AssignValue(node -> child_list -> first, value - 1);
 
     return value;
   }
@@ -621,10 +588,10 @@ int exec_Operation (struct TreeNode * node){
         rightOp = node -> child_list -> first -> next;
       }
 
-      int leftOp_value = Expr_toInt(MainNode, leftOp);
+      int leftOp_value = Expr_toInt(leftOp);
       int rightOp_value;
       if (node -> node.Expr -> exprType != RND){
-        rightOp_value = Expr_toInt(MainNode, rightOp);
+        rightOp_value = Expr_toInt(rightOp);
       }
 
       switch (node -> node.Expr -> exprType) {
@@ -691,21 +658,21 @@ int exec_CMP (struct TreeNode * node){
       switch (cmpType) {
         case AND_:
                   // logic values of the operands
-                  firstLogic = CMP_node_logicValue(MainNode, firstN);
-                  secondLogic = CMP_node_logicValue(MainNode, secondN);
+                  firstLogic = CMP_node_logicValue(firstN);
+                  secondLogic = CMP_node_logicValue(secondN);
                   logicValue = firstLogic && secondLogic;
                   break;
         case OR_:
                   // logic values of the operands
-                  firstLogic = CMP_node_logicValue(MainNode, firstN);
-                  secondLogic = CMP_node_logicValue(MainNode, secondN);
+                  firstLogic = CMP_node_logicValue(firstN);
+                  secondLogic = CMP_node_logicValue(secondN);
                   logicValue = firstLogic || secondLogic;
                   break;
         case GREAT_:
                   // actual values of the operands
-                  firstLogic = Expr_toInt(MainNode, firstN);
+                  firstLogic = Expr_toInt(firstN);
                   //printf("First value: %d of node %u\n", firstLogic, firstN -> node.Expr -> exprType); //debug
-                  secondLogic = Expr_toInt(MainNode, secondN);
+                  secondLogic = Expr_toInt(secondN);
                   //printf("Second value: %d of node %u\n", secondLogic, secondN -> node.Expr -> exprType); //debug
 
                   // greater than condition
@@ -718,8 +685,8 @@ int exec_CMP (struct TreeNode * node){
         break;
         case LESS_:
                   // actual values of the operands
-                  firstLogic = Expr_toInt(MainNode, firstN);
-                  secondLogic = Expr_toInt(MainNode, secondN);
+                  firstLogic = Expr_toInt(firstN);
+                  secondLogic = Expr_toInt(secondN);
                   // less than condition
                   if (firstLogic < secondLogic){
                     logicValue = 1;
@@ -730,8 +697,8 @@ int exec_CMP (struct TreeNode * node){
         break;
         case EQUAL_:
                   // actual values of the operands
-                  firstLogic = Expr_toInt(MainNode, firstN);
-                  secondLogic = Expr_toInt(MainNode, secondN);
+                  firstLogic = Expr_toInt(firstN);
+                  secondLogic = Expr_toInt(secondN);
                   // equal to condition
                   if (firstLogic == secondLogic){
                     logicValue = 1;
@@ -742,8 +709,8 @@ int exec_CMP (struct TreeNode * node){
         break;
         case DIFF_:
                   // actual values of the operands
-                  firstLogic = Expr_toInt(MainNode, firstN);
-                  secondLogic = Expr_toInt(MainNode, secondN);
+                  firstLogic = Expr_toInt(firstN);
+                  secondLogic = Expr_toInt(secondN);
                   // different from condition
                   if (firstLogic != secondLogic){
                     logicValue = 1;
@@ -778,7 +745,7 @@ int exec_CMP (struct TreeNode * node){
 * An identifier is considered respect to the value stored in the symbol table
 *
 */
-int CMP_node_logicValue (ProgramNode * prog, struct TreeNode * node){
+int CMP_node_logicValue (struct TreeNode * node){
 
   int logicValue;
   int value;
@@ -800,12 +767,12 @@ int CMP_node_logicValue (ProgramNode * prog, struct TreeNode * node){
     }
     else if (type == ID){
       char * identifier = TreeNode_Identifier(node);
-      enum Type varType = Retrieve_VarType(prog, identifier);
+      enum Type varType = Retrieve_VarType(identifier);
       if (varType == INT_V_ || varType == CHAR_V_){
         logicValue = 1;
       }
       else{
-        value = Retrieve_VarValue(prog, identifier, -1);
+        value = Retrieve_VarValue(identifier, -1);
 
         if(value == 0){
           logicValue = 0;
@@ -817,7 +784,7 @@ int CMP_node_logicValue (ProgramNode * prog, struct TreeNode * node){
     }
     else if (type == VEC){
 
-      value = Expr_toInt(prog, node);
+      value = Expr_toInt(node);
 
       if(value == 0){
         logicValue = 0;
@@ -843,7 +810,7 @@ int CMP_node_logicValue (ProgramNode * prog, struct TreeNode * node){
       }
     }
     else if(type == FC){
-      value = Expr_toInt(MainNode, node);
+      value = Expr_toInt(node);
       if(value == 0){
         logicValue = 0;
       }
@@ -852,7 +819,7 @@ int CMP_node_logicValue (ProgramNode * prog, struct TreeNode * node){
       }
     }
     else if(type == SUM || type == DIF || type == TIM || type == DIV || type == MOD || type == RND){
-      value = Expr_toInt(MainNode, node);
+      value = Expr_toInt(node);
       if(value == 0){
         logicValue = 0;
       }
@@ -861,7 +828,7 @@ int CMP_node_logicValue (ProgramNode * prog, struct TreeNode * node){
       }
     }
     else if(type == PI || type == PD || type == IP || type == DP){
-      value = Expr_toInt(MainNode, node);
+      value = Expr_toInt(node);
       if(value == 0){
         logicValue = 0;
       }
@@ -871,7 +838,7 @@ int CMP_node_logicValue (ProgramNode * prog, struct TreeNode * node){
     }
     else if(type == PA){
 
-      value = Expr_toInt(prog, node);
+      value = Expr_toInt(node);
 
       if(value == 0){
         logicValue = 0;
@@ -935,14 +902,14 @@ void exec_Expression (struct TreeNode * node){
 /*
 *   Given a declaration node creates a SymbolTable_Node in the actual scope
 */
-void exec_DclN (ProgramNode * prog, struct TreeNode * node){
+void exec_DclN (struct TreeNode * node){
 
   // CHECK: TreeNode must be a Declaration Node
   Check_NodeType(DclN, node, "exec_DclN");
 
   char * variable_identifier = TreeNode_Identifier(node);
   // retrieve the actual scope
-  struct TreeNode * actualScope = Get_ActualScope(prog);
+  struct TreeNode * actualScope = Get_ActualScope();
   // retrieve symbol table from the scope
   struct SymbolTable * ST = actualScope -> node.ST;
 
@@ -977,14 +944,13 @@ void exec_DclN (ProgramNode * prog, struct TreeNode * node){
     printf("%s exec_DclN - declaration of \'%s\' failed.\n", ErrorMsg(), variable_identifier);
     exit(EXIT_FAILURE);
   }
-
 }
 
 ///////////////////////////  ASSIGNMENT   /////////////////////////////////////
 /*
 *   Given an assignment node change the value stored in the SymbolTable_Node for the variables involved
 */
-void exec_Asgn (ProgramNode * prog, struct TreeNode * node){
+void exec_Asgn (struct TreeNode * node){
 
   // check if the node is an assignmentNode
   Check_NodeType(Asgn, node, "exec_Asgn");
@@ -992,7 +958,7 @@ void exec_Asgn (ProgramNode * prog, struct TreeNode * node){
   struct TreeNode * valueNode = node -> child_list -> last;
 
   // value to assign to all the variables
-  int value = Expr_toInt(prog, valueNode);
+  int value = Expr_toInt(valueNode);
 
 
   struct TreeNode * assigned_var = node -> child_list -> first;
@@ -1000,7 +966,7 @@ void exec_Asgn (ProgramNode * prog, struct TreeNode * node){
 
   for (int i = 1; i < node -> child_list -> elements; i++){
 
-    SymbolTable_AssignValue(prog, assigned_var, value);
+    SymbolTable_AssignValue(assigned_var, value);
 
     assigned_var = assigned_var -> next;
   }
@@ -1022,7 +988,7 @@ void exec_DclN_Asgn (struct TreeNode * node){
 
     if (i != 0) assignemnt = assignemnt -> next;
 
-    exec_Asgn(MainNode, assignemnt);
+    exec_Asgn(assignemnt);
   }
 }
 
@@ -1051,7 +1017,7 @@ void exec_Multi_Asgn (struct TreeNode * node){
       if(i == 0) childNode = node -> child_list -> first;
       else childNode = childNode -> next;
 
-      exec_Asgn(MainNode, childNode);
+      exec_Asgn(childNode);
     }
   }
   else{
@@ -1069,7 +1035,7 @@ struct TreeNode * exec_while (struct TreeNode * node, char scope_flag){
   struct TreeNode * condition = node -> child_list -> first -> next;
   Check_NodeType(Expr, condition, "exec_while");
 
-  int condition_value = Expr_toInt(MainNode, condition);
+  int condition_value = Expr_toInt(condition);
   int return_value = 0;
   struct TreeNode * return_node = NULL;
 
@@ -1080,7 +1046,7 @@ struct TreeNode * exec_while (struct TreeNode * node, char scope_flag){
     if (return_node != NULL) return return_node;
 
     // condition value update
-    condition_value = Expr_toInt(MainNode, condition);
+    condition_value = Expr_toInt(condition);
 
   }
 
@@ -1115,7 +1081,7 @@ struct TreeNode * exec_if (struct TreeNode * node, char scope_flag){
   // condition node must bu an expression node
   Check_NodeType(Expr, condition, "exec_if");
 
-  int condition_value = Expr_toInt(MainNode, condition);
+  int condition_value = Expr_toInt(condition);
 
   // if condition is true
   if (condition_value){
@@ -1197,7 +1163,7 @@ struct TreeNode * exec_statement (struct TreeNode * node, char scope_flag){
     break;
     case Expr:    exec_Expression(node);
     break;
-    case Asgn:    exec_Asgn(MainNode, node);
+    case Asgn:    exec_Asgn(node);
     break;
     case Return:  returned_node = exec_return(node);
     break;

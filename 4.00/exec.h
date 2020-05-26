@@ -1,15 +1,13 @@
-enum Type ExprNode_valueType  (ProgramNode *, struct TreeNode *);
-
 int exec_IncDec                       (struct TreeNode *);
-int CMP_node_logicValue               (ProgramNode *, struct TreeNode *);
+int CMP_node_logicValue               (struct TreeNode *);
 struct TreeNode * exec_return         (struct TreeNode *);
 int exec_FunctionCall                 (struct TreeNode *);
 struct TreeNode * exec_functionScope  (struct TreeNode *);
 struct TreeNode * exec_statement      (struct TreeNode *, char);
 struct TreeNode * exec_scope          (struct TreeNode *, char);
 void exec_Expression                  (struct TreeNode *);
-void exec_DclN                        (ProgramNode *, struct TreeNode *);
-void exec_Asgn                        (ProgramNode *, struct TreeNode *);
+void exec_DclN                        (struct TreeNode *);
+void exec_Asgn                        (struct TreeNode *);
 void exec_DclN_Asgn                   (struct TreeNode *);
 void exec_Multi_DclN                  (struct TreeNode *);
 void exec_Multi_Asgn                  (struct TreeNode *);

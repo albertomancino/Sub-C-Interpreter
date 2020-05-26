@@ -78,12 +78,12 @@ int Retrieve_ArrayIndex(struct TreeNode * node){
     exit(EXIT_FAILURE);
   }
 
-  return Expr_toInt(MainNode, arrayDimNode);
+  return Expr_toInt(arrayDimNode);
 }
 /*
 * Given an Expr TreeNode return its integer value.
 */
-int Expr_toInt(ProgramNode * prog, struct TreeNode * node){
+int Expr_toInt(struct TreeNode * node){
 
   Check_NodeType(Expr, node, "Expr_toInt");
 
@@ -99,12 +99,12 @@ int Expr_toInt(ProgramNode * prog, struct TreeNode * node){
     switch (type) {
       case NUM: value = node -> node.Expr -> exprVal.intExpr;
                 break;
-      case ID:  var_type = Retrieve_VarType(MainNode, TreeNode_Identifier(node));
-                if (var_type == INT_ || var_type == CHAR_) value = Retrieve_VarValue(prog, TreeNode_Identifier(node), 0);
+      case ID:  var_type = Retrieve_VarType(TreeNode_Identifier(node));
+                if (var_type == INT_ || var_type == CHAR_) value = Retrieve_VarValue(TreeNode_Identifier(node), 0);
                 else if (var_type == INT_V_ || var_type == CHAR_V_) value = (int)Retrieve_VarPointer(TreeNode_Identifier(node), 0);
                 break;
       case VEC: index = Retrieve_ArrayIndex(node);
-                value = Retrieve_VarValue(prog, node -> node.Expr -> exprVal.stringExpr, index);
+                value = Retrieve_VarValue(node -> node.Expr -> exprVal.stringExpr, index);
                 break;
       case STR: value = (int)node -> node.Expr -> exprVal.stringExpr;
                 break;
@@ -134,8 +134,8 @@ int Expr_toInt(ProgramNode * prog, struct TreeNode * node){
                 break;
       case DP:  value = exec_IncDec(node);
                 break;
-      case PA:  exec_Asgn(MainNode, node -> child_list -> first);
-                value = Expr_toInt(MainNode, node -> child_list -> first -> child_list -> first);
+      case PA:  exec_Asgn( node -> child_list -> first);
+                value = Expr_toInt(node -> child_list -> first -> child_list -> first);
                 break;
       case ADD: if (node -> child_list -> first -> node.Expr -> exprType == ID){
                   value = (int)Retrieve_VarPointer(TreeNode_Identifier(node -> child_list -> first), 0);
@@ -184,7 +184,7 @@ int IsCostant(struct TreeNode * node){
                 break;
       case TIM: return (IsCostant(node -> child_list -> first) && IsCostant(node -> child_list -> first -> next));
                 break;
-      case DIV:  return (IsCostant(node -> child_list -> first) && IsCostant(node -> child_list -> first -> next) && Expr_toInt(MainNode, node -> child_list -> first -> next) != 0);
+      case DIV:  return (IsCostant(node -> child_list -> first) && IsCostant(node -> child_list -> first -> next) && Expr_toInt(node -> child_list -> first -> next) != 0);
                 break;
       case MOD: return (IsCostant(node -> child_list -> first) && IsCostant(node -> child_list -> first -> next));
                 break;
@@ -293,7 +293,12 @@ int Multiple_Modifications(struct TreeNode * node, char* identifier){
     return 0;
   }
 }
-
+/*
+* returns INT_ if the expression is an integer variable
+* retruns CHAR_ if the expression is a char variable
+* returns INT_V_ if the expression is an integer array
+* retruns CHAR_V_ if the expression is a char array
+*/
 enum Type expressionType(struct TreeNode * expression){
 
   Check_NodeType(Expr, expression, "expressionType");
@@ -301,15 +306,15 @@ enum Type expressionType(struct TreeNode * expression){
   enum Type return_type;
 
   if (expression_type == NUM)                               return_type = INT_;
-  else if (expression_type == ID)                           return_type = Retrieve_VarType(MainNode, TreeNode_Identifier(expression));
+  else if (expression_type == ID)                           return_type = Retrieve_VarType(TreeNode_Identifier(expression));
   else if (expression_type == VEC){
-    return_type = Retrieve_VarType(MainNode, TreeNode_Identifier(expression));
+    return_type = Retrieve_VarType(TreeNode_Identifier(expression));
     if (return_type == INT_V_) return_type = INT_;
     if (return_type == CHAR_V_) return_type = CHAR_;
   }
   else if (expression_type == STR)                          return_type = CHAR_V_;
   else if (expression_type == C)                            return_type = CHAR_;
-  else if (expression_type == FC)                           return_type = Retrive_FunType(MainNode, expression -> node.Expr -> exprVal.stringExpr);
+  else if (expression_type == FC)                           return_type = Retrive_FunType(expression -> node.Expr -> exprVal.stringExpr);
   else if (expression_type == RND)                          return_type = expressionType(expression -> child_list -> first);
   else if (isOperation(expression))                         return_type = INT_;
   else if (expression_type == CMP)                          return_type = INT_;
@@ -323,7 +328,10 @@ enum Type expressionType(struct TreeNode * expression){
   }
   return return_type;
 }
-
+/*
+* returns 1 if the char argument is a string format symbol without '%'
+* return 0, otherwise
+*/
 int isStringFormat(char symbol){
   switch (symbol) {
     case 'd': return 1;
@@ -348,7 +356,9 @@ int isStringFormat(char symbol){
     break;
   }
 }
-
+/*
+* returns the pointer of the variable in the expression as a void *
+*/
 void * TreeNode_Var_Pointer(struct TreeNode * expression){
 
   Check_NodeType(Expr, expression, "TreeNode_Var_Pointer");
@@ -359,14 +369,19 @@ void * TreeNode_Var_Pointer(struct TreeNode * expression){
     return Retrieve_VarPointer(TreeNode_Identifier(expression), index);
   }
   else if (expression -> node.Expr -> exprType == ADD) return TreeNode_Var_Pointer(expression -> child_list -> first);
-
+  else{
+    printf("%s TreeNode_Var_Pointer - unexpected expression type. Type found %s.\n", ErrorMsg(), ExprTypeString(expression));
+    exit(EXIT_FAILURE);
+  }
 }
-
+/*
+* returns 1 if the expression is an array pointer, 0 otherwise
+*/
 int isArrayPointer (struct TreeNode * expr){
 
   if (expr -> nodeType == Expr){
     if (expr -> node.Expr -> exprType == ID){
-      enum Type type = Retrieve_VarType(MainNode, TreeNode_Identifier(expr));
+      enum Type type = Retrieve_VarType(TreeNode_Identifier(expr));
       if (type == INT_V_ || type == CHAR_V_) return 1;
       else return 0;
     }
@@ -514,7 +529,6 @@ struct SymbolTable_Node * SymbolTable_Get(struct SymbolTable * table, int index)
   }
 
 }
-
 /*
 *   prints the symbol table elements with their types and values
 */
@@ -551,10 +565,10 @@ void SymbolTable_Print(struct SymbolTable * table){
 /*
 *   given the variable identifier, retrieves the variable Symbol Table Node from the actual scope
 */
-struct SymbolTable_Node * SymbolTable_RetrieveVar (struct ProgramNode * prog, char * identifier){
+struct SymbolTable_Node * SymbolTable_RetrieveVar (char * identifier){
 
   // retrieve the actual scope
-  struct TreeNode * actualScope = Get_ActualScope(prog);
+  struct TreeNode * actualScope = Get_ActualScope();
   // retrieve symbol table from the scope
   struct SymbolTable * ST = actualScope -> node.ST;
 
@@ -569,9 +583,12 @@ struct SymbolTable_Node * SymbolTable_RetrieveVar (struct ProgramNode * prog, ch
     return SymbolTable_Get(ST, index);
   }
 }
+/*
+*   given the variable identifier, retrieves the variable Symbol Table Node from the actual scope stack
+*/
 struct SymbolTable_Node * SymbolTable_IterativeRetrieveVar (char * identifier){
 
-  struct SymbolTable_Node * ST_Node = SymbolTable_RetrieveVar(MainNode, identifier);
+  struct SymbolTable_Node * ST_Node = SymbolTable_RetrieveVar(identifier);
   // if the search fails in the acutal_scope
   if (ST_Node == NULL){
     // retrieve the actual scope node
@@ -599,12 +616,11 @@ struct SymbolTable_Node * SymbolTable_IterativeRetrieveVar (char * identifier){
   // if the search in the acutal_scope ended successfully
   else  return ST_Node;
 }
-
 /*
 *   given the variable identifier, returns the int value stored in symbol table
 *   if the variable is a character returns the int value
 */
-int Retrieve_VarValue (struct ProgramNode * prog, char * identifier, int index){
+int Retrieve_VarValue (char * identifier, int index){
 
   // symbol table node with the given identifier
   struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar(identifier);
@@ -622,7 +638,7 @@ int Retrieve_VarValue (struct ProgramNode * prog, char * identifier, int index){
   }
   else if(ST_Node -> type == INT_V_){
 
-    int array_dim = Retrieve_ArrayDim(prog, identifier);
+    int array_dim = Retrieve_ArrayDim(identifier);
 
     // out of bounds array error
     if (index > array_dim - 1){
@@ -639,7 +655,7 @@ int Retrieve_VarValue (struct ProgramNode * prog, char * identifier, int index){
   }
   else if(ST_Node -> type == CHAR_V_){
 
-    int array_dim = Retrieve_ArrayDim(prog, identifier);
+    int array_dim = Retrieve_ArrayDim(identifier);
 
     // out of bounds array error
     if (index > array_dim - 1){
@@ -659,6 +675,9 @@ int Retrieve_VarValue (struct ProgramNode * prog, char * identifier, int index){
     exit(EXIT_FAILURE);
   }
 }
+/*
+* returns the variable pointer stored in the symbol table from the actual scope stack
+*/
 void * Retrieve_VarPointer (char * identifier, int index){
   // symbol table node with the given identifier
   struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar(identifier);
@@ -671,7 +690,7 @@ void * Retrieve_VarPointer (char * identifier, int index){
   else if(ST_Node -> type == CHAR_) return &(ST_Node -> varVal.charVal);
   else if(ST_Node -> type == INT_V_){
 
-    int array_dim = Retrieve_ArrayDim(MainNode, identifier);
+    int array_dim = Retrieve_ArrayDim(identifier);
     // out of bounds array error
     if (index > array_dim - 1){
       printf("%s array index %d is past the end of the array. Array contains %d elements.\n", ErrorMsg(), index, array_dim);
@@ -686,7 +705,7 @@ void * Retrieve_VarPointer (char * identifier, int index){
   }
   else if(ST_Node -> type == CHAR_V_){
 
-    int array_dim = Retrieve_ArrayDim(MainNode, identifier);
+    int array_dim = Retrieve_ArrayDim(identifier);
 
     // out of bounds array error
     if (index > array_dim - 1){
@@ -705,7 +724,10 @@ void * Retrieve_VarPointer (char * identifier, int index){
     exit(EXIT_FAILURE);
   }
 }
-enum Type Retrieve_VarType(struct ProgramNode * prog, char * identifier){
+/*
+* returns the variable type (INT_, CHAR_, INT_V_, CHAR_P_) stored in the symbol table from the actual scope stack
+*/
+enum Type Retrieve_VarType(char * identifier){
 
   // symbol table node with the given identifier
   struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar(identifier);
@@ -715,7 +737,10 @@ enum Type Retrieve_VarType(struct ProgramNode * prog, char * identifier){
   }
   return ST_Node -> type;
 }
-int Retrieve_ArrayDim(struct ProgramNode * prog, char * identifier){
+/*
+* returns the dimension of the array array stored in the symbol table from the actual scope stack
+*/
+int Retrieve_ArrayDim(char * identifier){
 
   struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar (identifier);
   if (ST_Node -> type == INT_ || ST_Node -> type == CHAR_){
@@ -724,12 +749,18 @@ int Retrieve_ArrayDim(struct ProgramNode * prog, char * identifier){
   }
   return ST_Node -> arrayDim;
 }
-int Check_VarWasDeclared (struct ProgramNode * prog, char * identifier, int flag){
+/*
+* returns 1 if the variable was declared, 0 otherwise
+* if the flag is 0 the search is limited in the scope at the top of the stack
+* if the flag is 1 the search is over the all scope stack
+* if the flag is neither 0 nor 1 raise an error
+*/
+int Check_VarWasDeclared (char * identifier, int flag){
 
   struct SymbolTable_Node * node;
   // search only in the actual scope
   if(flag == 0){
-    node = SymbolTable_RetrieveVar (prog, identifier);
+    node = SymbolTable_RetrieveVar (identifier);
   }
   // search in the actual scope and in the other scopes in the stack
   else if(flag == 1){
@@ -740,17 +771,13 @@ int Check_VarWasDeclared (struct ProgramNode * prog, char * identifier, int flag
     exit(EXIT_FAILURE);
   }
   // return
-  if (node == NULL){
-    return 0;
-  }
-  else{
-    return 1;
-  }
+  if (node == NULL) return 0;
+  else return 1;
 }
 /*
 * change the value of a symbol table node with the value stored in a TreeNode
 */
-void SymbolTable_AssignValue (struct ProgramNode * prog, struct TreeNode * variable, int value){
+void SymbolTable_AssignValue (struct TreeNode * variable, int value){
 
   Check_NodeType(Expr, variable, "SymbolTable_AssignValue");
 
@@ -786,10 +813,16 @@ void SymbolTable_AssignValue (struct ProgramNode * prog, struct TreeNode * varia
     exit(EXIT_FAILURE);
   }
 }
+/*
+* return the value of the ignore flag of the variable stored in the symbol table
+*/
 int IgnoreFlag(char * identifier){
   struct SymbolTable_Node * ST_Node = SymbolTable_IterativeRetrieveVar(identifier);
   return ST_Node -> ignore;
 }
+/*
+* copies a symbol table into an other
+*/
 void SymbolTableCopy (struct SymbolTable * SymbolTab, struct SymbolTable * newSymbolTab){
 
   struct SymbolTable_Node * variable;
@@ -814,6 +847,9 @@ void SymbolTableCopy (struct SymbolTable * SymbolTab, struct SymbolTable * newSy
 //////////////////  TREE NODE LIST FUNCTIONS  //////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+/*
+* memory allocation and initializing of a TreeNodeList
+*/
 struct TreeNodeList* TreeNodeList_Set(){
 
   struct TreeNodeList* list;
@@ -826,6 +862,9 @@ struct TreeNodeList* TreeNodeList_Set(){
   return list;
 
 }
+/*
+* adds a TreeNode to a TreeNodeList
+*/
 void TreeNodeList_Add (struct TreeNodeList * list, struct TreeNode * newElem){
   if (newElem != NULL){
     if (list -> elements==0){
@@ -851,6 +890,9 @@ void TreeNodeList_Add (struct TreeNodeList * list, struct TreeNode * newElem){
     list -> elements ++;
   }
 }
+/*
+* removes the last TreeNode from the TreeNodeList
+*/
 void TreeNodeList_Rem (struct TreeNodeList * list){
 
   if (list -> elements==0){
@@ -915,7 +957,9 @@ struct TreeNode * TreeNodeList_IndexSearch (struct TreeNodeList * list, int inde
 //////////////////  SCOPE STACK FUNCTIONS  /////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-// initialize a new scope stack
+/*
+* memory allocation and initializing of a ScopeStack
+*/
 struct ScopeStack * ScopeStack_Set (){
 
   struct ScopeStack * stack = (struct ScopeStack *) malloc (sizeof(struct ScopeStack));
@@ -931,6 +975,9 @@ struct ScopeStack * ScopeStack_Set (){
   stack -> elements = 0;
   return stack;
 }
+/*
+* pushes a scope at the top of the scope stack
+*/
 void ScopeStack_Push(struct ScopeStack * stack, struct TreeNode * scope, char active){
 
   if (stack -> elements == 0){
@@ -960,6 +1007,9 @@ void ScopeStack_Push(struct ScopeStack * stack, struct TreeNode * scope, char ac
 
   if(ST_DEBUGGING) printf("New scope in the scope stack. Scope in the stacks: %d\n", stack -> elements);
 }
+/*
+* removes the scope at the top of the scope stack
+*/
 void ScopeStack_Pop(struct ScopeStack * stack){
 
   struct Scope * previous_scope = stack -> top -> prevScope;
@@ -970,21 +1020,30 @@ void ScopeStack_Pop(struct ScopeStack * stack){
   if(ST_DEBUGGING) printf("A scope has been removed from the scope stack. Scope in the stacks: %d\n", stack -> elements);
 
 }
+/*
+* returns the scope node at the top of the stack
+*/
 struct TreeNode * ScopeStack_Peek(struct ScopeStack * stack){
 
   return stack -> top -> thisScope;
 }
+/*
+* pushes a scope at the top of the actual scope stack
+* if the active flag is one the scope will be active
+*/
 void SetAs_ActualScope(struct TreeNode * scope, char active){
   ScopeStack_Push(MainNode -> actual_stack, scope, active);
 }
-void Remove_ActualScope(struct ProgramNode * prog){
-  ScopeStack_Pop(prog -> actual_stack);
-}
-struct TreeNode * Get_ActualScope(struct ProgramNode * prog){
+/*
+* peeks the scope at the top of the actual scope stack
+*/
+struct TreeNode * Get_ActualScope(){
 
-  return ScopeStack_Peek(prog -> actual_stack);
+  return ScopeStack_Peek(MainNode -> actual_stack);
 }
-// restituisce il numero di scope presenti nello scope stack attuale
+/*
+* returns the number of scopes in the actual scope stack
+*/
 int ScopeStack_Elements(){
 
   if (MainNode -> actual_stack == NULL){
@@ -995,7 +1054,9 @@ int ScopeStack_Elements(){
     return MainNode -> actual_stack -> elements;
   }
 }
-// restituisce lo scope stack node attuale
+/*
+* returns the scope node at the top of the actual scope stack
+*/
 struct Scope * Get_ActualScopeNode(){
 
   if (MainNode -> actual_stack == NULL){
@@ -1011,10 +1072,12 @@ struct Scope * Get_ActualScopeNode(){
 //////////////////  TREE BUILDING FUNCTIONS  ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-// links a TreeNode to the last scope
-void Add_Node_Tree (ProgramNode * prog, struct TreeNode * newNode){
+/*
+* links the node to the scope at the top of the scope stack
+*/
+void Add_Node_Tree (struct TreeNode * newNode){
 
-  struct TreeNode * acutal_scope = prog -> actual_stack -> top -> thisScope;
+  struct TreeNode * acutal_scope = MainNode -> actual_stack -> top -> thisScope;
   TreeNodeList_Add(acutal_scope -> child_list, newNode);
 }
 
@@ -1022,20 +1085,22 @@ void Add_Node_Tree (ProgramNode * prog, struct TreeNode * newNode){
 //////////////////  FUNCTION NODE AND LIST METHODS  ////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void FunNodeList_Set (ProgramNode* prog){
-
-  prog -> function_list  = (FunNodeList*) malloc (sizeof(FunNodeList)); // memory space allocation
+/*
+* memory allocation and initializing of the FunNodeList
+*/
+void FunNodeList_Set (ProgramNode * prog){
+  // memory space allocation
+  prog -> function_list = (struct FunNodeList*) malloc(sizeof(struct FunNodeList));
   if ( prog -> function_list == NULL ){
     printf("%s FunNodeList_Set - out of memory.\n", ErrorMsg());
     exit(EXIT_FAILURE);
   }
   prog -> function_list  -> elements = 0;
-
 }
 /*
 * create a new FunNode based on the declaration and add it to the FunctionList
 */
-void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
+void FunNodeList_Add (struct TreeNode * declaration){
 
   // check argument type
   Check_NodeType(DclN, declaration, "FunNodeList_Add");
@@ -1084,28 +1149,28 @@ void FunNodeList_Add (ProgramNode* prog, struct TreeNode * declaration){
   ScopeStack_Push(newFunction -> scope_stack, newFunction -> function_scope, 0);
 
   // Setting the function scope stack as actual scope stack
-  prog -> actual_stack = newFunction -> scope_stack;
+  MainNode -> actual_stack = newFunction -> scope_stack;
 
   if (ST_DEBUGGING) printf("New actual scope stack set.\n");
 
   // Adding function to ProgramNode function list
   // Fist function in the function list
-  if (prog -> function_list -> elements == 0){
+  if (MainNode -> function_list -> elements == 0){
 
     if (TREE_DEBUGGING)  printf("TREE: %s first function insert in FunNodeList\n",identifier);
-    prog -> function_list -> first = newFunction;
-    prog -> function_list -> last = newFunction;
+    MainNode -> function_list -> first = newFunction;
+    MainNode -> function_list -> last = newFunction;
   }
   // Subsequent function in the function list
   else{
 
     if (TREE_DEBUGGING)  printf("TREE: \"%s\" function insert in FunNodeList\n",identifier);
-    prog -> function_list -> last -> next = newFunction;
-    prog -> function_list -> last = newFunction;
+    MainNode -> function_list -> last -> next = newFunction;
+    MainNode -> function_list -> last = newFunction;
 
   }
 
-  prog -> function_list -> elements ++;
+  MainNode -> function_list -> elements ++;
   if (ST_DEBUGGING) printf("- FunNodeList_Add: A new function Node was created\n");
 }
 /*
@@ -1161,40 +1226,12 @@ struct FunNode * FunNodeList_Get (int index){
 /*
 * Given the variable identifier return its type. (INT_, CHAR_)
 */
-enum Type Retrive_FunType(ProgramNode * prog, char * identifier){
+enum Type Retrive_FunType(char * identifier){
 
   if (!strcmp(identifier, "printf") || !strcmp(identifier, "scanf")) return INT_;
   int index = FunNodeList_Search(identifier);
   struct FunNode * function = FunNodeList_Get(index);
   return function -> funType;
-}
-// todo: rimuovere se useless
-void ActiveFunStack_Set (ProgramNode* prog){
-
-    prog -> active_function  = (FunNodeList*) malloc (sizeof(FunNodeList)); // memory space allocation
-    if ( prog -> active_function == NULL ){
-      printf("%s ActiveFunStack_Set - out of memory.\n", ErrorMsg());
-      exit(EXIT_FAILURE);
-    }
-    prog -> active_function  -> elements = 0;
-
-}
-void ActiveFunStack_Add (ProgramNode* prog, FunNode* function){
-
-  struct FunNodeList* function_stack = prog -> active_function;
-
-  if (function_stack -> elements == 0) {   // empty stack
-
-    function_stack -> first = function;
-    function_stack -> last = function;
-
-  }
-  else { // not empty stack
-
-    function_stack -> first = function;
-    function_stack -> last = function;
-  }
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1202,6 +1239,7 @@ void ActiveFunStack_Add (ProgramNode* prog, FunNode* function){
 ////////////////////////////////////////////////////////////////////////////////
 
 ProgramNode* ProgramNode_Set (){
+
   ProgramNode* prog; // support var
   // program node memory space allocation
   prog = (ProgramNode*) malloc (sizeof(ProgramNode));
@@ -1211,8 +1249,6 @@ ProgramNode* ProgramNode_Set (){
   }
   // initializing functions' list
   FunNodeList_Set(prog);
-  // initializing functions' stack
-  //todo remove ActiveFunStack_Set(prog);
   // global scope setting
   prog -> global_scope = create_ScopeNode();
   // global scope stack setting
@@ -1467,9 +1503,9 @@ char * VarTypeString(enum Type type){
   }
   return NULL;
 }
-void PrintActualST(ProgramNode * prog){
+void PrintActualST(){
   // retrieve the actual scope
-  struct TreeNode * actualScope = Get_ActualScope(prog);
+  struct TreeNode * actualScope = Get_ActualScope();
   // retrieve symbol table from the scope
   struct SymbolTable * ST = actualScope -> node.ST;
   // print ST

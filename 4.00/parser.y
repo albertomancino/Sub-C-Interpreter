@@ -115,14 +115,14 @@ global_scope_body
 ;
 
 global_statements
-: declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Global declaration statement found\n");                if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);  if(EXEC) exec_DclN(MainNode, $1)}
-| declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Global declaration and assignment statement found\n"); if(TREE_BUILDING) Add_Node_Tree(MainNode, $1);}
-| multi_dec END_COMMA
+: declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Global declaration statement found\n");                if(TREE_BUILDING) Add_Node_Tree($1);  exec_DclN($1)}
+| declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Global declaration and assignment statement found\n"); if(TREE_BUILDING) Add_Node_Tree($1);  exec_DclN_Asgn($1);}
+| multi_dec END_COMMA                                                           {if(P_DEBUGGING==1) printf("BISON: Global multi declaration statement found\n");          if(TREE_BUILDING) Add_Node_Tree($1);  exec_Multi_DclN($1);}
 ;
 
 function_list
-: function                                                                      {if(P_DEBUGGING==1) printf("BISON: Function list found1\n");}
-| function_list function                                                        {if(P_DEBUGGING==1) printf("BISON: Function list found2\n");}
+: function                                                                      {if(P_DEBUGGING==1) printf("BISON: Function list1 found\n");}
+| function_list function                                                        {if(P_DEBUGGING==1) printf("BISON: Function list2 found\n");}
 ;
 
 function
@@ -133,7 +133,6 @@ function
 function_declaration
 : declaration arguments_declaration OPEN_BRACKET                                {if(P_DEBUGGING==1) printf("BISON: Function declaration found\n");         if(TREE_BUILDING) create_FunctionNode($1,$2);}
 ;
-
 
 arguments_declaration
 : OPEN_ROUND arguments_declaration_list CLOSED_ROUND                            {if(P_DEBUGGING==1) printf("BISON: arguments_declaration1 found\n");       if(TREE_BUILDING) $$ = $2}
@@ -151,7 +150,7 @@ scope
 ;
 
 start_scope
-: OPEN_BRACKET                                                                  {if(P_DEBUGGING==1) printf("BISON: Start of the scope found\n");           if(TREE_BUILDING) { $$ = create_ScopeNode(); Add_Node_Tree(MainNode, $$); SetAs_ActualScope($$, Check_activation());}}
+: OPEN_BRACKET                                                                  {if(P_DEBUGGING==1) printf("BISON: Start of the scope found\n");           if(TREE_BUILDING) { $$ = create_ScopeNode(); Add_Node_Tree($$); SetAs_ActualScope($$, Check_activation());}}
 ;
 
 statement_list
@@ -167,15 +166,15 @@ statement_scope
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 statement
-: expr END_COMMA                                                                {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); Warning_Unused($1); if(Check_activation()) exec_Expression($1);}
-| return_statement                                                              {if(P_DEBUGGING==1) printf("BISON: Return statement found\n");                                     if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); Update_return_flag(); if(Check_activation()) {return_node = exec_return($1); Return_main(return_node); YYACCEPT;}}
-| declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");                                if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); exec_DclN(MainNode,$1);}
-| assignment END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Assignment statement found\n");                                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Asgn(MainNode,$1);}
-| multi_dec END_COMMA                                                           {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                          if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_DclN($1);}
-| multi_asgn END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                           if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_Multi_Asgn($1);}
-| declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                 if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) exec_DclN_Asgn($1);}
-| if_else_statement                                                             {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) {return_node = exec_ifElse($1, 0); if(Return_main(return_node)) YYACCEPT;}}
-| while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                            if(TREE_BUILDING) Add_Node_Tree(MainNode, $1); if(Check_activation()) {return_node = exec_while($1, 0);  if(Return_main(return_node)) YYACCEPT;}}
+: expr END_COMMA                                                                {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                       if(TREE_BUILDING) Add_Node_Tree($1); Warning_Unused($1); if(Check_activation()) exec_Expression($1);}
+| return_statement                                                              {if(P_DEBUGGING==1) printf("BISON: Return statement found\n");                                     if(TREE_BUILDING) Add_Node_Tree($1); Update_return_flag(); if(Check_activation()) {return_node = exec_return($1); Return_main(return_node); YYACCEPT;}}
+| declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");                                if(TREE_BUILDING) Add_Node_Tree($1); exec_DclN($1);}
+| assignment END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Assignment statement found\n");                                 if(TREE_BUILDING) Add_Node_Tree($1); if(Check_activation()) exec_Asgn($1);}
+| multi_dec END_COMMA                                                           {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                          if(TREE_BUILDING) Add_Node_Tree($1); if(Check_activation()) exec_Multi_DclN($1);}
+| multi_asgn END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                           if(TREE_BUILDING) Add_Node_Tree($1); if(Check_activation()) exec_Multi_Asgn($1);}
+| declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                 if(TREE_BUILDING) Add_Node_Tree($1); if(Check_activation()) exec_DclN_Asgn($1);}
+| if_else_statement                                                             {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                               if(TREE_BUILDING) Add_Node_Tree($1); if(Check_activation()) {return_node = exec_ifElse($1, 0); if(Return_main(return_node)) YYACCEPT;}}
+| while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                            if(TREE_BUILDING) Add_Node_Tree($1); if(Check_activation()) {return_node = exec_while($1, 0);  if(Return_main(return_node)) YYACCEPT;}}
 | END_COMMA                                                                     {if(P_DEBUGGING==1) printf("BISON: Empty statement found\n");}
 ;
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -450,8 +449,8 @@ void create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parame
   Check_NodeType(DclN, declaration, "create_functionNode");
   Check_NodeType(ArgLst, parameters, "create_functionNode");
 
-  FunNodeList_Add (MainNode, declaration);
-  Add_Node_Tree(MainNode, parameters);
+  FunNodeList_Add (declaration);
+  Add_Node_Tree(parameters);
 
   char * fun_identifier = TreeNode_Identifier(declaration);
 
@@ -478,7 +477,7 @@ void create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parame
         parameter -> node.DclN -> ignore = 1;
       }
 
-      exec_DclN(MainNode, parameter);
+      exec_DclN(parameter);
     }
   }
 
@@ -614,7 +613,7 @@ struct TreeNode * create_Condition(struct TreeNode * expr){
       printf("%s address of array \'%s\' will always evaluate to \'true\'.\n", WarnMsg(), TreeNode_Identifier(expr));
     else if(IsCostant(expr)){
 
-      char value = CMP_node_logicValue(MainNode, expr);
+      char value = CMP_node_logicValue(expr);
       if (value == 1){
         printf("%s condition is always true.\n", WarnMsg());
       }
@@ -708,7 +707,7 @@ struct TreeNode * create_MultiDeclaration(struct TreeNode * declaration, struct 
     TreeNodeList_Add(newTreeNode -> child_list, declaration);
 
     // declaration must be executed in order to add the declared variable to the Symbol Table
-    exec_DclN(MainNode, declaration);
+    exec_DclN(declaration);
 
     enum Type declarationType = declaration -> node.DclN -> type;
     if (declarationType == INT_V_) declarationType = INT_;
@@ -761,7 +760,7 @@ struct TreeNode * create_MultiDeclaration(struct TreeNode * declaration, struct 
 
       // if the previous element was a simple declaration I have to execute it
       if (declaration -> child_list  -> last -> nodeType == DclN){
-        exec_DclN(MainNode, declaration -> child_list  -> last);
+        exec_DclN(declaration -> child_list  -> last);
       }
 
       // declaration type derives from the first declaration
@@ -829,7 +828,7 @@ struct TreeNode * create_Declaration_AssignmentNode(struct TreeNode * declaratio
         identifierNode = create_ExprNode(ID, 0, identifier, NULL, NULL, 0);
 
         // declaration must be always executed, in order to add variables to the symbol table
-        exec_DclN(MainNode, declaration);
+        exec_DclN(declaration);
 
         // creating the assignment node
         struct TreeNode * assignmentNode = create_AssignmentNode(MainNode, identifierNode, expr);
@@ -903,7 +902,7 @@ struct TreeNode * create_Declaration_AssignmentNode(struct TreeNode * declaratio
         }
         // array with specified dimension
         else{
-          var_dimension = Expr_toInt(MainNode, declaration -> node.DclN -> arrayDim);
+          var_dimension = Expr_toInt(declaration -> node.DclN -> arrayDim);
         }
 
         // warning: excess elements in array initializer
@@ -920,7 +919,7 @@ struct TreeNode * create_Declaration_AssignmentNode(struct TreeNode * declaratio
         else if (decl_type == INT_V_ || decl_type == CHAR_V_){
 
           // declaration must be always executed, in order to add variables to the symbol table
-          exec_DclN(MainNode, declaration);
+          exec_DclN(declaration);
 
           // declaring variable identifier
           char * identifier = TreeNode_Identifier(declaration);
@@ -1096,7 +1095,7 @@ struct TreeNode * create_ReturnNode(struct TreeNode * expr){
 
   int value;
   if (IsCostant(expr)){
-    value = Expr_toInt(MainNode, expr);
+    value = Expr_toInt(expr);
 
     FunNode * function_node = MainNode -> function_list -> last;
     enum Type function_type = function_node -> funType;
@@ -1265,7 +1264,7 @@ void Check_IdentifierConcistency(struct TreeNode * identifier_node){
 
   char * identifier = identifier_node -> node.Expr -> exprVal.stringExpr;
   // check declaration
-  if (!Check_VarWasDeclared(MainNode, identifier, 1)){
+  if (!Check_VarWasDeclared(identifier, 1)){
     printf("%s use of undeclared identifier \'%s\'.\n", ErrorMsg(), identifier);
     exit(EXIT_FAILURE);
   }
@@ -1278,7 +1277,7 @@ void Check_ArrayConcistency(struct TreeNode * array){
 
   char * array_id = array -> node.Expr -> exprVal.stringExpr;
   // check declaration
-  if (!Check_VarWasDeclared(MainNode, array_id, 1)){
+  if (!Check_VarWasDeclared(array_id, 1)){
 
     printf("%s use of undeclared identifier \'%s\'.\n", ErrorMsg(), array_id);
     exit(EXIT_FAILURE);
@@ -1291,7 +1290,7 @@ void Check_ArrayConcistency(struct TreeNode * array){
     }
     // check array index
     int index = Retrieve_ArrayIndex(array);
-    int array_dim = Retrieve_ArrayDim(MainNode, array_id);
+    int array_dim = Retrieve_ArrayDim(array_id);
 
     // out of bounds array error
     if (index > array_dim - 1 && !IgnoreFlag(array_id)){
@@ -1349,7 +1348,7 @@ void Check_OperationConcistency (struct TreeNode * operation_node){
           // If the second operand is costant
           if(IsCostant(operation_node -> child_list -> first -> next)){
             // If the second operand value is 0
-            if(Expr_toInt(MainNode, operation_node -> child_list -> first -> next) == 0){
+            if(Expr_toInt(operation_node -> child_list -> first -> next) == 0){
               printf("%s division by zero is undefined.\n", WarnMsg());
             }
           }
@@ -1357,7 +1356,7 @@ void Check_OperationConcistency (struct TreeNode * operation_node){
         // Node value pre-calculus if it is not a division by 0
         else if(IsCostant(operation_node)){
 
-            int value = Expr_toInt(MainNode, operation_node);
+            int value = Expr_toInt(operation_node);
             operation_node -> node.Expr -> exprVal.intExpr = value;
             operation_node -> node.Expr -> known = 1;
         }
@@ -1398,14 +1397,14 @@ void Check_ComparisonConcistency (struct TreeNode * comparison_node){
 
     // Raise a warning if the operand is a costant and is different from 0 or 1
     if (IsCostant(leftOp)){
-      int value = Expr_toInt(MainNode, leftOp);
+      int value = Expr_toInt(leftOp);
       if (value != 0 && value != 1){
         printf("%s logical operation with costant first operand.\n", WarnMsg());
       }
 
     }
     if (IsCostant(rightOp)){
-      int value = Expr_toInt(MainNode, rightOp);
+      int value = Expr_toInt(rightOp);
       if (value != 0 && value != 1){
         printf("%s logical operation with costant second operand.\n", WarnMsg());
       }
@@ -1418,39 +1417,39 @@ void Check_ComparisonConcistency (struct TreeNode * comparison_node){
     if (IsCostant(leftOp)){
       if (rightOp_type == ID || rightOp_type == VEC){
         char * identifier = TreeNode_Identifier(rightOp);
-        enum Type varType = Retrieve_VarType(MainNode, identifier);
+        enum Type varType = Retrieve_VarType(identifier);
 
         if (varType == CHAR_ || varType == CHAR_V_){
           if (type == GREAT_){
-            if (Expr_toInt(MainNode, leftOp) > 127){
-              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+            if (Expr_toInt(leftOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(leftOp));
             }
-            else if (Expr_toInt(MainNode, leftOp) < -128){
-              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+            else if (Expr_toInt(leftOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(leftOp));
             }
           }
           if (type == LESS_){
-            if (Expr_toInt(MainNode, leftOp) > 127){
-              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+            if (Expr_toInt(leftOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(leftOp));
             }
-            else if (Expr_toInt(MainNode, leftOp) < -128){
-              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+            else if (Expr_toInt(leftOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(leftOp));
             }
           }
           if (type == EQUAL_){
-            if (Expr_toInt(MainNode, leftOp) > 127){
-              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+            if (Expr_toInt(leftOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(leftOp));
             }
-            else if (Expr_toInt(MainNode, leftOp) < -128){
-              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+            else if (Expr_toInt(leftOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(leftOp));
             }
           }
           if (type == DIFF_){
-            if (Expr_toInt(MainNode, leftOp) > 127){
-              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+            if (Expr_toInt(leftOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(leftOp));
             }
-            else if (Expr_toInt(MainNode, leftOp) < -128){
-              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+            else if (Expr_toInt(leftOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(leftOp));
             }
           }
         }
@@ -1459,38 +1458,38 @@ void Check_ComparisonConcistency (struct TreeNode * comparison_node){
     if (IsCostant(rightOp)){
       if (leftOp_type == ID || leftOp_type == VEC){
         char * identifier = TreeNode_Identifier(leftOp);
-        enum Type varType = Retrieve_VarType(MainNode, identifier);
+        enum Type varType = Retrieve_VarType(identifier);
 
         if (varType == CHAR_ || varType == CHAR_V_){
           if (type == GREAT_){
-            if (Expr_toInt(MainNode, rightOp) > 127){
-              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(MainNode, rightOp));
+            if (Expr_toInt(rightOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(rightOp));
             }
-            else if (Expr_toInt(MainNode, rightOp) < -128){
-              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(MainNode, rightOp));
+            else if (Expr_toInt(rightOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), Expr_toInt(rightOp));
             }
           }
           if (type == LESS_){
-            if (Expr_toInt(MainNode, rightOp) > 127){
+            if (Expr_toInt(rightOp) > 127){
               printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), rightOp -> node.Expr -> exprVal.intExpr);
             }
-            else if (Expr_toInt(MainNode, rightOp) < -128){
+            else if (Expr_toInt(rightOp) < -128){
               printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), rightOp -> node.Expr -> exprVal.intExpr);
             }
           }
           if (type == EQUAL_){
-            if (Expr_toInt(MainNode, rightOp) > 127){
-              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(MainNode, rightOp));
+            if (Expr_toInt(rightOp) > 127){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(rightOp));
             }
-            else if (Expr_toInt(MainNode, rightOp) < -128){
-              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(MainNode, rightOp));
+            else if (Expr_toInt(rightOp) < -128){
+              printf("%s result of comparison of constant %d with expression of type char is always false.\n", WarnMsg(), Expr_toInt(rightOp));
             }
           }
           if (type == DIFF_){
-            if (Expr_toInt(MainNode, rightOp) > 127){
+            if (Expr_toInt(rightOp) > 127){
               printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), rightOp -> node.Expr -> exprVal.intExpr);
             }
-            else if (Expr_toInt(MainNode, rightOp) < -128){
+            else if (Expr_toInt(rightOp) < -128){
               printf("%s result of comparison of constant %d with expression of type char is always true.\n", WarnMsg(), rightOp -> node.Expr -> exprVal.intExpr);
             }
           }
@@ -1501,57 +1500,57 @@ void Check_ComparisonConcistency (struct TreeNode * comparison_node){
     // Print a warning if the comparison with an other comparison is always true or always false
     if (leftOp_type == CMP && IsCostant(rightOp)){
       if (type == GREAT_){
-        if (Expr_toInt(MainNode, rightOp) < 0){
-            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(MainNode, rightOp));
+        if (Expr_toInt(rightOp) < 0){
+            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(rightOp));
         }
-        if (Expr_toInt(MainNode, rightOp) > 0){
-            printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(MainNode, rightOp));
+        if (Expr_toInt(rightOp) > 0){
+            printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(rightOp));
         }
       }
       if (type == LESS_){
-        if (Expr_toInt(MainNode, rightOp) > 1){
-            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(MainNode, rightOp));
+        if (Expr_toInt(rightOp) > 1){
+            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(rightOp));
         }
-        if (Expr_toInt(MainNode, rightOp) < 1){
-            printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(MainNode, rightOp));
+        if (Expr_toInt(rightOp) < 1){
+            printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(rightOp));
         }
       }
       if (type == EQUAL_){
-        if (Expr_toInt(MainNode, rightOp) != 0 &&  Expr_toInt(MainNode, rightOp) != 1){
-              printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(MainNode, rightOp));
+        if (Expr_toInt(rightOp) != 0 &&  Expr_toInt(rightOp) != 1){
+              printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(rightOp));
           }
       }
       if (type == DIFF_){
-        if (Expr_toInt(MainNode, rightOp) != 0 &&  rightOp -> node.Expr -> exprVal.intExpr != 1){
-            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(MainNode, rightOp));
+        if (Expr_toInt(rightOp) != 0 &&  rightOp -> node.Expr -> exprVal.intExpr != 1){
+            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(rightOp));
         }
       }
     }
     if (IsCostant(leftOp) && rightOp_type == CMP){
       if (type == GREAT_){
-        if (Expr_toInt(MainNode, leftOp) > 1){
-            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+        if (Expr_toInt(leftOp) > 1){
+            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(leftOp));
         }
-        if (Expr_toInt(MainNode, leftOp) < 1){
-            printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+        if (Expr_toInt(leftOp) < 1){
+            printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(leftOp));
         }
       }
       if (type == LESS_){
-        if (Expr_toInt(MainNode, leftOp) < 0){
-            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+        if (Expr_toInt(leftOp) < 0){
+            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(leftOp));
         }
-        if (Expr_toInt(MainNode, leftOp) > 0){
-            printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+        if (Expr_toInt(leftOp) > 0){
+            printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(leftOp));
         }
       }
       if (type == EQUAL_){
-        if (Expr_toInt(MainNode, leftOp) != 0 &&  Expr_toInt(MainNode, leftOp) != 1){
-              printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+        if (Expr_toInt(leftOp) != 0 &&  Expr_toInt(leftOp) != 1){
+              printf("%s result of comparison of constant %d with boolean expression is always false.\n", WarnMsg(), Expr_toInt(leftOp));
           }
       }
       if (type == DIFF_){
-        if (Expr_toInt(MainNode, leftOp) != 0 &&  Expr_toInt(MainNode, leftOp) != 1){
-            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(MainNode, leftOp));
+        if (Expr_toInt(leftOp) != 0 &&  Expr_toInt(leftOp) != 1){
+            printf("%s result of comparison of constant %d with boolean expression is always true.\n", WarnMsg(), Expr_toInt(leftOp));
         }
       }
     }
@@ -1617,10 +1616,10 @@ void Check_AsgnConcistency(struct TreeNode * leftOp, struct TreeNode * rightOp){
     // Char assignment concistency
     if (IsCostant(rightOp)){
 
-      enum Type varType = Retrieve_VarType(MainNode, leftOp_identifier);
+      enum Type varType = Retrieve_VarType(leftOp_identifier);
       if (varType == CHAR_ || varType == CHAR_V_){
 
-        int value = Expr_toInt(MainNode, rightOp);
+        int value = Expr_toInt(rightOp);
         Check_CharConcistency(value);
       }
     }
@@ -1646,7 +1645,7 @@ void Check_DeclConcistency(struct TreeNode * variable){
 
         char * identifier = TreeNode_Identifier(variable);
         // check if variable was previously declared
-        if(Check_VarWasDeclared(MainNode, identifier, 0)){
+        if(Check_VarWasDeclared(identifier, 0)){
           printf("%s redefinition of %s.\n", ErrorMsg(), identifier);
           exit(EXIT_FAILURE);
         }
@@ -2181,7 +2180,7 @@ int Return_main (struct TreeNode * node){
 
     Check_NodeType(Expr, node, "Return");
 
-    MainNode -> return_value = Expr_toInt(MainNode, node);
+    MainNode -> return_value = Expr_toInt(node);
     return 1;
   }
   else return 0;
