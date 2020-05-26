@@ -2,8 +2,6 @@ enum ScopeType{
   TREE,
   FUNC
 };
-
-// SymbolTable_Node type
 enum Type{
   INT_,
   CHAR_,
@@ -12,12 +10,10 @@ enum Type{
   INT_P_,
   CHAR_P_
 };
-
 union VarVal{
   int intVal;
   char charVal;
 };
-
 union VarPtr{
   int * intPtr;
   char * charPtr;
@@ -60,7 +56,6 @@ typedef struct ProgramNode {
   char main_flag;
 
 } ProgramNode;
-
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////// SYMBOL TABLE STRUCTURES /////////////////////////////////////

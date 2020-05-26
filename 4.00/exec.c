@@ -836,17 +836,6 @@ int CMP_node_logicValue (struct TreeNode * node){
         logicValue = 1;
       }
     }
-    else if(type == PA){
-
-      value = Expr_toInt(node);
-
-      if(value == 0){
-        logicValue = 0;
-      }
-      else{
-        logicValue = 1;
-      }
-    }
     else if(type == ADD) logicValue = 1;
     else{
       printf("%s unexpected expression type. Type found %u\n", ErrorMsg(), type);

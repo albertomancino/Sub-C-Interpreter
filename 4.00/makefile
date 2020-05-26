@@ -2,7 +2,7 @@ all: compiler
 	clear
 
 compiler: lex.yy.c parser.tab.c parser.tab.h
-	gcc lex.yy.c parser.tab.c -ll -lm main.c exec.c
+	gcc lex.yy.c parser.tab.c -ll -lm main.c exec.c -o sub-C-int
 
 lex.yy.c: lexer.l parser.tab.h
 	flex lexer.l

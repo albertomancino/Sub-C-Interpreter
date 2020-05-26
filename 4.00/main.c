@@ -11,58 +11,70 @@
 #define RESET   "\033[0m"
 FILE *yyin;
 
-
 // avoiding compiler warning
 int yyparse();
 ProgramNode * MainNode;
+int L_DEBUGGING;
+int P_DEBUGGING;
+int TREE_DEBUGGING;
+int PRINT_TREE = 0;
 
 void title();
+void help();
 
 int main (int argc, char *argv[]){
 
-  if (argc != 2){
-    if (argc > 2){
-      printf("\nExceed number of arguments. 1 argument expexted.\nExample: sub-C-Int.out \"[C-FILE-PATH]\"\n");
-      exit(EXIT_FAILURE);
+
+  if (!strcmp("-help", argv[1])) {
+    help();
+    return 0;
+  }
+  else if( access( argv[1], R_OK ) == -1 ) {
+
+    printf("%serror%s: C file not found.\n",RED,RESET);
+    exit(EXIT_FAILURE);
+  }
+  // file opening
+  yyin = fopen(argv[1], "r");
+  if (yyin == NULL){
+    printf("%serror%s: C file reading fails.\n",RED,RESET);
+    exit(EXIT_FAILURE);
+  }
+
+  for (int i = 2; i < argc; i++){
+
+    if      (!strcmp("-p", argv[i]))    P_DEBUGGING = 1;
+    else if (!strcmp("-l", argv[i]))    L_DEBUGGING = 1;
+    else if (!strcmp("-t", argv[i]))    TREE_DEBUGGING = 1;
+    else if (!strcmp("-tree", argv[i])) PRINT_TREE = 1;
+    else if (!strcmp("-help", argv[i])) {
+      help();
+      return 0;
     }
-    else{
-      printf("1 parameter expexted, found %d.\nExample: sub-C-Int.out \"[C-FILE-PATH]\"\n", argc);
-      exit(EXIT_FAILURE);
+    else {
+      printf("%s error:%s unknown argument %s. '-help' for more details.\n\n",RED, RESET, argv[i]);
+      return 1;
     }
   }
-  else{
 
-    if( access( argv[1], R_OK ) == -1 ) {
+  title();
 
-      printf("%serror%s: C file not found.\n",RED,RESET);
-      exit(EXIT_FAILURE);
-    }
-    yyin = fopen(argv[1], "r");
-    if (yyin == NULL){
-      printf("%serror%s: C file reading fails.\n",RED,RESET);
-      exit(EXIT_FAILURE);
-    }
+  MainNode = ProgramNode_Set();
+  int parsing = 0;
+  parsing = yyparse();
 
-    title();
+  fclose(yyin);
 
-    MainNode = ProgramNode_Set();
-    int parsing = 0;
-    parsing = yyparse();
-
-    fclose(yyin);
-
-    if (!parsing){
-      printf("\n\n%sSuccessul parsing%s\n\n\n", GREEN, RESET);
-      printf("Main function return value: %d\n", MainNode -> return_value);
-    }
-
-    //PrintTree(MainNode);
-
-    // warnings counter printer
-    if(MainNode -> warnings > 0){
-      printf("%s%d warnings%s detected.\n", BOLDWHITE, MainNode -> warnings, RESET);
-    }
+  if (!parsing){
+    printf("\n\n%sSuccessul parsing%s\n\n\n", GREEN, RESET);
+    printf("Main function return value: %d\n", MainNode -> return_value);
   }
+
+  if (PRINT_TREE) PrintTree(MainNode);
+
+  // warnings counter printer
+  if(MainNode -> warnings > 0) printf("%s%d warnings%s detected.\n", BOLDWHITE, MainNode -> warnings, RESET);
+
 
   printf("\n ------------------------------------------------------------------------------------------------------------- \n");
   printf(" -----------------------------------------------SUB-C INTERPRETER--------------------------------------------- \n\n\n");
@@ -80,4 +92,16 @@ void title(){
   printf("\n %sVersion No%s: 4.00\n",BOLDWHITE, RESET);
   printf("\n -----------------------------------------------SUB-C INTERPRETER--------------------------------------------- \n");
   printf(" ------------------------------------------------------------------------------------------------------------- \n\n\n");
+}
+
+void help(){
+
+  printf("OVERVIEW: Sub-C Interpreter.\n\n");
+  printf("USAGE: sub-C-int <C FILE PATH> [options]\n\n");
+  printf("OPTIONS:\n\n");
+  printf("-p\t\tPrints a message when the parser finds a production, specifying the name of the production found.\n");
+  printf("-l\t\tPrints a message when the lexer finds a token, specifying the name of the token found.\n");
+  printf("-t\t\tPrints a message when a new node of the AST is created, specifying the type of the node created.\n");
+  printf("-tree\t\tAfter the interpretation phase, prints the AST.\n");
+  printf("\n\n\n");
 }

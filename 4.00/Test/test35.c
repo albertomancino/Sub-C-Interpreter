@@ -1,10 +1,10 @@
 int test(){
 
-  //int x, y, z;
+  int x, y, z;
 
-  //printf("%d\n", x);
-  //printf("%d\n", y);
-  //printf("%d\n", z);
+  printf("%d\n", x);
+  printf("%d\n", y);
+  printf("%d\n", z);
 
 
   return 0;
@@ -12,7 +12,7 @@ int test(){
 
 int main(){
 
-  //test();
+  test();
 
 
   return 0;

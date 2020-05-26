@@ -9,11 +9,6 @@
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
 int treeDepth = 0;
-int P_DEBUGGING;
-int ST_DEBUGGING;
-int TREE_DEBUGGING;
-int TREE_BUILDING;
-
 ProgramNode * MainNode;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +47,7 @@ char * TreeNode_Identifier(struct TreeNode * node){
        return node -> node.Expr -> exprVal.stringExpr;
     else if (expression_type == PI || expression_type == PD || expression_type == IP || expression_type == DP)
        return TreeNode_Identifier(node -> child_list -> first);
-    else if (expression_type == PA || expression_type == ADD) return TreeNode_Identifier(node -> child_list -> first);
+    else if (expression_type == ADD) return TreeNode_Identifier(node -> child_list -> first);
     else{
       printf("%s TreeNode_Identifier - this expression tree node \'%s\' has not an identifier\n", ErrorMsg(), ExprTypeString(node));
       return NULL;
@@ -134,9 +129,6 @@ int Expr_toInt(struct TreeNode * node){
                 break;
       case DP:  value = exec_IncDec(node);
                 break;
-      case PA:  exec_Asgn( node -> child_list -> first);
-                value = Expr_toInt(node -> child_list -> first -> child_list -> first);
-                break;
       case ADD: if (node -> child_list -> first -> node.Expr -> exprType == ID){
                   value = (int)Retrieve_VarPointer(TreeNode_Identifier(node -> child_list -> first), 0);
                 }
@@ -145,7 +137,7 @@ int Expr_toInt(struct TreeNode * node){
                   value = (int)Retrieve_VarPointer(TreeNode_Identifier(node -> child_list -> first), index);
                 }
                 else{
-                  printf("%s Expr_toInt - unexpected expr type. Type found %s.\n", ErrorMsg(), ExprTypeString(node -> child_list -> first -> node.Expr -> exprType));
+                  printf("%s Expr_toInt - unexpected expr type. Type found %s.\n", ErrorMsg(), ExprTypeString(node -> child_list -> first));
                   exit(EXIT_FAILURE);
                 }
                 break;
@@ -409,7 +401,6 @@ struct SymbolTable * SymbolTable_Set(){
   newST -> elements = 0;
   newST -> first = NULL;
   newST -> last = NULL;
-  if (ST_DEBUGGING) printf("SYMBOL TABLE: new ST space allocated\n");
   return newST;
 }
 /*
@@ -477,10 +468,7 @@ int SymbolTable_Add(struct SymbolTable * table, char * identifier, enum Type typ
     return 1;
   }
   // if a variable with the same identifier was already declared in the scope
-  else {
-    if (ST_DEBUGGING) printf("SYMBOL TABLE: FAILED ADDING VARIABLE TO SCOPE, variable %s already exist in this scope\n",identifier);
-    return 0;
-  }
+  else return 0;
 }
 /*
 *   returns -1 if the table is empty
@@ -868,22 +856,12 @@ struct TreeNodeList* TreeNodeList_Set(){
 void TreeNodeList_Add (struct TreeNodeList * list, struct TreeNode * newElem){
   if (newElem != NULL){
     if (list -> elements==0){
-      if (TREE_DEBUGGING){
-      printf("TREE: ");
-      PrintTreeNodeType(newElem -> nodeType, newElem);
-      printf(" new element insert in list\n");
-      }
+
       list -> first = newElem;
       list -> last = newElem;
     }
 
     else{
-      if (TREE_DEBUGGING){
-      printf("%d TREE: ", yylineno);
-      printf("NODE TYPE: %u\n", newElem -> nodeType);
-      PrintTreeNodeType(newElem -> nodeType, newElem);
-      printf(" new element insert in list\n");
-      }
       list -> last -> next = newElem;
       list -> last = newElem;
     }
@@ -919,10 +897,6 @@ void TreeNodeList_Rem (struct TreeNodeList * list){
 
     list -> elements --;
 
-    if (TREE_DEBUGGING){
-      printf("TREE: ");
-      printf(" new element removed from list\n");
-    }
   }
 }
 /*
@@ -1005,7 +979,6 @@ void ScopeStack_Push(struct ScopeStack * stack, struct TreeNode * scope, char ac
   }
   stack -> elements += 1;
 
-  if(ST_DEBUGGING) printf("New scope in the scope stack. Scope in the stacks: %d\n", stack -> elements);
 }
 /*
 * removes the scope at the top of the scope stack
@@ -1016,8 +989,6 @@ void ScopeStack_Pop(struct ScopeStack * stack){
 
   stack -> top = previous_scope;
   stack -> elements -= 1;
-
-  if(ST_DEBUGGING) printf("A scope has been removed from the scope stack. Scope in the stacks: %d\n", stack -> elements);
 
 }
 /*
@@ -1151,27 +1122,22 @@ void FunNodeList_Add (struct TreeNode * declaration){
   // Setting the function scope stack as actual scope stack
   MainNode -> actual_stack = newFunction -> scope_stack;
 
-  if (ST_DEBUGGING) printf("New actual scope stack set.\n");
-
   // Adding function to ProgramNode function list
   // Fist function in the function list
   if (MainNode -> function_list -> elements == 0){
 
-    if (TREE_DEBUGGING)  printf("TREE: %s first function insert in FunNodeList\n",identifier);
     MainNode -> function_list -> first = newFunction;
     MainNode -> function_list -> last = newFunction;
   }
   // Subsequent function in the function list
   else{
 
-    if (TREE_DEBUGGING)  printf("TREE: \"%s\" function insert in FunNodeList\n",identifier);
     MainNode -> function_list -> last -> next = newFunction;
     MainNode -> function_list -> last = newFunction;
 
   }
 
   MainNode -> function_list -> elements ++;
-  if (ST_DEBUGGING) printf("- FunNodeList_Add: A new function Node was created\n");
 }
 /*
 * returns -1 if the list is empty
@@ -1434,7 +1400,7 @@ void PrintExprType (unsigned int type, struct TreeNode* Tnode){
             break;
     case DP:printf("post-decrement");
             break;
-    case PA:printf("parentheses assignment");
+    case ADD:printf("variable memory address");
             break;
   }
 }
@@ -1467,7 +1433,10 @@ char * PrintVarType(enum Type type){
                   break;
     case CHAR_V_: return "'char'";
                   break;
-
+    case INT_P_:  return "'int pointer'";
+                  break;
+    case CHAR_P_: return "'char pointer'";
+                  break;
   }
 }
 void PrintDepth (){
@@ -1496,10 +1465,10 @@ char * VarTypeString(enum Type type){
     return "CHAR";
   }
   else if(type == 2){
-    return "INT VECTOR";
+    return "INT ARRAY";
   }
   else if(type == 3){
-    return "CHAR VECTOR";
+    return "CHAR ARRAY";
   }
   return NULL;
 }
@@ -1607,8 +1576,6 @@ char * ExprTypeString(struct TreeNode * node){
               break;
       case DP:   return "post decrement";
               break;
-      case PA:   return "parentheses assignment";
-              break;
       case ADD:  return "address pointer";
               break;
       default:   return "uknown";
@@ -1698,7 +1665,7 @@ char * PrintExpressionType (enum exprType type){
             break;
     case DP:   return "post decrement";
             break;
-    case PA:   return "parentheses assignment";
+    case ADD:   return "variable memory address";
             break;
   }
 }

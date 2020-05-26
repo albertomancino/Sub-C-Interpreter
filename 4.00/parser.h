@@ -39,8 +39,7 @@ enum exprType {
   PD,             // 14 Pre Decrement
   IP,             // 15 Post Decrement
   DP,             // 16 Post Decrement
-  PA,             // 17 Parathesis Assignment
-  ADD             // 18 Address
+  ADD             // 17 Address
 };
 
 enum cmpType{
