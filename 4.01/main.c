@@ -66,9 +66,15 @@ int main (int argc, char *argv[]){
   fclose(yyin);
 
   if (!parsing){
-    printf("\n\n%sSuccessul parsing%s\n\n\n", GREEN, RESET);
-    printf("Main function return value: %d\n", MainNode -> return_value);
+    printf("\n\n%sSuccessul parsing%s\n", GREEN, RESET);
   }
+
+  if ( MainNode -> main_flag) {
+    printf("function 'main' return value: %d\n", MainNode -> return_value);
+  }
+  else printf("%s function 'main' missing!\n", WarnMsg());
+
+  printf("\n\n\n");
 
   if (PRINT_TREE) PrintTree(MainNode);
 

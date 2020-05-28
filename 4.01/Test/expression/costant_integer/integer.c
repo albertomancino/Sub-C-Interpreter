@@ -8,18 +8,7 @@ int test(){
   1;
   -1;
   +1;
-
-
-  /*
-  int_var;
-  char_var;
-  int_array[1];
-  char_array[1];
-  int_array;
-  char_array;
-  "Hello World";
-  */
-
+  
   return 0;
 }
 

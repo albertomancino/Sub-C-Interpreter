@@ -131,6 +131,7 @@ struct TreeNode * create_ScopeNode                    ();
 struct TreeNode * create_ExprNode                     (enum exprType, long, char *, struct TreeNode *, struct TreeNode *, enum cmpType);
 struct TreeNode * create_MultiAssignment              (struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_MultiDeclaration             (struct TreeNode *, struct TreeNode *, char);
+struct TreeNode * create_MultiDeclarationStatement    (struct TreeNode *);
 struct TreeNode * create_Declaration_AssignmentNode   (struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_AssignmentNode               (struct ProgramNode *, struct TreeNode *, struct TreeNode *);
 struct TreeNode * create_ReturnNode                   (struct TreeNode *);

@@ -426,6 +426,16 @@ int exec_FunctionCall(struct TreeNode * function_call){
 
                 int argument_dimension = Expr_toInt(argument -> node.DclN -> arrayDim);
 
+                // if the argument has a variable as array dimension
+                if (argument -> node.DclN -> arrayDim -> node.Expr -> exprType == ID || argument -> node.DclN -> arrayDim -> node.Expr -> exprType == VEC){
+
+                  MainNode -> actual_stack = new_stack;
+                  argument_node -> arrayDim = argument_dimension;
+                  argument_node -> ignore = 0;
+                  argument -> node.DclN -> ignore = 0;
+                }
+
+
                 // undeclared array dimension
                 // array dimension must be updated
                 if (argument -> node.DclN -> ignore){
@@ -493,7 +503,7 @@ int exec_FunctionCall(struct TreeNode * function_call){
         }
       }
     }
-
+    PrintActualST();
     // setting function stack as actual stack
     MainNode -> actual_stack = new_stack;
 
@@ -905,8 +915,8 @@ void exec_DclN (struct TreeNode * node){
   // setting variable type
   enum Type varType = node -> node.DclN -> type;
   int arrayDim = 0;
-
   if(varType == INT_ || varType == CHAR_){
+    // default dimension for variables
     arrayDim = -1;
   }
   else if(varType == INT_V_ || varType == CHAR_V_){
