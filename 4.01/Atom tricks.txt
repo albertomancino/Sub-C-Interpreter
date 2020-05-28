@@ -1,0 +1,5 @@
+Atom segreto:
+
+premendo cmd + shift + p ho accesso a varie funzionalità
+
+Tra queste c'è il FOLD ALL per chiudere tutte le funzioni!

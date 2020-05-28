@@ -1,0 +1,13 @@
+Function node
+
+Ogni funzione è un nodo collegato al nodo del programma
+
+Ha una symbol table per le variabili all' interno del suo scope
+
+Ha una stringa per il nome della funzione
+
+Ha una lista di statements
+
+typedef struct FunNodeListElem {
+  struct FunNodeListElem* next;
+} FunNodeListElem;
