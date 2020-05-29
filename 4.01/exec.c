@@ -503,7 +503,6 @@ int exec_FunctionCall(struct TreeNode * function_call){
         }
       }
     }
-    PrintActualST();
     // setting function stack as actual stack
     MainNode -> actual_stack = new_stack;
 
