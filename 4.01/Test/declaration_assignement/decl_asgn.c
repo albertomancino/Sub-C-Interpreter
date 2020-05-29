@@ -1,4 +1,4 @@
-int main(){
+int test(){
 
   int  a     = 1000;
   int  b     = +1000;
@@ -23,7 +23,12 @@ int main(){
   char u;
   int v = t = u = ++d;
 
-  --ST
+  return 0;
+}
+
+int main(){
+
+  test();
 
   return 0;
 }

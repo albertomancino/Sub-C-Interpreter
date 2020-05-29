@@ -11,7 +11,7 @@ int test(){
 
   if(&array[1])  printf("OK\n");
   else printf("UNEXPECTED BEHAVIOUR\n");
-  
+
   return 0;
 }
 

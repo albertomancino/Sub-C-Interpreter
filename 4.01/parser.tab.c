@@ -1954,12 +1954,12 @@ yyreduce:
 
   case 68:
 #line 258 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: assignment1 found\n");                   (yyval.node) = create_AssignmentNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));            if(TREE_DEBUGGING) printf("TREE: Assignment node created\n");}
+    {if(P_DEBUGGING==1) printf("BISON: assignment1 found\n");                   (yyval.node) = create_AssignmentNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));            if(TREE_DEBUGGING) printf("TREE: Assignment node created\n");;}
     break;
 
   case 69:
 #line 259 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: assignment2 found\n");                   (yyval.node) = create_AssignmentNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));            if(TREE_DEBUGGING) printf("TREE: Assignment node created\n");}
+    {if(P_DEBUGGING==1) printf("BISON: assignment2 found\n");                   (yyval.node) = create_AssignmentNode(MainNode, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));            if(TREE_DEBUGGING) printf("TREE: Assignment node created\n");;}
     break;
 
   case 70:
@@ -2523,26 +2523,6 @@ void create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parame
     // there's a main function in the file
     MainNode -> main_flag = 1;
   }
-  else{
-    /*
-    // declaration of parameters
-    for (int i = 0; i < parameters -> child_list -> elements; i++){
-
-      struct TreeNode * parameter;
-
-      if (i == 0) parameter = parameters -> child_list -> first;
-      else parameter = parameter -> next;
-
-      if (parameter -> node.DclN -> arrayDim != NULL){ if (!IsCostant(parameter -> node.DclN -> arrayDim)) parameter -> node.DclN -> ignore = 1;}
-      else if (parameter -> node.DclN -> arrayDim == NULL && (parameter -> node.DclN -> type == INT_V_ || parameter -> node.DclN -> type == CHAR_V_)){
-        parameter -> node.DclN -> arrayDim = create_ExprNode(NUM, 0, NULL, NULL, NULL, 0);
-        parameter -> node.DclN -> ignore = 1;
-      }
-
-      exec_DclN(parameter);
-    }*/
-  }
-
 }
 
 ////////////////////  if PRODUCTION  ///////////////////////////////////////////
@@ -2659,10 +2639,7 @@ struct TreeNode * create_Condition(struct TreeNode * expr){
 
     enum exprType type = expr -> node.Expr -> exprType;
 
-    if (type == STR){
-      printf("%s this interpreter does not support pointer to integer conversion.\n", ErrorMsg());
-      exit(EXIT_FAILURE);
-    }
+    if (type == STR) printf("%s address of string will always evaluate to \'true\'.\n", WarnMsg());
     else if (type == ADD){
 
       if (expr -> child_list -> first -> node.Expr -> exprType == ID)
@@ -2933,6 +2910,7 @@ struct TreeNode * create_Declaration_AssignmentNode(struct TreeNode * declaratio
               character = create_ExprNode(C, 0, &string[i], NULL, NULL, 0);
               expr_list = create_Expr_ListNode(expr_list, character);
             }
+
             char end_string = '\0';
             // adding end string character
             character = create_ExprNode(C, 0, &end_string, NULL, NULL, 0);
@@ -3258,10 +3236,13 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
                   // check if dimension is a variable
                 }
                 break;
-      case STR: NewExprNode -> exprVal.stringExpr = (char *)malloc (sizeof(char) *strlen(charExpr)-2); // sottraggo due alla dimensione per rimuovere gli apici
+      case STR: NewExprNode -> exprVal.stringExpr = (char *)malloc (sizeof(char) *strlen(charExpr)-1);
+                // skipping the first and last apex
                 for (int i =1; i<strlen(charExpr)-1; i++){
-                NewExprNode -> exprVal.stringExpr[i-1]=charExpr[i];
+                  NewExprNode -> exprVal.stringExpr[i-1]=charExpr[i];
                 }
+                // adding end string symbol
+                NewExprNode -> exprVal.stringExpr[strlen(charExpr)] = '\0';
                 break;
       case C:   NewExprNode -> exprVal.charExpr = *charExpr;
                 break;
@@ -4035,7 +4016,7 @@ void Check_Printf_FormatString_argument(char string_form, struct TreeNode * expr
       }
     }
   }
-  if (string_form == 'x' || string_form == 'X'){
+  else if (string_form == 'x' || string_form == 'X'){
     if (expr_type != INT_ && expr_type != CHAR_){
       printf("%s format specifies type 'unsigned int' but the argument has type '%s'.\n", WarnMsg(), IdentifierTypeString(expr_type));
     }

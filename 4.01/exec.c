@@ -233,7 +233,7 @@ int exec_FunctionCall(struct TreeNode * function_call){
       }
       // simple character
       else{
-        printed += printf("%c", string[i]);
+        printed += printf("%c",string[i]);
       }
     }
 

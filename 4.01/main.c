@@ -24,68 +24,73 @@ void help();
 
 int main (int argc, char *argv[]){
 
-
-  if (!strcmp("-help", argv[1])) {
-    help();
-    return 0;
-  }
-  else if( access( argv[1], R_OK ) == -1 ) {
-
-    printf("%serror%s: C file not found.\n",RED,RESET);
-    exit(EXIT_FAILURE);
-  }
-  // file opening
-  yyin = fopen(argv[1], "r");
-  if (yyin == NULL){
-    printf("%serror%s: C file reading fails.\n",RED,RESET);
-    exit(EXIT_FAILURE);
-  }
-
-  for (int i = 2; i < argc; i++){
-
-    if      (!strcmp("-p", argv[i]))    P_DEBUGGING = 1;
-    else if (!strcmp("-l", argv[i]))    L_DEBUGGING = 1;
-    else if (!strcmp("-t", argv[i]))    TREE_DEBUGGING = 1;
-    else if (!strcmp("-tree", argv[i])) PRINT_TREE = 1;
-    else if (!strcmp("-help", argv[i])) {
+  if (argc > 1){
+    if (!strcmp("-help", argv[1])) {
       help();
       return 0;
     }
-    else {
-      printf("%s error:%s unknown argument %s. '-help' for more details.\n\n",RED, RESET, argv[i]);
-      return 1;
+    else if( access( argv[1], R_OK ) == -1 ) {
+
+      printf("%serror%s: C file not found.\n",RED,RESET);
+      exit(EXIT_FAILURE);
     }
+    // file opening
+    yyin = fopen(argv[1], "r");
+    if (yyin == NULL){
+      printf("%serror%s: C file reading fails.\n",RED,RESET);
+      exit(EXIT_FAILURE);
+    }
+
+    for (int i = 2; i < argc; i++){
+
+      if      (!strcmp("-p", argv[i]))    P_DEBUGGING = 1;
+      else if (!strcmp("-l", argv[i]))    L_DEBUGGING = 1;
+      else if (!strcmp("-t", argv[i]))    TREE_DEBUGGING = 1;
+      else if (!strcmp("-tree", argv[i])) PRINT_TREE = 1;
+      else if (!strcmp("-help", argv[i])) {
+        help();
+        return 0;
+      }
+      else {
+        printf("%s error:%s unknown argument %s. '-help' for more details.\n\n",RED, RESET, argv[i]);
+        return 1;
+      }
+    }
+
+    title();
+
+    MainNode = ProgramNode_Set();
+    int parsing = 0;
+    parsing = yyparse();
+
+    fclose(yyin);
+
+    if (!parsing){
+      printf("\n\n%sSuccessul parsing%s\n", GREEN, RESET);
+    }
+
+    if ( MainNode -> main_flag) {
+      printf("function 'main' return value: %d\n", MainNode -> return_value);
+    }
+    else printf("%s function 'main' missing!\n", WarnMsg());
+
+    printf("\n\n\n");
+
+    if (PRINT_TREE) PrintTree(MainNode);
+
+    // warnings counter printer
+    if(MainNode -> warnings > 0) printf("%s%d warnings%s detected.\n", BOLDWHITE, MainNode -> warnings, RESET);
+
+
+    printf("\n ------------------------------------------------------------------------------------------------------------- \n");
+    printf(" -----------------------------------------------SUB-C INTERPRETER--------------------------------------------- \n\n\n");
+
+    return 0;
   }
-
-  title();
-
-  MainNode = ProgramNode_Set();
-  int parsing = 0;
-  parsing = yyparse();
-
-  fclose(yyin);
-
-  if (!parsing){
-    printf("\n\n%sSuccessul parsing%s\n", GREEN, RESET);
+  else{
+    printf("%s error:%s at least 1 argument is required. '-help' for more details.\n",RED, RESET);
+    return 1;
   }
-
-  if ( MainNode -> main_flag) {
-    printf("function 'main' return value: %d\n", MainNode -> return_value);
-  }
-  else printf("%s function 'main' missing!\n", WarnMsg());
-
-  printf("\n\n\n");
-
-  if (PRINT_TREE) PrintTree(MainNode);
-
-  // warnings counter printer
-  if(MainNode -> warnings > 0) printf("%s%d warnings%s detected.\n", BOLDWHITE, MainNode -> warnings, RESET);
-
-
-  printf("\n ------------------------------------------------------------------------------------------------------------- \n");
-  printf(" -----------------------------------------------SUB-C INTERPRETER--------------------------------------------- \n\n\n");
-
-  return 0;
 }
 
 void title(){
