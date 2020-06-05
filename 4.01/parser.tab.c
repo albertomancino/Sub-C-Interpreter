@@ -1699,12 +1699,12 @@ yyreduce:
 
   case 13:
 #line 127 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Function found\n"); Function_End();;}
+    {if(P_DEBUGGING==1) printf("BISON: Function found\n"); if(Function_End())YYACCEPT;;}
     break;
 
   case 14:
 #line 128 "parser.y"
-    {if(P_DEBUGGING==1) printf("BISON: Function found\n"); Function_End();;}
+    {if(P_DEBUGGING==1) printf("BISON: Function found\n"); if(Function_End())YYACCEPT;;}
     break;
 
   case 15:
@@ -2371,9 +2371,7 @@ yyreturn:
 
 
   int yyerror (const char *error) {
-    printf ("%s unexpected expression.\n", ErrorMsg());
-    exit(EXIT_FAILURE);
-    return 0;
+    printf ("%s unexpected expression!\n", ErrorMsg());
   }
 
 
@@ -4186,7 +4184,7 @@ void Scope_Activation(){
   }
 }
 
-void Function_End(){
+int Function_End(){
 
   // Return warning
   if (MainNode -> actual_stack -> top -> return_flag == 0)
@@ -4194,6 +4192,9 @@ void Function_End(){
 
   // Resetting global scope as actual scope
   MainNode -> actual_stack = MainNode -> global_scope_stack;
+
+  if (!strcmp("main", MainNode -> function_list -> last -> funName)) return 1;
+  else return 0;
 }
 
 void Update_return_flag(){

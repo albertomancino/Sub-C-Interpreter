@@ -18,8 +18,9 @@ int L_DEBUGGING;
 int P_DEBUGGING;
 int TREE_DEBUGGING;
 int PRINT_TREE = 0;
+int ONLINE = 0;
 
-void title();
+void banner();
 void help();
 
 int main (int argc, char *argv[]){
@@ -29,16 +30,20 @@ int main (int argc, char *argv[]){
       help();
       return 0;
     }
+    else if (!strcmp("-online", argv[1])) ONLINE = 1;
     else if( access( argv[1], R_OK ) == -1 ) {
 
       printf("%serror%s: C file not found.\n",RED,RESET);
       exit(EXIT_FAILURE);
     }
+
     // file opening
-    yyin = fopen(argv[1], "r");
-    if (yyin == NULL){
-      printf("%serror%s: C file reading fails.\n",RED,RESET);
-      exit(EXIT_FAILURE);
+    if (ONLINE == 0){
+      yyin = fopen(argv[1], "r");
+      if (yyin == NULL){
+        printf("%serror%s: C file reading fails.\n",RED,RESET);
+        exit(EXIT_FAILURE);
+      }
     }
 
     for (int i = 2; i < argc; i++){
@@ -57,7 +62,7 @@ int main (int argc, char *argv[]){
       }
     }
 
-    title();
+    banner();
 
     MainNode = ProgramNode_Set();
     int parsing = 0;
@@ -93,7 +98,7 @@ int main (int argc, char *argv[]){
   }
 }
 
-void title(){
+void banner(){
 
   printf("\n\n\n");
   printf("%s   _____         _              _____     _____         _                                 _\n  / ____|       | |            / ____|   |_   _|       | |                               | |\n | (___   _   _ | |__  ______ | |   ______ | |   _ __  | |_  ___  _ __  _ __   _ __  ___ | |_  ___  _ __\n  \\___ \\ | | | || '_ \\|______|| |  |______|| |  | '_ \\ | __|/ _ \\| '__|| '_ \\ | '__|/ _ \\| __|/ _ \\| '__|\n  ____) || |_| || |_) |       | |____     _| |_ | | | || |_|  __/| |   | |_) || |  |  __/| |_|  __/| |\n |_____/  \\__,_||_.__/         \\_____|   |_____||_| |_| \\__|\\___||_|   | .__/ |_|   \\___| \\__|\\___||_|\n                                                                       | |\n                                                                       |_|                               %s\n", BOLDWHITE, RESET);

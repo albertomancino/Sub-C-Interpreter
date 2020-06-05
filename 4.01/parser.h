@@ -179,6 +179,6 @@ int Return_main                                       (struct TreeNode *);
 int Check_Main                                        ();
 char Check_activation                                 ();
 void Scope_Activation                                 ();
-void Function_End                                     ();
+int  Function_End                                     ();
 void Update_return_flag                               ();
 void Propagate_return_flag                            ();

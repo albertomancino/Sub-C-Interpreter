@@ -69,11 +69,11 @@ char        {if(L_DEBUGGING==1) printf("%d FLEX: CHAR TYPE found\n",yylineno);  
 {escape}    {if(L_DEBUGGING==1) printf("%d FLEX: ESCAPE found with value %s\n",yylineno, yytext); copyEscape(); return CH;}
 {character} {if(L_DEBUGGING==1) printf("%d FLEX: CHAR found with value %s\n",yylineno, yytext);  copyChar();   return CH;}
 {ILcomment} {/*InLine Comment*/}
-"--ST"      {if(L_DEBUGGING==1) printf("%d FLEX: SYMBOL TABLE print request found\n",yylineno); PrintActualST();}
-"--LINE"    {if(L_DEBUGGING==1) printf("%d FLEX: LINE print request found\n",yylineno); printf("line: %d\n", yylineno);}
-"--PT"      {if(L_DEBUGGING==1) printf("%d FLEX: TREE print request found\n",yylineno); PrintTree(MainNode);}
-"--SEP"     {printf("--------------------------------------------------------------------------------\n");}
-
+"!ST"      {if(L_DEBUGGING==1) printf("%d FLEX: SYMBOL TABLE print request found\n",yylineno); PrintActualST();}
+"!LINE"    {if(L_DEBUGGING==1) printf("%d FLEX: LINE print request found\n",yylineno); printf("line: %d\n", yylineno);}
+"!PT"      {if(L_DEBUGGING==1) printf("%d FLEX: TREE print request found\n",yylineno); PrintTree(MainNode);}
+"!SEP"     {printf("--------------------------------------------------------------------------------\n");}
+"!STOP"    {return '\0';}
 
 %%
 
