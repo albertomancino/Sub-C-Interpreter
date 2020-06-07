@@ -113,7 +113,7 @@ void banner(){
 void help(){
 
   printf("OVERVIEW: Sub-C Interpreter.\n\n");
-  printf("USAGE: sub-C-int <C FILE PATH> [options]\n\n");
+  printf("USAGE: sub-C-int [C FILE PATH | -online] [options]\n\n");
   printf("OPTIONS:\n\n");
   printf("-p\t\tPrints a message when the parser finds a production, specifying the name of the production found.\n");
   printf("-l\t\tPrints a message when the lexer finds a token, specifying the name of the token found.\n");

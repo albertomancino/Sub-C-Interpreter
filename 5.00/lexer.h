@@ -1,0 +1,9 @@
+char* yytext;
+int yylex();
+int yyerror();
+int yyparse();
+void copyID();
+void copyNUM();
+void copyString();
+void copyChar();
+void copyEscape();

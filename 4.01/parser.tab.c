@@ -2371,7 +2371,7 @@ yyreturn:
 
 
   int yyerror (const char *error) {
-    printf ("%s unexpected expression!\n", ErrorMsg());
+    printf ("%s unexpected expression.\n", ErrorMsg());
   }
 
 
