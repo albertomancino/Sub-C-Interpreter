@@ -29,6 +29,8 @@ struct TreeNode * NullTreeNode;
 struct TreeNode * return_node;
 FILE *yyin;
 
+int END_STATE = 0;
+
 %}
 
 
@@ -37,7 +39,7 @@ FILE *yyin;
   long intValue;
   char * string;
   char charValue;
-  struct TreeNode * node;
+  struct TreeNode *node;
 }
 
 
@@ -97,20 +99,23 @@ FILE *yyin;
 %type <node> variable
 %type <string> syntax_error
 
-%expect 2 // https://www.math.utah.edu/docs/info/bison_8.html
+%expect 1 // https://www.math.utah.edu/docs/info/bison_8.html
 
 
 %%
 
 program
 :
-| global_scope function_list
-| function_list
+| global_scope function_list                                                    {if (END_STATE == 1) YYACCEPT;}
+| function_list                                                                 {if (END_STATE == 1) YYACCEPT;}
 ;
 
 global_scope
-: global_statement                                                              {if(P_DEBUGGING==1) printf("BISON: Global_scope_body 1 found\n");}
-| global_scope global_statement                                                 {if(P_DEBUGGING==1) printf("BISON: Global_scope_body 2 found\n");}
+: global_statement                                                              {if(P_DEBUGGING==1) printf("-> BISON: Global_scope_body 1 found\n");}
+| syntax_error                                                                  {if(P_DEBUGGING==1) printf("-> BISON: Global_scope_body 5 found\n"); printf("%s variable or function declaration expexted.\n%s\n", ErrorMsg(), $1); PrintCursor(error_cursor);}
+| global_statement syntax_error                                                 {if(P_DEBUGGING==1) printf("-> BISON: Global_scope_body 4 found\n"); printf("%s variable or function declaration expexted.\n%s\n", ErrorMsg(), $2); PrintCursor(error_cursor);}
+| global_scope global_statement                                                 {if(P_DEBUGGING==1) printf("-> BISON: Global_scope_body 2 found\n");}
+| global_scope global_statement syntax_error                                    {if(P_DEBUGGING==1) printf("-> BISON: Global_scope_body 3 found\n"); printf("%s variable or function declaration expexted.\n%s\n", ErrorMsg(), $3); PrintCursor(error_cursor);}
 ;
 
 global_statement
@@ -118,7 +123,6 @@ global_statement
 | declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Global declaration and assignment statement found\n");  Add_Node_Tree($1);  exec_DclN_Asgn($1);}
 | multi_dec END_COMMA                                                           {if(P_DEBUGGING==1) printf("BISON: Global multi declaration statement found\n");           Add_Node_Tree($1);  exec_Multi_DclN($1);}
 | END_COMMA                                                                     {if(P_DEBUGGING==1) printf("BISON: Global empty statement found\n");}
-| syntax_error                                                                  {if(P_DEBUGGING==1) printf("BISON: Global statement syntax error\n"); printf("%s variable or function declaration expexted.\n%s\n", ErrorMsg(), $1); PrintCursor(error_cursor);}
 ;
 
 syntax_error
@@ -129,21 +133,21 @@ syntax_error
 function_list
 : function                                                                      {if(P_DEBUGGING==1) printf("BISON: Function list1 found\n");}
 | function_list function                                                        {if(P_DEBUGGING==1) printf("BISON: Function list2 found\n");}
-| function syntax_error                                                         {if(P_DEBUGGING==1) printf("BISON: Function list3 found\n"); printf("%s function declaration expexted.\n%s\n", ErrorMsg(), $2); PrintCursor(error_cursor);}
-| function_list function syntax_error                                           {if(P_DEBUGGING==1) printf("BISON: Function list3 found\n"); printf("%s function declaration expexted.\n%s\n", ErrorMsg(), $3); PrintCursor(error_cursor);}
+| function syntax_error                                                         {if(P_DEBUGGING==1) printf("BISON: Function list3 found\n"); printf("%s variable or function declaration expexted.\n%s\n", ErrorMsg(), $2); PrintCursor(error_cursor); yyerrok; yyclearin;}
+| function_list function syntax_error                                           {if(P_DEBUGGING==1) printf("BISON: Function list3 found\n"); printf("%s variable or function declaration expexted.\n%s\n", ErrorMsg(), $3); PrintCursor(error_cursor); yyerrok; yyclearin;}
 ;
 
 function
-: function_parameters_declaration statement_list CLOSED_BRACKET                 {if(P_DEBUGGING==1) printf("BISON: Function found\n"); Function_End();}
-| function_parameters_declaration CLOSED_BRACKET                                {if(P_DEBUGGING==1) printf("BISON: Function found\n"); Function_End();}
+: function_parameters_declaration statement_list CLOSED_BRACKET                 {if(P_DEBUGGING==1) printf("BISON: Function found\n"); if(Function_End()) END_STATE = 1;}
+| function_parameters_declaration CLOSED_BRACKET                                {if(P_DEBUGGING==1) printf("BISON: Function found\n"); if(Function_End()) END_STATE = 1;}
 ;
 
 function_parameters_declaration
-: function_declaration arguments_declaration OPEN_BRACKET                       {if(P_DEBUGGING==1) printf("BISON: Function parameters declaration found\n"); create_FunctionNode($1,$2);    if(TREE_DEBUGGING) printf("TREE: Function node created\n");}
+: function_declaration arguments_declaration OPEN_BRACKET                       {if(P_DEBUGGING==1) printf("BISON: Function parameters declaration found\n"); FunNodeList_Add ($1); create_FunctionNode($1,$2);    if(TREE_DEBUGGING) printf("TREE: Function node created\n");}
 ;
 
 function_declaration
-: declaration                                                                   {if(P_DEBUGGING==1) printf("BISON: Function declaration found\n"); FunNodeList_Add($1); $$ = $1;}
+: declaration                                                                   {if(P_DEBUGGING==1) printf("BISON: Function declaration found\n"); $$ = $1;}
 ;
 
 arguments_declaration
@@ -168,7 +172,6 @@ start_scope
 statement_list
 : statement_scope
 | statement_list statement_scope
-| syntax_error                                                                  {if(P_DEBUGGING==1) printf("BISON: Function statement syntax error found\n");                       printf("%s unexpected expression.\n%s\n", ErrorMsg(), $1); PrintCursor(error_cursor);}
 ;
 
 statement_scope
@@ -180,15 +183,16 @@ statement_scope
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 statement
 : expr END_COMMA                                                                {if(P_DEBUGGING==1) printf("BISON: Expr statement found\n");                                        Add_Node_Tree($1); Warning_Unused($1); if(Check_activation()) exec_Expression($1);}
-| return_statement                                                              {if(P_DEBUGGING==1) printf("BISON: Return statement found\n");                                      Add_Node_Tree($1); Update_return_flag(); if(Check_activation()) {return_node = exec_return($1); Return_main(return_node);}}
+| return_statement                                                              {if(P_DEBUGGING==1) printf("BISON: Return statement found\n");                                      Add_Node_Tree($1); Update_return_flag(); if(Check_activation()) {return_node = exec_return($1); Return_main(return_node); YYACCEPT;}}
 | declaration END_COMMA                                                         {if(P_DEBUGGING==1) printf("BISON: Declaration statement found\n");                                 Add_Node_Tree($1); exec_DclN($1);}
 | assignment END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Assignment statement found\n");                                  Add_Node_Tree($1); if(Check_activation()) exec_Asgn($1);}
 | multi_dec_statement                                                           {if(P_DEBUGGING==1) printf("BISON: Multi declaration statement found\n");                           Add_Node_Tree($1); if(Check_activation()) exec_Multi_DclN($1);}
 | multi_asgn END_COMMA                                                          {if(P_DEBUGGING==1) printf("BISON: Multi assignment statement found\n");                            Add_Node_Tree($1); if(Check_activation()) exec_Multi_Asgn($1);}
 | declaration_and_assignment END_COMMA                                          {if(P_DEBUGGING==1) printf("BISON: Declaration and assignment statement found\n");                  Add_Node_Tree($1); if(Check_activation()) exec_DclN_Asgn($1);}
-| if_else_statement                                                             {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                                Add_Node_Tree($1); if(Check_activation()) {return_node = exec_ifElse($1, 0); if(Return_main(return_node)) Disable_scope();}}
-| while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                             Add_Node_Tree($1); if(Check_activation()) {return_node = exec_while($1, 0);  if(Return_main(return_node)) Disable_scope();}}
+| if_else_statement                                                             {if(P_DEBUGGING==1) printf("BISON: IF statement statement found\n");                                Add_Node_Tree($1); if(Check_activation()) {return_node = exec_ifElse($1, 0); if(Return_main(return_node)) YYACCEPT;}}
+| while_statement                                                               {if(P_DEBUGGING==1) printf("BISON: WHILE statement statement found\n");                             Add_Node_Tree($1); if(Check_activation()) {return_node = exec_while($1, 0);  if(Return_main(return_node)) YYACCEPT;}}
 | END_COMMA                                                                     {if(P_DEBUGGING==1) printf("BISON: Empty statement found\n");}
+//| error {printf("STATEMENT ERRATO\n"); yyerrok; yyclearin;}
 ;
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -205,8 +209,8 @@ if_else_statement
 
 else_statement
 : else_declaration OPEN_BRACKET statement_list CLOSED_BRACKET                   {if(P_DEBUGGING==1) printf("BISON: Else statement1 found\n");               $$ = create_ElseNode($1);                                if(TREE_DEBUGGING) printf("TREE: Else statement node created\n");}
-| else_declaration OPEN_BRACKET CLOSED_BRACKET                                  {if(P_DEBUGGING==1) printf("BISON: Else statement2 found\n");               $$ = create_ElseNode($1);                                if(TREE_DEBUGGING) printf("TREE: Else statement node created\n");}
-| else_declaration statement                                                    {if(P_DEBUGGING==1) printf("BISON: Else statement3 found\n");               $$ = create_ElseNode($1);                                if(TREE_DEBUGGING) printf("TREE: Else statement node created\n");}
+| else_declaration OPEN_BRACKET CLOSED_BRACKET                                  {if(P_DEBUGGING==1) printf("BISON: Else statement1 found\n");               $$ = create_ElseNode($1);                                if(TREE_DEBUGGING) printf("TREE: Else statement node created\n");}
+| else_declaration statement                                                    {if(P_DEBUGGING==1) printf("BISON: Else statement2 found\n");               $$ = create_ElseNode($1);                                if(TREE_DEBUGGING) printf("TREE: Else statement node created\n");}
 ;
 
 if_statement
@@ -275,8 +279,8 @@ array_inizializer
 ;
 
 expr_list
-: expr                                                                          {if(P_DEBUGGING==1) printf("BISON: Expression1 list found\n");              $$ = create_Expr_ListNode(NULL, $1);                     if(TREE_DEBUGGING) printf("TREE: Expression list node created\n");}
-| expr_list COMMA expr                                                          {if(P_DEBUGGING==1) printf("BISON: Expression2 list found\n");              $$ = create_Expr_ListNode($1, $3);                       if(TREE_DEBUGGING) printf("TREE: Expression list node created\n");}
+: expr                                                                          {if(P_DEBUGGING==1) printf("BISON: expression1 list found\n");              $$ = create_Expr_ListNode(NULL, $1);                     if(TREE_DEBUGGING) printf("TREE: Expression list node created\n");}
+| expr_list COMMA expr                                                          {if(P_DEBUGGING==1) printf("BISON: expression2 list found\n");              $$ = create_Expr_ListNode($1, $3);                       if(TREE_DEBUGGING) printf("TREE: Expression list node created\n");}
 ;
 
 return_statement
@@ -288,7 +292,7 @@ expr
 | NUMBER                                                                        {if(P_DEBUGGING==1) printf("BISON: Integer -> expr\n");                     $$ = create_ExprNode(NUM, $1, NULL, NULL, NULL, 0);      if(TREE_DEBUGGING) printf("TREE: Expr node integer type created\n");}
 | PLUS NUMBER                                                                   {if(P_DEBUGGING==1) printf("BISON: Positive integer -> expr\n");            $$ = create_ExprNode(NUM, $2, NULL, NULL, NULL, 0);      if(TREE_DEBUGGING) printf("TREE: Expr node integer type created\n");}
 | MINUS NUMBER                                                                  {if(P_DEBUGGING==1) printf("BISON: Negative integer -> expr\n");            $$ = create_ExprNode(NUM, -$2, NULL, NULL, NULL, 0);     if(TREE_DEBUGGING) printf("TREE: Expr node integer type created\n");}
-| variable                                                                      {if(P_DEBUGGING==1) printf("BISON: Variable -> expr\n");                    Check_VariableSemantic($1); $$ = $1;                  if(TREE_DEBUGGING) printf("TREE: Expr node variable type created\n");}
+| variable                                                                      {if(P_DEBUGGING==1) printf("BISON: Variable -> expr\n");                    Check_VariableConcistency($1); $$ = $1;                  if(TREE_DEBUGGING) printf("TREE: Expr node variable type created\n");}
 | STRING                                                                        {if(P_DEBUGGING==1) printf("BISON: Expr STRING -> expr\n");                 $$ = create_ExprNode(STR, 0, $1, NULL, NULL, 0);         if(TREE_DEBUGGING) printf("TREE: Expr node string type created\n");}
 | CH                                                                            {if(P_DEBUGGING==1) printf("BISON: Expr character -> expr\n");              $$ = create_ExprNode(C, 0, &$1, NULL, NULL, 0);          if(TREE_DEBUGGING) printf("TREE: Expr node char type created\n");}
 | function_call                                                                 {if(P_DEBUGGING==1) printf("BISON: Expr function_call -> expr\n");          $$ = $1;                                                 if(TREE_DEBUGGING) printf("TREE: Expr node function call type created\n");}
@@ -344,6 +348,13 @@ variable
 
 
 int yyerror (const char * error) {
+  /*printf ("%s syntax error found -> \'%s\'.\n", ErrorMsg(), yytext);
+  int size = strlen(error_string) + strlen(yytext);
+  char * str = (char*)malloc(sizeof(char) * (size + 1));
+  strcpy(str, error_string);
+  strcat(str, " ");
+  strcat(str, yytext);
+  error_string = str;*/
 }
 
 void PrintCursor(int pos){
@@ -365,13 +376,12 @@ struct TreeNode * create_Arg_ListNode(struct TreeNode * arg_list, struct TreeNod
 
     if (arg != NULL){
 
-      if (arg -> node.DclN -> arrayDim != NULL){ printf("3\n"); if (!IsCostant(arg -> node.DclN -> arrayDim)) arg -> node.DclN -> ignore = 1;}
+      if (arg -> node.DclN -> arrayDim != NULL){ if (!IsCostant(arg -> node.DclN -> arrayDim)) arg -> node.DclN -> ignore = 1;}
       else if (arg -> node.DclN -> arrayDim == NULL && (arg -> node.DclN -> type == INT_V_ || arg -> node.DclN -> type == CHAR_V_)){
-
         arg -> node.DclN -> arrayDim = create_ExprNode(NUM, 0, NULL, NULL, NULL, 0);
         arg -> node.DclN -> ignore = 1;
       }
-      // declaring parameter
+
       exec_DclN(arg);
 
       TreeNodeList_Add(newTreeNode -> child_list, arg);
@@ -382,14 +392,12 @@ struct TreeNode * create_Arg_ListNode(struct TreeNode * arg_list, struct TreeNod
   }
   else{
 
-    // if the dimension of the array is not specified or is expressed by variable it must be ignored by the semantic checks
     if (arg -> node.DclN -> arrayDim != NULL){ if (!IsCostant(arg -> node.DclN -> arrayDim)) arg -> node.DclN -> ignore = 1;}
     else if (arg -> node.DclN -> arrayDim == NULL && (arg -> node.DclN -> type == INT_V_ || arg -> node.DclN -> type == CHAR_V_)){
       arg -> node.DclN -> arrayDim = create_ExprNode(NUM, 0, NULL, NULL, NULL, 0);
       arg -> node.DclN -> ignore = 1;
     }
 
-    // declaring parameter
     exec_DclN(arg);
 
     TreeNodeList_Add(arg_list->child_list, arg);
@@ -450,17 +458,17 @@ struct TreeNode * create_Function_CallNode(char * function_id, struct TreeNode *
 
   if (!strcmp(function_id, "printf")){
     struct TreeNode * node = create_ExprNode(FC, 0, "printf", expr_list, NULL, 0);
-    Check_PrintfCallSemantic(node);
+    Check_PrintfCallConcistency(node);
     return node;
   }
   else if(!strcmp(function_id, "scanf")){
     struct TreeNode * node = create_ExprNode(FC, 0, "scanf", expr_list, NULL, 0);
-    Check_ScanfCallSemantic(node);
+    Check_ScanfCallConcistency(node);
     return node;
   }
   else{
     struct TreeNode * node = create_ExprNode(FC, 0, function_id, expr_list, NULL, 0);
-    Check_FunctionCallSemantic(node);
+    Check_FunctionCallConcistency(node);
     return node;
   }
 }
@@ -476,7 +484,7 @@ struct TreeNode * create_ComparisonNode(struct TreeNode * first, struct TreeNode
     else{
 
       struct TreeNode * node = create_ExprNode(CMP, 0, NULL, first, second, cmptype);
-      Check_ComparisonSemantic(node);
+      Check_ComparisonConcistency(node);
 
       return node;
     }
@@ -490,7 +498,6 @@ void create_FunctionNode(struct TreeNode * declaration, struct TreeNode * parame
   Check_NodeType(DclN, declaration, "create_functionNode");
   Check_NodeType(ArgLst, parameters, "create_functionNode");
 
-  // linking parameters to the fun list node
   Add_Node_Tree(parameters);
 
   char * fun_identifier = TreeNode_Identifier(declaration);
@@ -1031,7 +1038,7 @@ struct TreeNode * create_AssignmentNode(struct ProgramNode * prog, struct TreeNo
     // setting node type
     newTreeNode -> nodeType = Asgn;
     // Checking if the assignment is consistent
-    Check_AsgnSemantic(leftOp, rightOp);
+    Check_AsgnConcistency(leftOp, rightOp);
     // Storing left operator
     TreeNodeList_Add(newTreeNode -> child_list, leftOp);
     // Storing right operator
@@ -1045,7 +1052,7 @@ struct TreeNode * create_AssignmentNode(struct ProgramNode * prog, struct TreeNo
     struct TreeNode * leftOp_node = leftOp -> child_list -> last;
 
     // Checking if the assignment is consistent
-    Check_AsgnSemantic(leftOp_node, rightOp);
+    Check_AsgnConcistency(leftOp_node, rightOp);
 
     // Storing right operator
     TreeNodeList_Add(leftOp -> child_list, rightOp);
@@ -1071,7 +1078,7 @@ struct TreeNode * create_DeclarationNode(enum Type type, struct TreeNode * var){
   // setting node type
   newTreeNode -> nodeType = DclN;
   // checking if the declaration is consistent
-  Check_DeclSemantic(var);
+  Check_DeclConcistency(var);
   // memory space allocation for specific Declaration node
   struct DeclarationNode * newDeclaration;
   newDeclaration = (struct DeclarationNode *)malloc(sizeof(struct DeclarationNode));
@@ -1089,21 +1096,13 @@ struct TreeNode * create_DeclarationNode(enum Type type, struct TreeNode * var){
       // variable type
       newDeclaration -> type = INT_V_;
       // array dimension
-      // check if dimension is expressed
-      if (var -> child_list -> elements > 0)
-        newDeclaration -> arrayDim = var -> child_list -> first;
-      else
-        newDeclaration -> arrayDim = NULL;
+      newDeclaration -> arrayDim = var -> child_list -> first;
     }
     else if(type == CHAR_){
       // variable type
       newDeclaration -> type = CHAR_V_;
       // array dimension
-      // check if dimension is expressed
-      if (var -> child_list -> elements > 0)
-        newDeclaration -> arrayDim = var -> child_list -> first;
-      else
-        newDeclaration -> arrayDim = NULL;
+      newDeclaration -> arrayDim = var -> child_list -> first;
     }
     else{
       printf("%s create_DeclarationNode - unexpected variable type.\n", ErrorMsg());
@@ -1140,7 +1139,7 @@ struct TreeNode * create_ReturnNode(struct TreeNode * expr){
     FunNode * function_node = MainNode -> function_list -> last;
     enum Type function_type = function_node -> funType;
 
-    if (function_type == CHAR_) Check_CharSemantic(value);
+    if (function_type == CHAR_) Check_CharConcistency(value);
   }
 
   return newTreeNode;
@@ -1153,7 +1152,7 @@ struct TreeNode * create_IncDecNode(enum exprType type, struct TreeNode * var){
   Check_NodeType(Expr, var, "create_IncDecNode");
 
   if (isAssignable(var)){
-    Check_VariableSemantic(var);
+    Check_VariableConcistency(var);
     return create_ExprNode(type, 0, NULL, var, NULL, 0);
   }
   else{
@@ -1175,7 +1174,7 @@ struct TreeNode * create_OperationNode(struct TreeNode * first, struct TreeNode 
     }
   else{
     struct TreeNode * node = create_ExprNode(type, 0, NULL, first, second, 0);
-    Check_OperationSemantic(node);
+    Check_OperationConcistency(node);
 
     return node;
   }
@@ -1221,6 +1220,7 @@ struct TreeNode * create_ExprNode(enum exprType type, long intExpr, char * charE
                     printf("%s size of array has non-integer type. Type found \'%s\'.\n", ErrorMsg(), IdentifierTypeString(dimension_type));
                     exit(EXIT_FAILURE);
                   }
+                  // check if dimension is a variable
                 }
                 break;
       case STR: NewExprNode -> exprVal.stringExpr = (char *)malloc (sizeof(char) *strlen(charExpr)-1);
@@ -1289,18 +1289,18 @@ struct TreeNode * TreeNodeInitialization (){
     return newTreeNode;
   }
 
-//////////////////  Semantic FUNCTIONS  /////////////////////////////////////
+//////////////////  concistency FUNCTIONS  /////////////////////////////////////
 
-void Check_CharSemantic(int value){
+void Check_CharConcistency(int value){
   if (value < -128 || value > 127){
     printf("%s implicit conversion from 'int' to 'char' changes value from %d to %d\n", WarnMsg(), value, (char)value);
   }
 }
 
-void Check_IdentifierSemantic(struct TreeNode * identifier_node){
+void Check_IdentifierConcistency(struct TreeNode * identifier_node){
 
-  Check_NodeType(Expr, identifier_node, "Check_IdentifierSemantic");
-  Check_ExprType(ID, identifier_node, "Check_IdentifierSemantic");
+  Check_NodeType(Expr, identifier_node, "Check_IdentifierConcistency");
+  Check_ExprType(ID, identifier_node, "Check_IdentifierConcistency");
 
   char * identifier = identifier_node -> node.Expr -> exprVal.stringExpr;
   // check declaration
@@ -1310,10 +1310,10 @@ void Check_IdentifierSemantic(struct TreeNode * identifier_node){
   }
 }
 
-void Check_ArraySemantic(struct TreeNode * array){
+void Check_ArrayConcistency(struct TreeNode * array){
 
-  Check_NodeType(Expr, array, "Check_ArraySemantic");
-  Check_ExprType(VEC, array, "Check_ArraySemantic");
+  Check_NodeType(Expr, array, "Check_ArrayConcistency");
+  Check_ExprType(VEC, array, "Check_ArrayConcistency");
 
   char * array_id = array -> node.Expr -> exprVal.stringExpr;
   // check declaration
@@ -1326,8 +1326,6 @@ void Check_ArraySemantic(struct TreeNode * array){
     // array dimension index missing
     if (array -> child_list -> elements == 0){
       printf("%s expexted expression.\n", ErrorMsg());
-      printf("%s\n", line);
-      PrintCursor(error_cursor);
       exit(EXIT_FAILURE);
     }
     // check array index
@@ -1346,22 +1344,22 @@ void Check_ArraySemantic(struct TreeNode * array){
   }
 }
 
-void Check_VariableSemantic(struct TreeNode * node){
+void Check_VariableConcistency(struct TreeNode * node){
 
-  Check_NodeType(Expr, node, "Check_VariableSemantic");
+  Check_NodeType(Expr, node, "Check_VariableConcistency");
   char * identifier = TreeNode_Identifier(node);
 
-  if (node -> node.Expr -> exprType == ID) Check_IdentifierSemantic(node);
-  else if (node -> node.Expr -> exprType == VEC) Check_ArraySemantic(node);
+  if (node -> node.Expr -> exprType == ID) Check_IdentifierConcistency(node);
+  else if (node -> node.Expr -> exprType == VEC) Check_ArrayConcistency(node);
   else {
-    printf("%s Check_VariableSemantic unexpected expression type. Type found %s.\n", ErrorMsg(), ExprTypeString(node));
+    printf("%s Check_VariableConcistency unexpected expression type. Type found %s.\n", ErrorMsg(), ExprTypeString(node));
     exit(EXIT_FAILURE);
   }
 }
 
-void Check_OperationSemantic (struct TreeNode * operation_node){
+void Check_OperationConcistency (struct TreeNode * operation_node){
 
-  Check_NodeType(Expr, operation_node, "Check_OperationSemantic");
+  Check_NodeType(Expr, operation_node, "Check_OperationConcistency");
   if (operation_node -> nodeType == Expr){
     if(isOperation(operation_node)){
 
@@ -1405,16 +1403,16 @@ void Check_OperationSemantic (struct TreeNode * operation_node){
       }
     }
     else{
-      printf("%s Check_OperationSemantic - incorrect call. SUM/DIF/TIM/DIV/MOD/RND Expr TreeNode expected.\n", ErrorMsg());
+      printf("%s Check_OperationConcistency - incorrect call. SUM/DIF/TIM/DIV/MOD/RND Expr TreeNode expected.\n", ErrorMsg());
       exit(EXIT_FAILURE);
     }
   }
 }
 
-void Check_ComparisonSemantic (struct TreeNode * comparison_node){
+void Check_ComparisonConcistency (struct TreeNode * comparison_node){
 
-  Check_NodeType(Expr, comparison_node, "Check_ComparisonSemantic");
-  Check_ExprType(CMP, comparison_node, "Check_ComparisonSemantic");
+  Check_NodeType(Expr, comparison_node, "Check_ComparisonConcistency");
+  Check_ExprType(CMP, comparison_node, "Check_ComparisonConcistency");
 
   enum cmpType type = comparison_node -> node.Expr -> exprVal.cmpExpr;
 
@@ -1429,7 +1427,7 @@ void Check_ComparisonSemantic (struct TreeNode * comparison_node){
   enum Type left_type = expressionType(leftOp);
   enum Type right_type = expressionType(rightOp);
 
-  // operands must not be pointers
+  // operands must not be
   if ((left_type != INT_ && left_type != CHAR_) || ((right_type != INT_ && right_type != CHAR_))){
     printf("%s Invalid operands. Operations with pointers are not allowed.\n", ErrorMsg());
     exit(EXIT_FAILURE);
@@ -1634,10 +1632,10 @@ void Check_ComparisonSemantic (struct TreeNode * comparison_node){
   }
 }
 
-void Check_AsgnSemantic(struct TreeNode * leftOp, struct TreeNode * rightOp){
+void Check_AsgnConcistency(struct TreeNode * leftOp, struct TreeNode * rightOp){
 
-  Check_NodeType(Expr, leftOp,  "Check_AsgnSemantic");
-  Check_NodeType(Expr, rightOp, "Check_AsgnSemantic");
+  Check_NodeType(Expr, leftOp,  "Check_AsgnConcistency");
+  Check_NodeType(Expr, rightOp, "Check_AsgnConcistency");
 
 
   enum exprType leftOp_type = leftOp -> node.Expr -> exprType;
@@ -1655,14 +1653,14 @@ void Check_AsgnSemantic(struct TreeNode * leftOp, struct TreeNode * rightOp){
 
     char * leftOp_identifier = TreeNode_Identifier(leftOp);
 
-    // Char assignment Semantic
+    // Char assignment concistency
     if (IsCostant(rightOp)){
 
       enum Type varType = Retrieve_VarType(leftOp_identifier);
       if (varType == CHAR_ || varType == CHAR_V_){
 
         int value = Expr_toInt(rightOp);
-        Check_CharSemantic(value);
+        Check_CharConcistency(value);
       }
     }
 
@@ -1679,9 +1677,9 @@ void Check_AsgnSemantic(struct TreeNode * leftOp, struct TreeNode * rightOp){
 /*
 *   flag parameter: 1 for declaration, 0 for declaration and assignment
 */
-void Check_DeclSemantic(struct TreeNode * variable){
+void Check_DeclConcistency(struct TreeNode * variable){
 
-  Check_NodeType(Expr, variable, "Check_DeclSemantic");
+  Check_NodeType(Expr, variable, "Check_DeclConcistency");
 
   if (variable -> node.Expr -> exprType == ID || variable -> node.Expr -> exprType == VEC){
 
@@ -1694,7 +1692,7 @@ void Check_DeclSemantic(struct TreeNode * variable){
 
   }
   else{
-    printf("%s Check_DeclSemantic - unexpected Expr type. Type found: %u.\n", ErrorMsg(), variable -> node.Expr -> exprType);
+    printf("%s Check_DeclConcistency - unexpected Expr type. Type found: %u.\n", ErrorMsg(), variable -> node.Expr -> exprType);
     exit(EXIT_FAILURE);
   }
 }
@@ -1743,10 +1741,10 @@ void Check_ExprType (enum exprType type, struct TreeNode * node, char * function
   }
 }
 
-void Check_FunctionCallSemantic (struct TreeNode * function_call){
+void Check_FunctionCallConcistency (struct TreeNode * function_call){
 
-  Check_NodeType(Expr, function_call, "Check_FunctionCallSemantic");
-  Check_ExprType(FC, function_call, "Check_FunctionCallSemantic");
+  Check_NodeType(Expr, function_call, "Check_FunctionCallConcistency");
+  Check_ExprType(FC, function_call, "Check_FunctionCallConcistency");
 
   char * function_id = function_call -> node.Expr -> exprVal.stringExpr;
 
@@ -1844,10 +1842,10 @@ void CheckParameterAssignment(struct TreeNode * declaration, struct TreeNode * e
   }
 }
 
-void Check_PrintfCallSemantic(struct TreeNode * function_call){
+void Check_PrintfCallConcistency(struct TreeNode * function_call){
 
-  Check_NodeType(Expr, function_call, "Check_PrintfCallSemantic");
-  Check_ExprType(FC, function_call, "Check_PrintfCallSemantic");
+  Check_NodeType(Expr, function_call, "Check_PrintfCallConcistency");
+  Check_ExprType(FC, function_call, "Check_PrintfCallConcistency");
 
   // check number of parameters
   if (function_call -> child_list -> elements == 0){
@@ -1914,10 +1912,10 @@ void Check_Printf_String(char * string, struct TreeNode * arguments){
     printf("%s data argument not used by format string.\n", WarnMsg());
 }
 
-void Check_ScanfCallSemantic(struct TreeNode * function_call){
+void Check_ScanfCallConcistency(struct TreeNode * function_call){
 
-  Check_NodeType(Expr, function_call, "Check_ScanfCallSemantic");
-  Check_ExprType(FC, function_call, "Check_ScanfCallSemantic");
+  Check_NodeType(Expr, function_call, "Check_ScanfCallConcistency");
+  Check_ExprType(FC, function_call, "Check_ScanfCallConcistency");
 
   // check number of parameters
   if (function_call -> child_list -> elements == 0){
@@ -1938,7 +1936,6 @@ void Check_ScanfCallSemantic(struct TreeNode * function_call){
         printf("%s incompatible integer to pointer conversion passing \'%s\' to parameter of type \'char pointer\'.\n", ErrorMsg(), IdentifierTypeString(expression_type));
         exit(EXIT_FAILURE);
       }
-      else  printf("%s format string is not a string literal (potentially insecure).\n", WarnMsg());
     }
     // if is a string, check format strings
     else{
@@ -2098,8 +2095,9 @@ void Check_VariableAddress(struct TreeNode * variable){
       exit(EXIT_FAILURE);
     }
     // check if the variable was declared
-    if (variable -> node.Expr -> exprType == ID) Check_IdentifierSemantic(variable);
-    if (variable -> node.Expr -> exprType == VEC) Check_ArraySemantic(variable);
+    if (variable -> node.Expr -> exprType == ID) Check_IdentifierConcistency(variable);
+    if (variable -> node.Expr -> exprType == VEC) Check_ArrayConcistency(variable);
+
   }
   else{
     printf("%s variable not found.\n", ErrorMsg());
@@ -2166,12 +2164,6 @@ char Check_activation(){
   return actualScope -> active;
 }
 
-void Disable_scope(){
-
-  MainNode -> actual_stack -> top -> active = 0;
-
-}
-
 void Scope_Activation(){
 
   struct Scope * actualScope = MainNode -> actual_stack -> top;
@@ -2186,7 +2178,6 @@ int Function_End(){
   // Return warning
   if (MainNode -> actual_stack -> top -> return_flag == 0)
     printf("%s control may reach end of non-void function.\n", WarnMsg());
-
 
   // Resetting global scope as actual scope
   MainNode -> actual_stack = MainNode -> global_scope_stack;
@@ -2225,7 +2216,7 @@ int Return_main (struct TreeNode * node){
 
   if (node != NULL) {
 
-    Check_NodeType(Expr, node, "Return_main");
+    Check_NodeType(Expr, node, "Return");
 
     MainNode -> return_value = Expr_toInt(node);
     return 1;

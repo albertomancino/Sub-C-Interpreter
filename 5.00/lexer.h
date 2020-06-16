@@ -7,3 +7,5 @@ void copyNUM();
 void copyString();
 void copyChar();
 void copyEscape();
+void copyLine();
+void resetLine();

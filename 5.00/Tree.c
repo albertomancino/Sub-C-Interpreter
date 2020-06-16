@@ -5,8 +5,9 @@
 #include "exec.h"
 #include "lexer.h"
 
-#define ANSI_COLOR_RED     "\x1b[31m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
+#define RED     "\x1b[31m"
+#define RESET   "\x1b[0m"
+#define BOLDWHITE   "\033[1m\033[37m"
 
 int treeDepth = 0;
 ProgramNode * MainNode;
@@ -18,13 +19,13 @@ ProgramNode * MainNode;
 char * ErrorMsg (){
 
   char * error = (char*)malloc(sizeof("\n\aline:10000000000\x1b[31merror:\x1b[0m ") + sizeof(char)*100);
-  sprintf (error, "\n%cline %d: %serror:%s",7,yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
+  sprintf (error, "\n%c%sline %d:%s error:%s",7,BOLDWHITE,yylineno,RED,RESET);
   return error;
 }
 char * WarnMsg (){
 
   char * error = (char*)malloc(sizeof("\nline:10000000000\x1b[31merror:\x1b[0m ") + sizeof(char)*100);
-  sprintf (error, "\nline %d: %swarning:%s",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
+  sprintf (error, "\n%sline %d:%s warning:%s",BOLDWHITE,yylineno,RED,RESET);
   MainNode -> warnings++;
   return error;
 }
@@ -913,15 +914,15 @@ struct TreeNode * TreeNodeList_IndexSearch (struct TreeNodeList * list, int inde
     return node;
   }
   else if ( index < 0){
-    printf("line:%d %serror%s - TreeNodeList_IndexSearch: list index is before the beginning of the list. List contains %d elements.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET, list -> elements);
+    printf("line:%d %serror%s - TreeNodeList_IndexSearch: list index is before the beginning of the list. List contains %d elements.\n",yylineno,RED,RESET, list -> elements);
     exit(EXIT_FAILURE);
   }
   else if ( index >= list -> elements){
-    printf("line:%d %serror%s - TreeNodeList_IndexSearch: list index is past the end of the list. List contains %d elements.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET, list -> elements);
+    printf("line:%d %serror%s - TreeNodeList_IndexSearch: list index is past the end of the list. List contains %d elements.\n",yylineno,RED,RESET, list -> elements);
     exit(EXIT_FAILURE);
   }
   else{
-    printf("line:%d %serror%s - TreeNodeList_IndexSearch: unexpected index value.\n",yylineno,ANSI_COLOR_RED,ANSI_COLOR_RESET);
+    printf("line:%d %serror%s - TreeNodeList_IndexSearch: unexpected index value.\n",yylineno,RED,RESET);
     exit(EXIT_FAILURE);
   }
 
@@ -1134,7 +1135,6 @@ void FunNodeList_Add (struct TreeNode * declaration){
 
     MainNode -> function_list -> last -> next = newFunction;
     MainNode -> function_list -> last = newFunction;
-
   }
 
   MainNode -> function_list -> elements ++;

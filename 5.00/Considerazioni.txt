@@ -20,6 +20,14 @@ V Out of bounds array in assignment dovrebbe essere in expression
 
 
 
+DA FARE
+
+nella gestione degli errori un if crea il suo scope. Questo da un problema se si verifica un errore dopo il token if.
+Per questo motivo devo spostare la creazione dello scope successivamente.
+Per farlo devo far si che gli statement vengano accumulati nella statement list e poi aggiunti allo scope dell'if successivamente.
+Non solo, questo deve valere sempre.
+
+
 MAIN SENZA RETURN
 
 From http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2009/n2960.pdf:

@@ -5,9 +5,10 @@
 #include "Tree.h"
 #include "parser.h"
 #include "exec.h"
-#define ANSI_COLOR_RED     "\x1b[31m"
-#define ANSI_BOLD_YELLOW   "\033[1m\033[33m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
+#define RED     "\x1b[31m"
+#define YELLOW  "\033[1m\033[33m"
+#define RESET   "\x1b[0m"
+#define GREEN   "\033[32m"
 
 ProgramNode * MainNode;
 
@@ -37,6 +38,8 @@ int exec_FunctionCall(struct TreeNode * function_call){
 
   if (!strcmp(function_call -> node.Expr -> exprVal.stringExpr, "printf")){
 
+    printf("%s", GREEN);
+
     struct TreeNode * arguments = function_call -> child_list -> first;
     struct TreeNode * firstArgument = arguments -> child_list -> first;
     char * string;
@@ -49,6 +52,8 @@ int exec_FunctionCall(struct TreeNode * function_call){
         Check_Printf_String(string, arguments);
       }
       else{
+        printf("%s", RESET);
+        
         printf("%s exec_FunctionCall - unexpected variable. Char pointer expected.\n", ErrorMsg());
         exit(EXIT_FAILURE);
       }
@@ -237,9 +242,12 @@ int exec_FunctionCall(struct TreeNode * function_call){
       }
     }
 
+    printf("%s", RESET);
     return printed;
   }
   if (!strcmp(function_call -> node.Expr -> exprVal.stringExpr, "scanf")){
+
+    printf("%s", GREEN);
 
     struct TreeNode * arguments = function_call -> child_list -> first;
     struct TreeNode * firstArgument = arguments -> child_list -> first;
@@ -253,6 +261,8 @@ int exec_FunctionCall(struct TreeNode * function_call){
         Check_Scanf_String(string, arguments);
       }
       else{
+        printf("%s", RESET);
+
         printf("%s exec_FunctionCall - unexpected variable. Char pointer expected.\n", ErrorMsg());
         exit(EXIT_FAILURE);
       }
@@ -338,6 +348,7 @@ int exec_FunctionCall(struct TreeNode * function_call){
         }
       }
     }
+    printf("%s", RESET);
 
     return scanned;
   }

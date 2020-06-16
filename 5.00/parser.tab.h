@@ -114,12 +114,12 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 33 "parser.y"
+#line 36 "parser.y"
 {
-    long intValue;
-    char * string;
-    char charValue;
-    struct TreeNode *node;
+  long intValue;
+  char * string;
+  char charValue;
+  struct TreeNode * node;
 }
 /* Line 1529 of yacc.c.  */
 #line 126 "parser.tab.h"

@@ -12,11 +12,13 @@ int ERR;
 struct TreeNode * NullTreeNode;
 struct ErrorList * Errors;
 struct ProgramNode * MainNode;
+char * line = "";
+int cursor;
 
 %}
 %x comment
 
-space       [ \t\n]
+space       [ \t]
 ws          {space}+
 digit       [0-9]
 number      {digit}+
@@ -28,52 +30,55 @@ character   \'(\\.|[^'\\])*\'
 ILcomment   \/\/(.)*\n
 
 %%
-"/*"              BEGIN (comment);
-<comment>[^*\n]*
-<comment>"*"+[^*\/n]*
-<comment>\n
-<comment>"*"+"/"  BEGIN(INITIAL);
-"return"    {                                                                                 return RETURN;}
-"if"        {if(L_DEBUGGING==1) printf("%d FLEX: IF found\n",yylineno);                       return IF;}
-"else"      {if(L_DEBUGGING==1) printf("%d FLEX: ELSE found\n",yylineno);                     return ELSE;}
-"while"     {if(L_DEBUGGING==1) printf("%d FLEX: WHILE found\n",yylineno);                    return WHILE;}
-"*"         {if(L_DEBUGGING==1) printf("%d FLEX: STAR found\n",yylineno);                     return STAR;}
-{ws}        {/*DO NOTHING*/}
-int         {if(L_DEBUGGING==1) printf("%d FLEX: INT found\n",yylineno);                      return INT;}
-char        {if(L_DEBUGGING==1) printf("%d FLEX: CHAR TYPE found\n",yylineno);                return CHAR;}
-{number}    {if(L_DEBUGGING==1) printf("%d FLEX: NUMBER found with value: %s\n",yylineno,yytext); copyNUM();  return NUMBER;}
-{id}        {if(L_DEBUGGING==1) printf("%d FLEX: ID found with name: %s\n",yylineno,yytext);  copyID();   return IDENTIFIER;}
-";"         {if(L_DEBUGGING==1) printf("%d FLEX: END_COMMA found\n",yylineno);                return END_COMMA;}
-","         {if(L_DEBUGGING==1) printf("%d FLEX: COMMA found\n",yylineno);                    return COMMA;}
-"("         {if(L_DEBUGGING==1) printf("%d FLEX: OPEN_ROUND found\n",yylineno);               return OPEN_ROUND;}
-")"         {if(L_DEBUGGING==1) printf("%d FLEX: CLOSED_ROUND found\n",yylineno);             return CLOSED_ROUND;}
-"["         {if(L_DEBUGGING==1) printf("%d FLEX: OPEN_SQUARED found\n",yylineno);             return OPEN_SQUARED;}
-"]"         {if(L_DEBUGGING==1) printf("%d FLEX: CLOSED_SQUARED found\n",yylineno);           return CLOSED_SQUARED;}
-"{"         {if(L_DEBUGGING==1) printf("%d FLEX: OPEN_BRACKET found\n",yylineno);             return OPEN_BRACKET;}
-"}"         {if(L_DEBUGGING==1) printf("%d FLEX: CLOSED_BRACKET found\n",yylineno);           return CLOSED_BRACKET;}
-"="         {if(L_DEBUGGING==1) printf("%d FLEX: EQUAL found\n",yylineno);                    return EQUAL;}
-"+"         {if(L_DEBUGGING==1) printf("%d FLEX: PLUS found\n",yylineno);                     return PLUS;}
-"-"         {if(L_DEBUGGING==1) printf("%d FLEX: MINUS found\n",yylineno);                    return MINUS;}
-"/"         {if(L_DEBUGGING==1) printf("%d FLEX: DIVIDE found\n",yylineno);                   return DIVIDE;}
-"%"         {if(L_DEBUGGING==1) printf("%d FLEX: MODULO found\n",yylineno);                   return MODULO;}
-">"         {if(L_DEBUGGING==1) printf("%d FLEX: GREATER THEN found\n",yylineno);             return GT;}
-"<"         {if(L_DEBUGGING==1) printf("%d FLEX: LESS THEN found\n",yylineno);                return LT;}
-"=="        {if(L_DEBUGGING==1) printf("%d FLEX: EQUAL TO found\n",yylineno);                 return ET;}
-"!="        {if(L_DEBUGGING==1) printf("%d FLEX: DIFFERENT FROM found\n",yylineno);           return DF;}
-"&&"        {if(L_DEBUGGING==1) printf("%d FLEX: LOGIC AND found\n",yylineno);                return AND;}
-"||"        {if(L_DEBUGGING==1) printf("%d FLEX: LOGIC OR found\n",yylineno);                 return OR;}
-"++"        {if(L_DEBUGGING==1) printf("%d FLEX: INCREMENT found\n",yylineno);                return INC;}
-"--"        {if(L_DEBUGGING==1) printf("%d FLEX: DECREMENT OR found\n",yylineno);             return DEC;}
-"&"         {if(L_DEBUGGING==1) printf("%d FLEX: AMPERSAND found\n",yylineno);                return AMP;}
-{string}    {if(L_DEBUGGING==1) printf("%d FLEX: STRING found with value %s\n",yylineno,yytext);  copyString(); return STRING;}
-{escape}    {if(L_DEBUGGING==1) printf("%d FLEX: ESCAPE found with value %s\n",yylineno, yytext); copyEscape(); return CH;}
-{character} {if(L_DEBUGGING==1) printf("%d FLEX: CHAR found with value %s\n",yylineno, yytext);  copyChar();   return CH;}
+"/*"                  {BEGIN (comment); copyLine();}
+<comment>[^*\n]*      copyLine();
+<comment>"*"+[^*\/n]* copyLine();
+<comment>\n           copyLine();
+<comment>"*"+"/"      {BEGIN(INITIAL); copyLine();}
+
+"return"    {                                                                                                    copyLine(); return RETURN;}
+"if"        {if(L_DEBUGGING==1) printf("%d FLEX: IF found\n",yylineno);                                          copyLine(); return IF;}
+"else"      {if(L_DEBUGGING==1) printf("%d FLEX: ELSE found\n",yylineno);                                        copyLine(); return ELSE;}
+"while"     {if(L_DEBUGGING==1) printf("%d FLEX: WHILE found\n",yylineno);                                       copyLine(); return WHILE;}
+"*"         {if(L_DEBUGGING==1) printf("%d FLEX: STAR found\n",yylineno);                                        copyLine(); return STAR;}
+{ws}        {copyLine();}
+"\n"        {resetLine();}
+int         {if(L_DEBUGGING==1) printf("%d FLEX: INT found\n",yylineno);                                         copyLine(); return INT;}
+char        {if(L_DEBUGGING==1) printf("%d FLEX: CHAR TYPE found\n",yylineno);                                   copyLine(); return CHAR;}
+{number}    {if(L_DEBUGGING==1) printf("%d FLEX: NUMBER found with value: %s\n",yylineno,yytext); copyNUM();     copyLine(); return NUMBER;}
+{id}        {if(L_DEBUGGING==1) printf("%d FLEX: ID found with name: %s\n",yylineno,yytext);  copyID();          copyLine(); return IDENTIFIER;}
+";"         {if(L_DEBUGGING==1) printf("%d FLEX: END_COMMA found\n",yylineno);                                   copyLine(); return END_COMMA;}
+","         {if(L_DEBUGGING==1) printf("%d FLEX: COMMA found\n",yylineno);                                       copyLine(); return COMMA;}
+"("         {if(L_DEBUGGING==1) printf("%d FLEX: OPEN_ROUND found\n",yylineno);                                  copyLine(); return OPEN_ROUND;}
+")"         {if(L_DEBUGGING==1) printf("%d FLEX: CLOSED_ROUND found\n",yylineno);                                copyLine(); return CLOSED_ROUND;}
+"["         {if(L_DEBUGGING==1) printf("%d FLEX: OPEN_SQUARED found\n",yylineno);                                copyLine(); return OPEN_SQUARED;}
+"]"         {if(L_DEBUGGING==1) printf("%d FLEX: CLOSED_SQUARED found\n",yylineno);                              copyLine(); return CLOSED_SQUARED;}
+"{"         {if(L_DEBUGGING==1) printf("%d FLEX: OPEN_BRACKET found\n",yylineno);                                copyLine(); return OPEN_BRACKET;  }
+"}"         {if(L_DEBUGGING==1) printf("%d FLEX: CLOSED_BRACKET found\n",yylineno);                              copyLine(); return CLOSED_BRACKET;}
+"="         {if(L_DEBUGGING==1) printf("%d FLEX: EQUAL found\n",yylineno);                                       copyLine(); return EQUAL;}
+"+"         {if(L_DEBUGGING==1) printf("%d FLEX: PLUS found\n",yylineno);                                        copyLine(); return PLUS;}
+"-"         {if(L_DEBUGGING==1) printf("%d FLEX: MINUS found\n",yylineno);                                       copyLine(); return MINUS;}
+"/"         {if(L_DEBUGGING==1) printf("%d FLEX: DIVIDE found\n",yylineno);                                      copyLine(); return DIVIDE;}
+"%"         {if(L_DEBUGGING==1) printf("%d FLEX: MODULO found\n",yylineno);                                      copyLine(); return MODULO;}
+">"         {if(L_DEBUGGING==1) printf("%d FLEX: GREATER THEN found\n",yylineno);                                copyLine(); return GT;}
+"<"         {if(L_DEBUGGING==1) printf("%d FLEX: LESS THEN found\n",yylineno);                                   copyLine(); return LT;}
+"=="        {if(L_DEBUGGING==1) printf("%d FLEX: EQUAL TO found\n",yylineno);                                    copyLine(); return ET;}
+"!="        {if(L_DEBUGGING==1) printf("%d FLEX: DIFFERENT FROM found\n",yylineno);                              copyLine(); return DF;}
+"&&"        {if(L_DEBUGGING==1) printf("%d FLEX: LOGIC AND found\n",yylineno);                                   copyLine(); return AND;}
+"||"        {if(L_DEBUGGING==1) printf("%d FLEX: LOGIC OR found\n",yylineno);                                    copyLine(); return OR;}
+"++"        {if(L_DEBUGGING==1) printf("%d FLEX: INCREMENT found\n",yylineno);                                   copyLine(); return INC;}
+"--"        {if(L_DEBUGGING==1) printf("%d FLEX: DECREMENT OR found\n",yylineno);                                copyLine(); return DEC;}
+"&"         {if(L_DEBUGGING==1) printf("%d FLEX: AMPERSAND found\n",yylineno);                                   copyLine(); return AMP;}
+{string}    {if(L_DEBUGGING==1) printf("%d FLEX: STRING found with value %s\n",yylineno,yytext);  copyString();  copyLine(); return STRING;}
+{escape}    {if(L_DEBUGGING==1) printf("%d FLEX: ESCAPE found with value %s\n",yylineno, yytext); copyEscape();  copyLine(); return CH;}
+{character} {if(L_DEBUGGING==1) printf("%d FLEX: CHAR found with value %s\n",yylineno, yytext);   copyChar();     copyLine(); return CH;}
 {ILcomment} {/*InLine Comment*/}
-"!ST"      {if(L_DEBUGGING==1) printf("%d FLEX: SYMBOL TABLE print request found\n",yylineno); PrintActualST();}
-"!LINE"    {if(L_DEBUGGING==1) printf("%d FLEX: LINE print request found\n",yylineno); printf("line: %d\n", yylineno);}
-"!TREE"    {if(L_DEBUGGING==1) printf("%d FLEX: TREE print request found\n",yylineno); PrintTree(MainNode);}
-"!SEP"     {printf("--------------------------------------------------------------------------------\n");}
-"!STOP"    {return '\0';}
+"!ST"       {if(L_DEBUGGING==1) printf("%d FLEX: SYMBOL TABLE print request found\n",yylineno); PrintActualST();}
+"!LINE"     {if(L_DEBUGGING==1) printf("%d FLEX: LINE print request found\n",yylineno); printf("line: %d\n", yylineno);}
+"!TREE"     {if(L_DEBUGGING==1) printf("%d FLEX: TREE print request found\n",yylineno); PrintTree(MainNode);}
+"!SEP"      {printf("--------------------------------------------------------------------------------\n");}
+"!STOP"     {return '\0';}
+.           {printf("%s unknown symbol found: \'%s\'.\n", WarnMsg(), yytext); copyLine();}
 
 %%
 
@@ -110,12 +115,13 @@ void copyString(){
   else{
     firstAllocation ++;
   }
-  yylval.string = (char*)malloc(sizeof(char)*strlen(yytext));
+  /*yylval.string = (char*)malloc(sizeof(char)*strlen(yytext));
   if ( yylval.string == NULL ){
     printf("%s copyString - out of memory.\n", ErrorMsg());
     exit(EXIT_FAILURE);
   }
-  strcpy(yylval.string, yytext);
+  strcpy(yylval.string, yytext);*/
+  yylval.string = yytext;
 }
 
 void copyChar(){
@@ -139,7 +145,7 @@ void copyNUM(){
   if(strlen(yytext)<12){
     value = atof(yytext);
 
-    if (value < 2147483649){
+    if (value <  2147483649){
       yylval.intValue = value;
     }
     else{
@@ -249,4 +255,33 @@ void copyEscape(){
 
     yylval.charValue = value;
   }
+}
+
+void copyLine(){
+
+  if (!strcmp(line, "")){
+    line = (char*)malloc(sizeof(char) * (yyleng + 1));
+    strcpy(line, yytext);
+  }
+  else{
+    char* str = (char*)malloc(sizeof(char) * (yyleng + strlen(line) + 1));
+    strcpy(str, line);
+    strcat(str, yytext);
+    free(line);
+    line = str;
+  }
+
+  cursor += yyleng;
+}
+
+void resetLine(){
+
+  if (strcmp(line, "")){
+
+    free(line);
+    line = (char *)malloc(sizeof(char)*(strlen("") + 1));
+    strcpy(line, "");
+  }
+
+  cursor = 0;
 }

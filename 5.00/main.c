@@ -75,7 +75,7 @@ int main (int argc, char *argv[]){
     }
 
     if ( MainNode -> main_flag) {
-      printf("function 'main' return value: %d\n", MainNode -> return_value);
+      printf("\nFunction 'main' return value: %d\n", MainNode -> return_value);
     }
     else printf("%s function 'main' missing!\n", WarnMsg());
 
@@ -105,7 +105,7 @@ void banner(){
 
   printf("\n\n %sDesigned and made by%s: Alberto Carlo Maria Mancino\n", BOLD_YELLOW, RESET);
   printf(" %sSupervised by%s: Prof. Ing. Floriano Scioscia\n", BOLD_YELLOW, RESET);
-  printf("\n %sVersion No%s: 4.00\n",BOLDWHITE, RESET);
+  printf("\n %sVersion No%s: 5.00\n",BOLDWHITE, RESET);
   printf("\n -----------------------------------------------SUB-C INTERPRETER--------------------------------------------- \n");
   printf(" ------------------------------------------------------------------------------------------------------------- \n\n\n");
 }

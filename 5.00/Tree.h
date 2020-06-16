@@ -45,9 +45,9 @@ typedef struct FunNodeList { // List of function nodes
 typedef struct ProgramNode {
 
   FunNodeList * function_list;
+  struct TreeNode * global_scope;
   struct ScopeStack * actual_stack;
   struct ScopeStack * global_scope_stack;
-  struct TreeNode * global_scope;
   // warnings counter
   int warnings;
   // value returned by 'main' function

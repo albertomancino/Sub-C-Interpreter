@@ -1,3 +1,5 @@
+int global;
+
 int print_array(int array[], int dimension){
 
   printf("[ %d ", array[0]);
