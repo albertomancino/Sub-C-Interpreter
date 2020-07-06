@@ -1,5 +1,0 @@
-WORKOUT
-
-- Voglio poter eseguire uno statement declaration
-- Manca la possibilità di specificare la dimensione di un vettore perchè devo interpretare i nodi expr
-- Mi occupo dell'interpretazione dei nodi expr

@@ -1,8 +1,0 @@
-CONSIDERAZIONI
-Deve essere possibile dichiarare
-
-varibili INT es: int a;
-variabili CHAR es: char hello;
-vettori INT e CHAR es: int vector[10] char vector[10];
-
-i vettori possono avere solo lunghezza costante.
